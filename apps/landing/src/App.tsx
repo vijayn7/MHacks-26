@@ -7,36 +7,37 @@ type Shard = {
   style: CSSProperties;
 };
 
+/** Wide, edge-hugging fragments — landscape hero plane, not a tall stack. */
 const shards: Shard[] = [
   {
     id: "s1",
     tone: "b",
     depth: 0.55,
     style: {
-      top: "7%",
-      left: "3%",
-      width: "19%",
-      height: "24%",
-      ["--clip" as string]: "8% 0, 100% 12%, 88% 100%, 0 78%",
-      ["--rot" as string]: "-8deg",
-      ["--dx" as string]: "18px",
-      ["--dy" as string]: "-22px",
-      ["--dur" as string]: "17s",
+      top: "6%",
+      left: "-2%",
+      width: "28%",
+      height: "34%",
+      ["--clip" as string]: "4% 8%, 100% 0, 92% 100%, 0 78%",
+      ["--rot" as string]: "-6deg",
+      ["--dx" as string]: "22px",
+      ["--dy" as string]: "-14px",
+      ["--dur" as string]: "18s",
     },
   },
   {
     id: "s2",
     tone: "e",
-    depth: 0.25,
+    depth: 0.2,
     style: {
-      top: "5%",
-      left: "30%",
-      width: "13%",
-      height: "15%",
-      ["--clip" as string]: "0 18%, 100% 0, 92% 100%, 10% 88%",
-      ["--rot" as string]: "6deg",
-      ["--dx" as string]: "-14px",
-      ["--dy" as string]: "18px",
+      top: "4%",
+      left: "32%",
+      width: "22%",
+      height: "18%",
+      ["--clip" as string]: "0 22%, 100% 0, 96% 100%, 6% 82%",
+      ["--rot" as string]: "3deg",
+      ["--dx" as string]: "-12px",
+      ["--dy" as string]: "16px",
       ["--dur" as string]: "21s",
       ["--delay" as string]: "-3s",
     },
@@ -46,14 +47,14 @@ const shards: Shard[] = [
     tone: "c",
     depth: 0.7,
     style: {
-      top: "4%",
-      right: "5%",
-      width: "21%",
-      height: "26%",
-      ["--clip" as string]: "12% 0, 100% 8%, 90% 100%, 0 86%",
-      ["--rot" as string]: "10deg",
-      ["--dx" as string]: "-20px",
-      ["--dy" as string]: "14px",
+      top: "2%",
+      right: "-3%",
+      width: "30%",
+      height: "38%",
+      ["--clip" as string]: "10% 0, 100% 12%, 88% 100%, 0 72%",
+      ["--rot" as string]: "7deg",
+      ["--dx" as string]: "-24px",
+      ["--dy" as string]: "12px",
       ["--dur" as string]: "19s",
       ["--delay" as string]: "-6s",
     },
@@ -61,16 +62,16 @@ const shards: Shard[] = [
   {
     id: "s4",
     tone: "a",
-    depth: 0.45,
+    depth: 0.4,
     style: {
-      top: "30%",
-      left: "1%",
-      width: "15%",
-      height: "30%",
-      ["--clip" as string]: "0 0, 100% 10%, 86% 100%, 4% 92%",
-      ["--rot" as string]: "-14deg",
-      ["--dx" as string]: "10px",
-      ["--dy" as string]: "24px",
+      top: "42%",
+      left: "-4%",
+      width: "24%",
+      height: "36%",
+      ["--clip" as string]: "0 0, 100% 14%, 84% 100%, 2% 88%",
+      ["--rot" as string]: "-10deg",
+      ["--dx" as string]: "14px",
+      ["--dy" as string]: "20px",
       ["--dur" as string]: "23s",
       ["--delay" as string]: "-2s",
     },
@@ -80,14 +81,14 @@ const shards: Shard[] = [
     tone: "d",
     depth: 0.35,
     style: {
-      top: "24%",
-      right: "2%",
-      width: "16%",
-      height: "22%",
-      ["--clip" as string]: "0 14%, 100% 0, 100% 82%, 8% 100%",
-      ["--rot" as string]: "4deg",
-      ["--dx" as string]: "-16px",
-      ["--dy" as string]: "-12px",
+      top: "36%",
+      right: "-2%",
+      width: "26%",
+      height: "32%",
+      ["--clip" as string]: "0 16%, 100% 0, 100% 86%, 8% 100%",
+      ["--rot" as string]: "5deg",
+      ["--dx" as string]: "-18px",
+      ["--dy" as string]: "-10px",
       ["--dur" as string]: "16s",
       ["--delay" as string]: "-8s",
     },
@@ -97,14 +98,14 @@ const shards: Shard[] = [
     tone: "b",
     depth: 0.6,
     style: {
-      bottom: "10%",
-      left: "5%",
-      width: "20%",
-      height: "22%",
-      ["--clip" as string]: "6% 0, 100% 16%, 94% 100%, 0 84%",
-      ["--rot" as string]: "8deg",
-      ["--dx" as string]: "22px",
-      ["--dy" as string]: "-10px",
+      bottom: "-4%",
+      left: "8%",
+      width: "32%",
+      height: "28%",
+      ["--clip" as string]: "6% 0, 100% 18%, 94% 100%, 0 76%",
+      ["--rot" as string]: "4deg",
+      ["--dx" as string]: "20px",
+      ["--dy" as string]: "-16px",
       ["--dur" as string]: "20s",
       ["--delay" as string]: "-4s",
     },
@@ -112,17 +113,17 @@ const shards: Shard[] = [
   {
     id: "s7",
     tone: "e",
-    depth: 0.3,
+    depth: 0.25,
     style: {
-      bottom: "7%",
-      left: "32%",
-      width: "12%",
+      bottom: "8%",
+      left: "42%",
+      width: "18%",
       height: "16%",
-      ["--clip" as string]: "0 8%, 100% 0, 90% 100%, 12% 92%",
-      ["--rot" as string]: "-5deg",
-      ["--dx" as string]: "-8px",
-      ["--dy" as string]: "16px",
-      ["--dur" as string]: "18s",
+      ["--clip" as string]: "0 10%, 100% 0, 90% 100%, 8% 88%",
+      ["--rot" as string]: "-4deg",
+      ["--dx" as string]: "-10px",
+      ["--dy" as string]: "14px",
+      ["--dur" as string]: "17s",
       ["--delay" as string]: "-9s",
     },
   },
@@ -131,50 +132,16 @@ const shards: Shard[] = [
     tone: "c",
     depth: 0.65,
     style: {
-      bottom: "6%",
-      right: "6%",
-      width: "23%",
-      height: "26%",
-      ["--clip" as string]: "10% 0, 100% 14%, 88% 100%, 0 80%",
-      ["--rot" as string]: "-11deg",
+      bottom: "-6%",
+      right: "4%",
+      width: "34%",
+      height: "30%",
+      ["--clip" as string]: "8% 0, 100% 16%, 90% 100%, 0 74%",
+      ["--rot" as string]: "-8deg",
       ["--dx" as string]: "12px",
-      ["--dy" as string]: "-20px",
+      ["--dy" as string]: "-18px",
       ["--dur" as string]: "22s",
       ["--delay" as string]: "-1s",
-    },
-  },
-  {
-    id: "s9",
-    tone: "a",
-    depth: 0.4,
-    style: {
-      top: "52%",
-      right: "20%",
-      width: "11%",
-      height: "14%",
-      ["--clip" as string]: "0 0, 100% 20%, 80% 100%, 10% 90%",
-      ["--rot" as string]: "16deg",
-      ["--dx" as string]: "-18px",
-      ["--dy" as string]: "8px",
-      ["--dur" as string]: "15s",
-      ["--delay" as string]: "-5s",
-    },
-  },
-  {
-    id: "s10",
-    tone: "d",
-    depth: 0.2,
-    style: {
-      top: "58%",
-      left: "20%",
-      width: "11%",
-      height: "12%",
-      ["--clip" as string]: "14% 0, 100% 8%, 86% 100%, 0 78%",
-      ["--rot" as string]: "-18deg",
-      ["--dx" as string]: "14px",
-      ["--dy" as string]: "12px",
-      ["--dur" as string]: "14s",
-      ["--delay" as string]: "-7s",
     },
   },
 ];
@@ -184,21 +151,21 @@ export function App() {
 
   function onFieldPointerMove(event: PointerEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 28;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 20;
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 36;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 18;
     setParallax({ x, y });
   }
 
   return (
     <main
-      className="field"
+      className="hero-page"
       aria-label="SecondThought"
       onPointerMove={onFieldPointerMove}
       onPointerLeave={() => setParallax({ x: 0, y: 0 })}
     >
-      <div className="field__atmosphere" aria-hidden="true" />
+      <div className="hero-page__atmosphere" aria-hidden="true" />
       <div
-        className="field__shards"
+        className="hero-page__field"
         aria-hidden="true"
         style={
           {
@@ -222,19 +189,12 @@ export function App() {
         ))}
       </div>
 
-      <div className="field__center">
-        <div className="hero">
-            <h1 className="brand">
-              <span>Second</span>
-              <span>Thought</span>
-            </h1>
-          <p className="headline">A pause between impulse and purchase.</p>
-          <div className="cta-row">
-            <a className="btn btn--primary" href="#download" id="download">
-              Download extension
-            </a>
-          </div>
-        </div>
+      <div className="hero-page__copy">
+        <h1 className="brand">SecondThought</h1>
+        <p className="headline">A pause between impulse and purchase.</p>
+        <a className="btn" href="#download" id="download">
+          Download extension
+        </a>
       </div>
     </main>
   );

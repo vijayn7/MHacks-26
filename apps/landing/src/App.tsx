@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type CSSProperties } from "react";
+import { useEffect, useId, useState, type CSSProperties, type PointerEvent } from "react";
 
 type PanelId =
   | "home"
@@ -17,6 +17,7 @@ type Shard = {
   panel: PanelId;
   label: string;
   tone: "a" | "b" | "c" | "d" | "e";
+  depth: number;
   style: CSSProperties;
 };
 
@@ -26,6 +27,7 @@ const shards: Shard[] = [
     panel: "pause",
     label: "Pause",
     tone: "b",
+    depth: 0.55,
     style: {
       top: "8%",
       left: "4%",
@@ -44,6 +46,7 @@ const shards: Shard[] = [
     panel: "score",
     label: "Score",
     tone: "e",
+    depth: 0.25,
     style: {
       top: "6%",
       left: "28%",
@@ -62,6 +65,7 @@ const shards: Shard[] = [
     panel: "friend",
     label: "Friend",
     tone: "c",
+    depth: 0.7,
     style: {
       top: "4%",
       right: "6%",
@@ -80,6 +84,7 @@ const shards: Shard[] = [
     panel: "extension",
     label: "Extension",
     tone: "a",
+    depth: 0.45,
     style: {
       top: "28%",
       left: "2%",
@@ -98,6 +103,7 @@ const shards: Shard[] = [
     panel: "social",
     label: "Social",
     tone: "d",
+    depth: 0.35,
     style: {
       top: "22%",
       right: "3%",
@@ -116,6 +122,7 @@ const shards: Shard[] = [
     panel: "onboard",
     label: "Rules",
     tone: "b",
+    depth: 0.6,
     style: {
       bottom: "16%",
       left: "6%",
@@ -134,6 +141,7 @@ const shards: Shard[] = [
     panel: "home",
     label: "Home",
     tone: "e",
+    depth: 0.3,
     style: {
       bottom: "10%",
       left: "30%",
@@ -152,6 +160,7 @@ const shards: Shard[] = [
     panel: "leader",
     label: "Leaders",
     tone: "c",
+    depth: 0.65,
     style: {
       bottom: "8%",
       right: "8%",
@@ -170,6 +179,7 @@ const shards: Shard[] = [
     panel: "profile",
     label: "Profile",
     tone: "a",
+    depth: 0.4,
     style: {
       top: "48%",
       right: "18%",
@@ -188,6 +198,7 @@ const shards: Shard[] = [
     panel: "pause",
     label: "Hold",
     tone: "d",
+    depth: 0.2,
     style: {
       top: "58%",
       left: "18%",
@@ -259,6 +270,7 @@ const panels: Record<
 
 export function App() {
   const [open, setOpen] = useState<PanelId>(null);
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const titleId = useId();
 
   useEffect(() => {
@@ -270,11 +282,31 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  function onFieldPointerMove(event: PointerEvent<HTMLElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 28;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 20;
+    setParallax({ x, y });
+  }
+
   return (
     <>
-      <header className="field" aria-label="SecondThought hero">
+      <header
+        className="field"
+        aria-label="SecondThought hero"
+        onPointerMove={onFieldPointerMove}
+        onPointerLeave={() => setParallax({ x: 0, y: 0 })}
+      >
         <div className="field__atmosphere" aria-hidden="true" />
-        <div className="field__shards" aria-hidden={false}>
+        <div
+          className="field__shards"
+          style={
+            {
+              ["--px" as string]: `${parallax.x}px`,
+              ["--py" as string]: `${parallax.y}px`,
+            } as CSSProperties
+          }
+        >
           {shards.map((shard) => (
             <button
               key={shard.id}
@@ -282,7 +314,12 @@ export function App() {
               className="shard"
               data-tone={shard.tone}
               data-label={shard.label}
-              style={shard.style}
+              style={
+                {
+                  ...shard.style,
+                  ["--depth" as string]: String(shard.depth),
+                } as CSSProperties
+              }
               aria-label={`Open ${shard.label} details`}
               onClick={() => setOpen(shard.panel)}
             />
@@ -291,7 +328,9 @@ export function App() {
 
         <div className="field__center">
           <div className="hero">
-            <h1 className="brand">SecondThought</h1>
+            <h1 className="brand">
+              <span>SecondThought</span>
+            </h1>
             <p className="headline">A pause between impulse and purchase.</p>
             <p className="lede">
               The Chrome extension that holds checkout when your own rules say so — then lets you drop it,
@@ -565,12 +604,7 @@ export function App() {
             if (event.target === event.currentTarget) setOpen(null);
           }}
         >
-          <div
-            className="panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
+          <div className="panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
             <div className="panel__top">
               <div>
                 <p className="panel__kicker">{panels[open].kicker}</p>

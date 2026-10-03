@@ -203,8 +203,14 @@ a {
     display: none;
   }
 
+  .hero-page__copy {
+    padding-inline: 0.75rem;
+  }
+
+  /* Keep one landscape line; shrink to fit narrow widths */
   .brand {
-    font-size: clamp(1.7rem, 10.5vw, 2.6rem);
+    font-size: min(8.4vw, 2.05rem);
+    letter-spacing: -0.06em;
   }
 
   .headline {

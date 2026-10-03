@@ -98,8 +98,8 @@ The extension does not scrape the page beyond those attributes and the checkout 
 
 ## What this demo does not do
 
-- It does not parse a new rule in the store or the extension. Gemini parsing lives on the API, and checkout matching stays the seeded $40 rule.
-- It does not sync a confirmed rule from Neon into the extension yet.
+- The store can parse and confirm a rule through the API. Checkout matching uses the confirmed rule, and the extension falls back to the seeded $40 rule when the API is unavailable. Gemini is not called at checkout.
+- The extension loads `GET /rules/active` on startup and falls back to the seeded $40 rule when that request fails.
 - It does not run a 15-minute countdown.
 - It does not load outside `http://localhost:5173/*`.
 

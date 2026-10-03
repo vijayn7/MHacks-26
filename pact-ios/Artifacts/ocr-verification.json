@@ -1,0 +1,20 @@
+[
+  {
+    "actual" : "browsing",
+    "passed" : "true",
+    "sample" : "Product",
+    "expected" : "browsing"
+  },
+  {
+    "passed" : "true",
+    "actual" : "checkout",
+    "expected" : "checkout",
+    "sample" : "Checkout"
+  },
+  {
+    "actual" : "confirmation",
+    "passed" : "true",
+    "sample" : "Receipt",
+    "expected" : "confirmation"
+  }
+]

@@ -1,0 +1,401 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		301AD048D16ABF5F0FE719CB /* App/MonitorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA520B0BF4ECEF7C98A3AB4 /* App/MonitorModel.swift */; };
+		3737B909250D69FC3DD33D64 /* Core/ScreenAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */; };
+		4816A229B3C553EFD9B67B4F /* BroadcastExtension/SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 725D44A6351245058DEEFA7E /* BroadcastExtension/SampleHandler.swift */; };
+		4EC61369E0C37D5E7329FBB0 /* App/PactApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4240854335FF54A336B99C9B /* App/PactApp.swift */; };
+		546E701FACE61DA91DF80CCF /* App/DemoScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2BF26C530FF33D59A85ED3 /* App/DemoScreen.swift */; };
+		712F6CAEDA89548EBCF65EEF /* Platform/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */; };
+		9D755A0AB2B6B541766874AE /* Core/MonitoringSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */; };
+		9E8CCC2BCBA5E6CBB3C19449 /* Core/ScreenAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */; };
+		ADA28C11116A5E6ADA58C583 /* Platform/LocalTextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */; };
+		B09781EB6D9A36E6B4D07268 /* Core/MonitoringSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */; };
+		B5F85D4A93760778CFE63B24 /* Platform/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */; };
+		C3D8C1CED03B9614CAFA5AE2 /* PactBroadcast.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DC176E8AF1DD34CEAAE8410B /* PactBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C6A2110B41ED537B57B99C72 /* App/BroadcastPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62291316236B415BDE83A3E /* App/BroadcastPicker.swift */; };
+		F6733CCA6FAAD72A3CB0BF8B /* Platform/LocalTextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */; };
+		FFCCFDE4FC90D22AB898CA55 /* App/PactViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0456B7B0D70A06454F37B69C /* App/PactViews.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 244210E48437B6556980A702 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26F1DE33979D065BA8D86789;
+			remoteInfo = PactBroadcast;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8A1EED22144C3F04485A69EE /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C3D8C1CED03B9614CAFA5AE2 /* PactBroadcast.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0456B7B0D70A06454F37B69C /* App/PactViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PactViews.swift; sourceTree = "<group>"; };
+		0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/MonitoringSnapshot.swift; sourceTree = "<group>"; };
+		4240854335FF54A336B99C9B /* App/PactApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PactApp.swift; sourceTree = "<group>"; };
+		425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform/SessionStore.swift; sourceTree = "<group>"; };
+		67E53CB456DB430A3959AC70 /* App/Pact.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = App/Pact.entitlements; sourceTree = "<group>"; };
+		681C948D238C526E9E3424E0 /* Pact.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Pact.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BA520B0BF4ECEF7C98A3AB4 /* App/MonitorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/MonitorModel.swift; sourceTree = "<group>"; };
+		725D44A6351245058DEEFA7E /* BroadcastExtension/SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastExtension/SampleHandler.swift; sourceTree = "<group>"; };
+		8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform/LocalTextReader.swift; sourceTree = "<group>"; };
+		A62291316236B415BDE83A3E /* App/BroadcastPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/BroadcastPicker.swift; sourceTree = "<group>"; };
+		B7462D20A398660B97A02FDF /* BroadcastExtension/Broadcast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BroadcastExtension/Broadcast.entitlements; sourceTree = "<group>"; };
+		BD2BF26C530FF33D59A85ED3 /* App/DemoScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/DemoScreen.swift; sourceTree = "<group>"; };
+		BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
+		BF20BDD5C9007BE81C29DD66 /* BroadcastExtension/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BroadcastExtension/Info.plist; sourceTree = "<group>"; };
+		C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/ScreenAnalysis.swift; sourceTree = "<group>"; };
+		DC176E8AF1DD34CEAAE8410B /* PactBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = PactBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E22F3D16C14E3CEA667F4ECC /* App/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = App/Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7A4C2DC8FCA657188648E999 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2000662670FC0462E6D472F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A3E27B8CA818264D75C8D81 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				681C948D238C526E9E3424E0 /* Pact.app */,
+				DC176E8AF1DD34CEAAE8410B /* PactBroadcast.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		19F479106CE8C3BA8C106518 = {
+			isa = PBXGroup;
+			children = (
+				A62291316236B415BDE83A3E /* App/BroadcastPicker.swift */,
+				BD2BF26C530FF33D59A85ED3 /* App/DemoScreen.swift */,
+				E22F3D16C14E3CEA667F4ECC /* App/Info.plist */,
+				6BA520B0BF4ECEF7C98A3AB4 /* App/MonitorModel.swift */,
+				67E53CB456DB430A3959AC70 /* App/Pact.entitlements */,
+				4240854335FF54A336B99C9B /* App/PactApp.swift */,
+				0456B7B0D70A06454F37B69C /* App/PactViews.swift */,
+				B7462D20A398660B97A02FDF /* BroadcastExtension/Broadcast.entitlements */,
+				BF20BDD5C9007BE81C29DD66 /* BroadcastExtension/Info.plist */,
+				725D44A6351245058DEEFA7E /* BroadcastExtension/SampleHandler.swift */,
+				BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */,
+				0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */,
+				C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */,
+				8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */,
+				425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */,
+				0A3E27B8CA818264D75C8D81 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		26F1DE33979D065BA8D86789 /* PactBroadcast */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 78C3946580C419ADCFAA768D /* Build configuration list for PBXNativeTarget "PactBroadcast" */;
+			buildPhases = (
+				E0150B6BB50B701D6F7D6619 /* Sources */,
+				C2000662670FC0462E6D472F /* Frameworks */,
+				503F45234EB4666AB550389A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PactBroadcast;
+			productName = PactBroadcast;
+			productReference = DC176E8AF1DD34CEAAE8410B /* PactBroadcast.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A172CEDCAE47474B615C54D5 /* Pact */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7BCEE9A04133D8A2FED7D4D3 /* Build configuration list for PBXNativeTarget "Pact" */;
+			buildPhases = (
+				AFF87A50730392B6633ACECE /* Sources */,
+				7A4C2DC8FCA657188648E999 /* Frameworks */,
+				F9187E824FE171A6F0EFAE28 /* Resources */,
+				8A1EED22144C3F04485A69EE /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F26350DAFE3F19AABFD69AC4 /* PBXTargetDependency */,
+			);
+			name = Pact;
+			productName = Pact;
+			productReference = 681C948D238C526E9E3424E0 /* Pact.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					26F1DE33979D065BA8D86789 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
+					};
+					A172CEDCAE47474B615C54D5 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = B4E10CAA9C5E22150B71559C /* Build configuration list for PBXProject "Pact" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 19F479106CE8C3BA8C106518;
+			productRefGroup = 0A3E27B8CA818264D75C8D81 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A172CEDCAE47474B615C54D5 /* Pact */,
+				26F1DE33979D065BA8D86789 /* PactBroadcast */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		503F45234EB4666AB550389A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F9187E824FE171A6F0EFAE28 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AFF87A50730392B6633ACECE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6A2110B41ED537B57B99C72 /* App/BroadcastPicker.swift in Sources */,
+				546E701FACE61DA91DF80CCF /* App/DemoScreen.swift in Sources */,
+				301AD048D16ABF5F0FE719CB /* App/MonitorModel.swift in Sources */,
+				4EC61369E0C37D5E7329FBB0 /* App/PactApp.swift in Sources */,
+				FFCCFDE4FC90D22AB898CA55 /* App/PactViews.swift in Sources */,
+				9D755A0AB2B6B541766874AE /* Core/MonitoringSnapshot.swift in Sources */,
+				3737B909250D69FC3DD33D64 /* Core/ScreenAnalysis.swift in Sources */,
+				ADA28C11116A5E6ADA58C583 /* Platform/LocalTextReader.swift in Sources */,
+				B5F85D4A93760778CFE63B24 /* Platform/SessionStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0150B6BB50B701D6F7D6619 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4816A229B3C553EFD9B67B4F /* BroadcastExtension/SampleHandler.swift in Sources */,
+				B09781EB6D9A36E6B4D07268 /* Core/MonitoringSnapshot.swift in Sources */,
+				9E8CCC2BCBA5E6CBB3C19449 /* Core/ScreenAnalysis.swift in Sources */,
+				F6733CCA6FAAD72A3CB0BF8B /* Platform/LocalTextReader.swift in Sources */,
+				712F6CAEDA89548EBCF65EEF /* Platform/SessionStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F26350DAFE3F19AABFD69AC4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26F1DE33979D065BA8D86789 /* PactBroadcast */;
+			targetProxy = 1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0B0C687DF8B6B8DC790B519C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		13729D2EB40827337DD26FD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = BroadcastExtension/Broadcast.entitlements;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				INFOPLIST_FILE = BroadcastExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PACT_BUNDLE_PREFIX).Broadcast";
+				PRODUCT_NAME = PactBroadcast;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		1B104479E55E37CF8A63CBDF /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Pact.entitlements;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = G57PR786X7;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PACT_BUNDLE_PREFIX)";
+				PRODUCT_NAME = Pact;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		73EBF6644258C120893E685D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B00CCDD09424E369308D67FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Pact.entitlements;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = G57PR786X7;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PACT_BUNDLE_PREFIX)";
+				PRODUCT_NAME = Pact;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E86F2AF7E837C7CFEB7216E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = BroadcastExtension/Broadcast.entitlements;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = BroadcastExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PACT_BUNDLE_PREFIX).Broadcast";
+				PRODUCT_NAME = PactBroadcast;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		78C3946580C419ADCFAA768D /* Build configuration list for PBXNativeTarget "PactBroadcast" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E86F2AF7E837C7CFEB7216E6 /* Debug */,
+				13729D2EB40827337DD26FD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7BCEE9A04133D8A2FED7D4D3 /* Build configuration list for PBXNativeTarget "Pact" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B00CCDD09424E369308D67FA /* Debug */,
+				1B104479E55E37CF8A63CBDF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B4E10CAA9C5E22150B71559C /* Build configuration list for PBXProject "Pact" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73EBF6644258C120893E685D /* Debug */,
+				0B0C687DF8B6B8DC790B519C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}

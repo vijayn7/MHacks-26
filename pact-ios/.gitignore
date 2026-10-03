@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Artifacts/*
+!Artifacts/monitor.png
+!Artifacts/recognition.png
+!Artifacts/ocr-verification.json

@@ -39,7 +39,7 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - Do not capture or upload full-screen recordings or raw page contents.
 - Do not share item name, price, merchant, screenshot, rule text, or biometric information with friends by default. Let the shopper choose what the friend sees.
 - Store only event metadata needed by the product, such as event type, timestamps, rule ID, and outcome. Persist item details or URLs only when the shopper chooses “Save for later.”
-- No payment, transfer, or bank action is part of the current product. The extension delays a supported checkout flow; it does not control the shopper’s bank account.
+- The extension delays a supported checkout flow and does not control the shopper’s bank account. The demo store records the purchase on a Nessie checking account and does not charge a real card.
 - No mental-health diagnosis or treatment claim. The product enforces user-authored preferences and offers social support.
 - Browser support is limited to tested checkout flows. The mock store is the reliable demo path.
 
@@ -53,6 +53,8 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - **Photon:** `spectrum-ts` connected through Spectrum Cloud with the iMessage provider. Send and receive the friend check-in in a real iMessage thread. Keep credentials server-side.
 - **Spacetime, optional:** Live shared pause status only if a shopper-facing screen visibly updates during the demo. Keep its role distinct from Neon’s durable records.
 - **Apple Watch, optional later:** Manual pause/check-in affordance first. Do not make biometric interpretation a dependency.
+
+Capital One Nessie is on the demo path as the mock purchase record for this store. After the pause, Place order posts the whey product at $64.99. The API writes that purchase to the SecondThought Demo checking account, and the page shows the Nessie purchase id and the balance afterward. This does not charge a real card.
 
 ## State model for the event log
 
@@ -89,7 +91,6 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 ### Not in current plan
 
 - **SpaceXAI:** No Grok Imagine or Voice integration in this version. Cursor use alone does not make Grok a product integration.
-- **Capital One Nessie:** No bank purchase or transfer is needed for the current action.
 - **Fetch.ai:** The primary workflow is a browser extension, not an ASI:One conversation.
 - **Presage / Apple Watch biometrics:** Not part of the core build.
 - **Relay, ElevenLabs, FREE-WILi, Solana, Tiger Data:** No load-bearing role in the current demo.

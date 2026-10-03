@@ -4,9 +4,9 @@ Knowledge dump for the hackathon checkout path. The iOS app lives in `pact-ios` 
 
 ## What the demo shows
 
-One product is already in the cart. Checkout matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend. A friend reply of YES places the order. NO drops it.
+The page is a product for Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry, priced at $64.99. Buy Now opens shipping and payment on the same page. Place order matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend. A friend reply of YES, or Continue, runs Place order again. That second click records the purchase in Capital One Nessie. NO drops it.
 
-The store does not charge a card.
+The store does not charge a real card. Shipping and payment are hardcoded demo values.
 
 ## Run it
 
@@ -30,12 +30,15 @@ Load the extension in Chrome, not in the Cursor browser. Open `chrome://extensio
 
 Package: `@secondthought/store`. Vite and React. Entry is `apps/store/src/App.tsx`.
 
-The page is one seeded cart, not a catalog.
+The page is one product, not a catalog.
 
-- Product: Wool coat, $64.
-- Cart aside: `data-name="Wool coat"` and `data-total="64"`. The extension reads those attributes. Do not remove them.
-- Checkout button: `id="checkout"`. Its click sets local React state and replaces the cart with “Order placed.”
-- There is no payment, no other product, and no add-to-cart step.
+- Product: Optimum Nutrition Gold Standard 100% Whey Protein Powder, Delicious Strawberry, 5 lb. Price is hardcoded at $64.99.
+- Buy box: `data-name="Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry"` and `data-total="64.99"`. The extension reads those attributes. Do not remove them.
+- Buy Now reveals the checkout panel. It is not the pay control.
+- Shipping fields are prefilled and disabled: Demo Shopper, 1600 Pennsylvania Ave NW, Washington, DC 20500. Payment is a disabled field labeled Nessie checking account. There is no card number.
+- Place order is `button#checkout`. Its handler reads those data attributes and `POST`s `{ name, amount }` to `http://localhost:8787/purchase`. Amount is 64.99.
+- On success the page is replaced with “Order placed.”, the Nessie purchase id, and the checking-account balance. On an API error the message stays on the panel and the order stays unplaced.
+- The API reads `NESSIE_API_KEY` from the environment. Without it, `POST /purchase` returns `503` `{ "error": "missing_key" }`. With it, the API records the purchase at `https://api.nessieisreal.com` and returns `{ purchaseId, balance, amount, name }`. `purchaseId` is Nessie’s `objectCreated._id`.
 
 The price is over $40 on purpose so the seeded rule matches.
 
@@ -57,7 +60,7 @@ On a click of `#checkout`, in the capture phase:
 
 - Read `[data-total]`. If it is missing or below 40, let the click through.
 - Otherwise `preventDefault` and `stopPropagation`, then open the pause card.
-- A one-shot `bypass` flag lets the next checkout click through. Continue, and a friend YES, set that flag and click `#checkout` again so the store shows “Order placed.”
+- A one-shot `bypass` flag lets the next checkout click through. Continue, and a friend YES, set that flag and click `#checkout` again. That second click is the one that runs the store purchase handler and creates the Nessie purchase.
 
 The card text says the pause is 15 minutes. Nothing in the extension starts a timer.
 
@@ -67,7 +70,7 @@ The card text says the pause is 15 minutes. Nothing in the extension starts a ti
 | --- | --- | --- |
 | Drop | “Purchase dropped” | Cart stays. Event `purchase_dropped`. |
 | Save for later | “Saved for later” | Cart stays. Event `saved_for_later`. Also `POST /saved` with the product name and amount. |
-| Continue | Store shows “Order placed.” | Event `continue_selected`. Checkout click is allowed through. |
+| Continue | Store posts the purchase, then shows the Nessie purchase id and balance. | Event `continue_selected`. The second checkout click is allowed through. |
 | Ask my friend | “Text sent. Waiting for YES or NO.” | `POST /check-in`. The card stays open and polls. |
 
 Opening the card posts `pause_started`. Event posts go to `POST http://localhost:8787/events` and ignore network failure, so the pause still works if the API is down. Save and the friend check-in do need the API.
@@ -90,9 +93,9 @@ Drop, Save for later, and Continue stay available while the card waits. A friend
 
 Keep these stable or the pause will miss checkout:
 
-- `button#checkout` is the only checkout control.
-- `[data-total]` is the cart total in dollars, a number the extension can parse.
-- `[data-name]` is the product name sent to the friend and stored on save.
+- `button#checkout` is the only pay control. Buy Now is a separate button.
+- `[data-total]` is `64.99`, a number the extension can parse.
+- `[data-name]` is `Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry`. That string is sent to the friend, stored on save, and sent as the Nessie purchase description.
 
 The extension does not scrape the page beyond those attributes and the checkout button.
 

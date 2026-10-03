@@ -1,0 +1,213 @@
+const rule = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
+
+let bypass = false;
+let pauseId = "";
+let poll: ReturnType<typeof setInterval> | undefined;
+
+const host = document.createElement("div");
+const shadow = host.attachShadow({ mode: "open" });
+shadow.innerHTML = `
+<style>
+  .overlay[hidden],
+  .status[hidden] { display: none; }
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 20, 20, 0.45);
+    font: 16px/1.4 system-ui, sans-serif;
+  }
+  .card {
+    background: #fff;
+    color: #111;
+    padding: 24px;
+    border-radius: 12px;
+    width: min(360px, calc(100% - 32px));
+  }
+  .card p { margin: 0 0 16px; }
+  .note, .friend { color: #444; font-size: 14px; }
+  .friend { margin-top: -8px; }
+  button {
+    background: #111;
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 0 8px 0 0;
+    font: inherit;
+    cursor: pointer;
+  }
+  button.ask {
+    display: block;
+    width: 100%;
+    margin: 12px 0 0;
+    background: #fff;
+    color: #111;
+    border: 1px solid #111;
+  }
+  .status {
+    position: fixed;
+    z-index: 2147483647;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #111;
+    color: #fff;
+    font: 16px/1.4 system-ui, sans-serif;
+  }
+</style>
+<div class="overlay" hidden>
+  <div class="card" role="dialog" aria-label="Checkout pause">
+    <p>Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.</p>
+    <p class="note">Ask a friend. YES approves the purchase. NO rejects it.</p>
+    <p class="friend" hidden></p>
+    <button type="button" data-action="drop">Drop</button>
+    <button type="button" data-action="save">Save for later</button>
+    <button type="button" data-action="continue">Continue</button>
+    <button type="button" class="ask" data-action="ask">Ask my friend</button>
+  </div>
+</div>
+<p class="status" hidden></p>
+`;
+
+const overlay = shadow.querySelector<HTMLElement>(".overlay")!;
+const statusEl = shadow.querySelector<HTMLElement>(".status")!;
+const friendEl = shadow.querySelector<HTMLElement>(".friend")!;
+const askBtn = shadow.querySelector<HTMLButtonElement>(".ask")!;
+
+function post(type: string) {
+  fetch("http://localhost:8787/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: crypto.randomUUID(), type, ruleId: rule.id }),
+  }).catch(() => {});
+}
+
+function openCard() {
+  if (!overlay.hidden) return;
+  pauseId = crypto.randomUUID();
+  friendEl.hidden = true;
+  friendEl.textContent = "";
+  askBtn.disabled = false;
+  askBtn.textContent = "Ask my friend";
+  overlay.hidden = false;
+  post("pause_started");
+}
+
+function closeCard(type: string, status?: string) {
+  if (poll) clearInterval(poll);
+  overlay.hidden = true;
+  post(type);
+  statusEl.hidden = !status;
+  if (status) statusEl.textContent = status;
+}
+
+let applying = false;
+
+function applyDecision(status: "approved" | "rejected") {
+  if (applying) return;
+  applying = true;
+  if (poll) clearInterval(poll);
+  if (status === "approved") {
+    bypass = true;
+    closeCard("continue_selected", "Friend approved");
+    document.querySelector<HTMLButtonElement>("#checkout")?.click();
+    return;
+  }
+  closeCard("purchase_dropped", "Friend rejected");
+}
+
+async function pullReply() {
+  const res = await fetch(`http://localhost:8787/check-in?id=${encodeURIComponent(pauseId)}`);
+  if (!res.ok) return;
+  const row = (await res.json()) as { status?: string; reply?: string | null };
+  if (row.status !== "approved" && row.status !== "rejected") return;
+  friendEl.hidden = false;
+  friendEl.textContent = row.status === "approved" ? "Friend approved this purchase." : "Friend rejected this purchase.";
+  if (poll) clearInterval(poll);
+  setTimeout(() => applyDecision(row.status as "approved" | "rejected"), 1500);
+}
+
+async function askFriend() {
+  if (!pauseId || askBtn.disabled) return;
+  askBtn.disabled = true;
+  askBtn.textContent = "Asking…";
+  try {
+    const product = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
+    const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+    const res = await fetch("http://localhost:8787/check-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: pauseId, ruleId: rule.id, product, amount }),
+    });
+    const row = (await res.json()) as { waiting?: boolean };
+    if (!res.ok) throw new Error(String(res.status));
+    askBtn.textContent = "Asked";
+    friendEl.hidden = false;
+    friendEl.textContent = row.waiting
+      ? "A text is already with your friend. Reply YES or NO on that thread."
+      : "Text sent. Waiting for YES or NO.";
+    if (poll) clearInterval(poll);
+    poll = setInterval(() => {
+      void pullReply();
+    }, 2000);
+  } catch {
+    askBtn.disabled = false;
+    askBtn.textContent = "Ask my friend";
+    statusEl.hidden = false;
+    statusEl.textContent = "Could not text your friend.";
+  }
+}
+
+function saveItem() {
+  const name = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
+  const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+  return fetch("http://localhost:8787/saved", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: crypto.randomUUID(), ruleId: rule.id, name, amount }),
+  }).catch(() => {});
+}
+
+shadow.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const action = target.closest("button")?.getAttribute("data-action");
+  if (action === "ask") void askFriend();
+  else if (action === "drop") closeCard("purchase_dropped", "Purchase dropped");
+  else if (action === "save") {
+    void saveItem();
+    closeCard("saved_for_later", "Saved for later");
+  }
+  else if (action === "continue") {
+    bypass = true;
+    closeCard("continue_selected");
+    document.querySelector<HTMLButtonElement>("#checkout")?.click();
+  }
+});
+
+document.addEventListener(
+  "click",
+  (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest("#checkout")) return;
+    if (bypass) {
+      bypass = false;
+      return;
+    }
+    const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+    if (!(amount >= rule.minAmount)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    openCard();
+  },
+  true,
+);
+
+document.documentElement.appendChild(host);

@@ -1,0 +1,7 @@
+{
+  "name": "@secondthought/extension",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p ."
+  }
+}

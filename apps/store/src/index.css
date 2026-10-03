@@ -1,0 +1,191 @@
+:root {
+  --ink: #1c1915;
+  --muted: #6d655c;
+  --paper: #f3eee6;
+  --card: #fffdf8;
+  --line: #e3d9cc;
+  --rust: #9a3e2f;
+  --field: #2c3a32;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(900px 420px at 0% -10%, #efe4d4, transparent 60%),
+    var(--paper);
+  font-family: "Iowan Old Style", Palatino, Georgia, serif;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button,
+.tag,
+.eyebrow {
+  font-family: system-ui, sans-serif;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  width: min(960px, 100%);
+  padding: 1.5rem 1.5rem 0;
+}
+
+.mark {
+  margin: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+
+.tag {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(960px, 100%);
+  margin: 0;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.shop {
+  display: grid;
+  grid-template-columns: 1.5fr 0.85fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.product,
+.cart,
+.done {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.product {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  align-items: center;
+}
+
+.swatch {
+  background: var(--field);
+  border-radius: 14px;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+}
+
+h1 {
+  margin: 0.15rem 0 0;
+  font-weight: 500;
+  font-size: 2.75rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+h2 {
+  margin: 0 0 0.25rem;
+  font-weight: 500;
+  font-size: 1.35rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.blurb {
+  margin: 0.75rem 0 1rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.cart {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 1.1rem;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.total {
+  font-size: 1.15rem;
+}
+
+#checkout {
+  width: 100%;
+  margin-top: auto;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #f6f1e7;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#checkout:hover {
+  background: var(--rust);
+}
+
+#checkout:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 3px;
+}
+
+.done {
+  max-width: 34rem;
+  padding: 2.5rem 2rem;
+}
+
+.done h1 {
+  margin: 0.4rem 0 0;
+  font-size: 3rem;
+}
+
+@media (max-width: 720px) {
+  .shop,
+  .product {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 2.3rem;
+  }
+}

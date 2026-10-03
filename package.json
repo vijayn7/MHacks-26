@@ -1,0 +1,15 @@
+{
+  "name": "secondthought",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:store": "npm run dev -w @secondthought/store",
+    "dev:api": "npm run dev -w @secondthought/api",
+    "build:extension": "npm run build -w @secondthought/extension"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

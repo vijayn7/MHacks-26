@@ -18,7 +18,7 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - Gemini converts a shopper-authored rule into structured settings. The shopper reviews and confirms those settings before they are saved.
 - Checkout-time matching is deterministic. Do not call Gemini to decide whether the shopper is impulsive or whether a purchase is good for them.
 - The intervention offers three outcomes: drop the purchase, save it for later, or continue. An optional friend check-in is a separate action, not a friend approval gate.
-- Friend notifications and replies should use iMessage through Photon Spectrum. Photon must be a real two-way iMessage thread with memory of the pause context to support its prize track.
+- Friend notifications and replies should use iMessage through Photon Spectrum. Photon must be a real two-way iMessage thread with memory of the pause context to support its prize track. The Photon project already exists. See Photon setup.
 - Neon is the durable backend for user settings and event history.
 - Spacetime is a candidate for live pause status. Keep it only if the demo shows a live state update in the shopper’s pause panel.
 - Cursor will be used for development. Gemini replaces Grok in the product stack.
@@ -100,9 +100,24 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 2. Implement one local rule and verify all three checkout outcomes.
 3. Add the event log and persist rule/event data in Neon.
 4. Add Gemini setup parsing, confirmation, and validation.
-5. Set up Photon and prove a real two-way iMessage check-in.
+5. Set up Photon and prove a real two-way iMessage check-in. Done. See Photon setup. The friend check-in is not wired to a pause session yet.
 6. Add Spacetime only if time permits and the live status is visible and useful.
 7. Rehearse the 90-second demo, seed all accounts, and record a backup video.
+
+## Photon setup
+
+The Photon account, Pro plan, iMessage line, and demo thread are already live. Do not create a second project.
+
+- Dashboard: https://app.photon.codes/ . CLI package: `@photon-ai/cli` (`npx @photon-ai/cli`). Login is a browser device code.
+- Project name **Mhacks-26**, slug `mhack-4b4s`. Plan is Pro and active. Promo `HACKWITHPHOTON` is already applied.
+- Credentials live in the repo-root `.env` as `SPECTRUM_PROJECT_ID` and `SPECTRUM_PROJECT_SECRET`. The API loads that file. Never commit those values.
+- SDK is `spectrum-ts` on `@secondthought/api`, provider `imessage` from `spectrum-ts/providers/imessage`, Spectrum Cloud only. Do not install `@spectrum-ts/imessage-local`.
+- iMessage platform is on. Spectrum profile first name is SecondThought.
+- Pro uses the shared phone pool. `photon spectrum lines add` is Business-only and returns 403 on this project.
+- Demo friend is `FRIEND_HANDLE` in `.env`, already a Spectrum user and opted in. The assigned line is in the Photon dashboard. A new number cannot be messaged until it is added as a Spectrum user and texts that line first. Otherwise send fails with `Target not allowed for this project`.
+- `photon spectrum users add` requires `--first-name`, `--last-name`, `--email`, and `--phone` in E.164. Skip `--invite` unless that person should get a new onboarding text.
+- Inbound events include read receipts. The message loop must act only when `message.content.type === "text"`. Replying to a receipt makes the reply generate another receipt and spams the thread.
+- Two-way delivery on the demo thread is proven. The API logs inbound text only. It does not yet send the friend check-in or attach a reply to a pause session.
 
 ## Setup checklist
 
@@ -138,10 +153,10 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 
 ### Photon and iMessage
 
-- [ ] Create a Photon Spectrum project and obtain its project ID and secret.
-- [ ] Configure Spectrum Cloud with the iMessage provider.
-- [ ] Set up the `spectrum-ts` integration in the backend.
-- [ ] Pair a test friend and verify the real iMessage thread works in both directions.
+- [x] Create a Photon Spectrum project and obtain its project ID and secret.
+- [x] Configure Spectrum Cloud with the iMessage provider.
+- [x] Set up the `spectrum-ts` integration in the backend.
+- [x] Pair a test friend and verify the real iMessage thread works in both directions.
 - [ ] Implement explicit opt-in before sending each friend check-in.
 - [ ] Ensure replies update the correct pause session and do not require friend approval.
 

@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "SecondThought",
+  "version": "0.0.1",
+  "description": "Pause checkout using rules you set.",
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:5173/*"],
+      "js": ["dist/content.js"]
+    }
+  ]
+}

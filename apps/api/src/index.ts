@@ -43,6 +43,12 @@ const approvedAck = "Approved. The checkout can go through.";
 const rejectedAck = "Rejected. The purchase will be dropped.";
 const origin = "http://localhost:5173";
 const maxBody = 64 * 1024;
+const seedRule = {
+  id: "seed-over-40",
+  minAmount: 40,
+  pauseMinutes: 15,
+  summary: "Pause purchases over $40 for 15 minutes.",
+};
 const eventTypes = new Set([
   "checkout_detected",
   "pause_started",
@@ -183,7 +189,7 @@ async function ensureDb() {
     on conflict (id) do nothing`;
   await sql`
     insert into rules (id, user_id, min_amount, pause_minutes, summary)
-    values ('seed-over-40', 'demo', 40, 15, 'Pause purchases over $40 for 15 minutes.')
+    values (${seedRule.id}, 'demo', ${seedRule.minAmount}, ${seedRule.pauseMinutes}, ${seedRule.summary})
     on conflict (id) do nothing`;
   if (friendHandle) {
     await sql`
@@ -247,6 +253,45 @@ function proposalFrom(value: unknown) {
   if (typeof pauseMinutes !== "number" || !Number.isInteger(pauseMinutes) || pauseMinutes <= 0) return null;
   if (typeof summary !== "string" || summary.length === 0) return null;
   return { minAmount, pauseMinutes, summary };
+}
+
+type RuleRow = { id: string; min_amount: string | number; pause_minutes: string | number; summary: string };
+
+function ruleFrom(row: RuleRow) {
+  return {
+    id: row.id,
+    minAmount: Number(row.min_amount),
+    pauseMinutes: Number(row.pause_minutes),
+    summary: row.summary,
+  };
+}
+
+async function activeRule() {
+  if (!sql) return seedRule;
+  const rows = await sql<RuleRow[]>`
+    select id, min_amount, pause_minutes, summary
+    from rules
+    where user_id = 'demo'
+    order by created_at desc
+    limit 1
+  `;
+  return rows[0] ? ruleFrom(rows[0]) : seedRule;
+}
+
+async function confirmRule(proposal: { minAmount: number; pauseMinutes: number; summary: string }) {
+  if (!sql) throw new Error("no_database");
+  const rows = await sql<RuleRow[]>`
+    insert into rules (id, user_id, min_amount, pause_minutes, summary)
+    values (${seedRule.id}, 'demo', ${proposal.minAmount}, ${proposal.pauseMinutes}, ${proposal.summary})
+    on conflict (id) do update set
+      min_amount = excluded.min_amount,
+      pause_minutes = excluded.pause_minutes,
+      summary = excluded.summary
+    returning id, min_amount, pause_minutes, summary
+  `;
+  const row = rows[0];
+  if (!row) throw new Error("save_failed");
+  return ruleFrom(row);
 }
 
 async function generate(model: string, text: string, key: string, timeoutMs: number) {
@@ -339,12 +384,31 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return;
   }
   if (req.method === "GET" && path === "/rules/seed") {
-    send(res, 200, {
-      id: "seed-over-40",
-      minAmount: 40,
-      pauseMinutes: 15,
-      summary: "Pause purchases over $40 for 15 minutes.",
-    });
+    send(res, 200, seedRule);
+    return;
+  }
+  if (req.method === "GET" && path === "/rules/active") {
+    send(res, 200, await activeRule());
+    return;
+  }
+  if (req.method === "POST" && path === "/rules/confirm") {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    const proposal = proposalFrom(body);
+    if (!proposal) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    send(res, 200, await confirmRule(proposal));
     return;
   }
   if (req.method === "POST" && (path === "/events" || path === "/rules/parse")) {

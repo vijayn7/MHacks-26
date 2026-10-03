@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 const product = { name: "Wool coat", price: 64 };
+const api = "http://localhost:8787";
+
+type Draft = { minAmount: string; pauseMinutes: string; summary: string };
 
 export function App() {
   const [placed, setPlaced] = useState(false);
@@ -12,6 +15,7 @@ export function App() {
         <p className="tag">Demo store</p>
       </header>
       <main>
+        <RuleConfirm />
         {placed ? (
           <section className="done">
             <p className="eyebrow">Checkout</p>
@@ -49,6 +53,119 @@ export function App() {
         )}
       </main>
     </>
+  );
+}
+
+function RuleConfirm() {
+  const [text, setText] = useState("");
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function onParse(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setNote("");
+    try {
+      const res = await fetch(`${api}/rules/parse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = (await res.json()) as {
+        proposal?: { minAmount?: unknown; pauseMinutes?: unknown; summary?: unknown };
+      };
+      const proposal = data.proposal;
+      if (!res.ok || !proposal || typeof proposal.summary !== "string") throw new Error("parse");
+      setDraft({
+        minAmount: String(proposal.minAmount ?? ""),
+        pauseMinutes: String(proposal.pauseMinutes ?? ""),
+        summary: proposal.summary,
+      });
+    } catch {
+      setDraft(null);
+      setNote("Could not read that rule.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onConfirm(event: FormEvent) {
+    event.preventDefault();
+    if (!draft) return;
+    setBusy(true);
+    setNote("");
+    try {
+      const res = await fetch(`${api}/rules/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          minAmount: Number(draft.minAmount),
+          pauseMinutes: Number(draft.pauseMinutes),
+          summary: draft.summary.trim(),
+        }),
+      });
+      const data = (await res.json()) as { id?: string; minAmount?: number; pauseMinutes?: number };
+      if (!res.ok || typeof data.id !== "string") throw new Error("confirm");
+      setNote(`Saved. Purchases over $${data.minAmount} pause for ${data.pauseMinutes} minutes.`);
+    } catch {
+      setNote("Could not save that rule.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="setup">
+      <p className="eyebrow">Your rule</p>
+      <h2>Pause before you pay.</h2>
+      <form onSubmit={onParse}>
+        <label>
+          Rule
+          <input
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="Pause purchases over $40 for 15 minutes."
+          />
+        </label>
+        <button type="submit" disabled={busy || text.trim().length === 0}>
+          Parse rule
+        </button>
+      </form>
+      {draft ? (
+        <form className="proposal" onSubmit={onConfirm}>
+          <div className="fields">
+            <label>
+              Minimum amount
+              <input
+                inputMode="decimal"
+                value={draft.minAmount}
+                onChange={(event) => setDraft({ ...draft, minAmount: event.target.value })}
+              />
+            </label>
+            <label>
+              Pause minutes
+              <input
+                inputMode="numeric"
+                value={draft.pauseMinutes}
+                onChange={(event) => setDraft({ ...draft, pauseMinutes: event.target.value })}
+              />
+            </label>
+          </div>
+          <label>
+            Summary
+            <input
+              value={draft.summary}
+              onChange={(event) => setDraft({ ...draft, summary: event.target.value })}
+            />
+          </label>
+          <button type="submit" disabled={busy}>
+            Confirm rule
+          </button>
+        </form>
+      ) : null}
+      {note ? <p className="hint">{note}</p> : null}
+    </section>
   );
 }
 

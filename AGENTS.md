@@ -20,7 +20,7 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - The intervention offers three outcomes: drop the purchase, save it for later, or continue. An optional friend check-in is a separate action, not a friend approval gate.
 - Friend notifications and replies should use iMessage through Photon Spectrum. Photon must be a real two-way iMessage thread with memory of the pause context to support its prize track. The Photon project already exists. See Photon setup.
 - Neon is the durable backend for user settings and event history.
-- Spacetime is a candidate for live pause status. Keep it only if the demo shows a live state update in the shopper’s pause panel.
+- Spacetime is in scope for the demo.
 - Cursor will be used for development. Gemini replaces Grok in the product stack.
 - Apple Watch biometrics are not part of the core demo. A Watch integration is a later stretch. Do not claim that heart rate diagnoses addiction or determines whether a purchase is impulsive.
 
@@ -32,7 +32,7 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 4. **Detect checkout:** On a supported checkout page, the extension detects the final checkout action and checks the saved rules locally.
 5. **Show intervention:** If a rule matches, the extension holds the mock checkout and displays the matching rule and three choices: drop, save for later, or continue.
 6. **Optional friend check-in:** Shopper explicitly chooses “Ask my friend.” Photon sends a limited check-in through the existing iMessage thread. Friend can respond supportively. Friend cannot approve or veto the purchase.
-7. **Resolve and log:** Shopper chooses what to do after the hold. Record the outcome in Neon. If using Spacetime, update the shopper’s active pause panel live when the friend responds.
+7. **Resolve and log:** Shopper chooses what to do after the hold. Record the outcome in Neon. The pause card updates when the friend responds.
 
 ## Privacy and product boundaries
 
@@ -51,7 +51,7 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - **Gemini:** Natural-language rule text to proposed structured settings. Validate the schema and require shopper confirmation before saving.
 - **Neon:** Durable users, confirmed rules, friend associations, saved-for-later items, and event log.
 - **Photon:** `spectrum-ts` connected through Spectrum Cloud with the iMessage provider. Send and receive the friend check-in in a real iMessage thread. Keep credentials server-side.
-- **Spacetime, optional:** Live shared pause status only if a shopper-facing screen visibly updates during the demo. Keep its role distinct from Neon’s durable records.
+- **Spacetime:** In scope for the demo. Neon is the durable record. Spacetime is the live pause row the pause card subscribes to.
 - **Apple Watch, optional later:** Manual pause/check-in affordance first. Do not make biometric interpretation a dependency.
 
 ## State model for the event log
@@ -78,10 +78,10 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 - **MLH Gemini API:** Gemini performs a real language task by converting a shopper-authored rule into settings used by the product.
 - **Neon:** Actual persistence for app users, rules, and event history.
 - **Photon:** Friend support happens in a real iMessage conversation through Spectrum, with context and two-way replies.
+- **Spacetime:** In scope for the demo.
 
 ### Conditional
 
-- **Spacetime:** Target only if a live state subscription is visible in the demo and clearly changes the shopper’s screen when an iMessage reply arrives.
 - **Notability:** Qualifier if used during the hackathon for ideation and screenshots are included.
 - **.tech domain:** Qualifier if a project domain is registered.
 - **Figma:** Optional polish after the end-to-end interaction works.
@@ -101,7 +101,7 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 3. Add the event log and persist rule/event data in Neon.
 4. Add Gemini setup parsing, confirmation, and validation.
 5. Set up Photon and prove a real two-way iMessage check-in. Done. See Photon setup. The friend check-in is not wired to a pause session yet.
-6. Add Spacetime only if time permits and the live status is visible and useful.
+6. Subscribe the pause card to the Spacetime live pause row.
 7. Rehearse the 90-second demo, seed all accounts, and record a backup video.
 
 ## Photon setup
@@ -160,11 +160,11 @@ The Photon account, Pro plan, iMessage line, and demo thread are already live. D
 - [ ] Implement explicit opt-in before sending each friend check-in.
 - [ ] Ensure replies update the correct pause session and do not require friend approval.
 
-### Spacetime, if pursued
+### Spacetime
 
-- [ ] Create the Spacetime project/database and define the live pause-status record.
-- [ ] Subscribe the shopper’s pause panel to the active session.
-- [ ] Demo the panel changing when the friend replies. Remove Spacetime from scope if this is not reliable.
+- [ ] Publish the `pause_status` module. Set `SPACETIMEDB_URI`, `SPACETIMEDB_DATABASE`, and `SPACETIMEDB_TOKEN` in the repo-root `.env`. The token stays on the API.
+- [ ] Subscribe the shopper’s pause card to the active pause row.
+- [ ] Demo the card changing when the friend replies.
 
 ### Submission and rehearsal
 

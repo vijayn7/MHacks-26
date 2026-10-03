@@ -2,6 +2,13 @@
   "name": "@secondthought/extension",
   "private": true,
   "scripts": {
-    "build": "tsc -p ."
+    "build": "esbuild src/content.ts --bundle --format=iife --platform=browser --target=es2022 --outfile=dist/content.js",
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "dependencies": {
+    "spacetimedb": "2.10.*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   }
 }

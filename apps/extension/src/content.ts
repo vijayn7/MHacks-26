@@ -1,8 +1,12 @@
+import { DbConnection, tables, type SubscriptionHandle } from "./module_bindings";
+
 const rule = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
 
 let bypass = false;
 let pauseId = "";
 let poll: ReturnType<typeof setInterval> | undefined;
+let decided = false;
+let live: { id: string; conn: DbConnection; sub?: SubscriptionHandle } | undefined;
 
 const host = document.createElement("div");
 const shadow = host.attachShadow({ mode: "open" });
@@ -89,8 +93,26 @@ function post(type: string) {
   }).catch(() => {});
 }
 
+function stopLive() {
+  const current = live;
+  live = undefined;
+  if (!current) return;
+  try {
+    if (current.sub?.isActive()) current.sub.unsubscribe();
+  } catch {
+    /* subscription already ended */
+  }
+  try {
+    current.conn.disconnect();
+  } catch {
+    /* already disconnected */
+  }
+}
+
 function openCard() {
   if (!overlay.hidden) return;
+  stopLive();
+  decided = false;
   pauseId = crypto.randomUUID();
   friendEl.hidden = true;
   friendEl.textContent = "";
@@ -102,6 +124,8 @@ function openCard() {
 
 function closeCard(type: string, status?: string) {
   if (poll) clearInterval(poll);
+  poll = undefined;
+  stopLive();
   overlay.hidden = true;
   post(type);
   statusEl.hidden = !status;
@@ -111,7 +135,7 @@ function closeCard(type: string, status?: string) {
 let applying = false;
 
 function applyDecision(status: "approved" | "rejected") {
-  if (applying) return;
+  if (applying || overlay.hidden) return;
   applying = true;
   if (poll) clearInterval(poll);
   if (status === "approved") {
@@ -123,15 +147,65 @@ function applyDecision(status: "approved" | "rejected") {
   closeCard("purchase_dropped", "Friend rejected");
 }
 
+function showFriendDecision(status: "approved" | "rejected") {
+  if (decided || overlay.hidden) return;
+  decided = true;
+  friendEl.hidden = false;
+  friendEl.textContent = status === "approved" ? "Friend approved this purchase." : "Friend rejected this purchase.";
+  if (poll) clearInterval(poll);
+  poll = undefined;
+  setTimeout(() => applyDecision(status), 1500);
+}
+
 async function pullReply() {
   const res = await fetch(`http://localhost:8787/check-in?id=${encodeURIComponent(pauseId)}`);
   if (!res.ok) return;
   const row = (await res.json()) as { status?: string; reply?: string | null };
   if (row.status !== "approved" && row.status !== "rejected") return;
-  friendEl.hidden = false;
-  friendEl.textContent = row.status === "approved" ? "Friend approved this purchase." : "Friend rejected this purchase.";
-  if (poll) clearInterval(poll);
-  setTimeout(() => applyDecision(row.status as "approved" | "rejected"), 1500);
+  showFriendDecision(row.status);
+}
+
+function onPauseRow(id: string, row: { sessionId: string; state: string }) {
+  if (live?.id !== id || row.sessionId !== id || overlay.hidden) return;
+  if (row.state === "sent") return;
+  if (row.state === "approved" || row.state === "rejected") showFriendDecision(row.state);
+}
+
+async function subscribeLive() {
+  const id = pauseId;
+  let res: Response;
+  try {
+    res = await fetch("http://localhost:8787/spacetime");
+  } catch {
+    return;
+  }
+  if (!res.ok || pauseId !== id) return;
+  const config = (await res.json()) as { uri?: string; database?: string };
+  if (!config.uri || !config.database || pauseId !== id) return;
+  const conn = DbConnection.builder()
+    .withUri(config.uri)
+    .withDatabaseName(config.database)
+    .onConnect((ctx) => {
+      if (live?.conn !== conn || live.id !== id) {
+        ctx.disconnect();
+        return;
+      }
+      ctx.db.pauseStatus.onInsert((_event, row) => onPauseRow(id, row));
+      ctx.db.pauseStatus.onUpdate((_event, _old, row) => onPauseRow(id, row));
+      live.sub = ctx
+        .subscriptionBuilder()
+        .onApplied((applied) => {
+          for (const row of applied.db.pauseStatus.iter()) onPauseRow(id, row);
+        })
+        .subscribe(tables.pauseStatus.where((row) => row.sessionId.eq(id)));
+    })
+    .onConnectError(() => {})
+    .build();
+  if (pauseId !== id) {
+    conn.disconnect();
+    return;
+  }
+  live = { id, conn };
 }
 
 async function askFriend() {
@@ -157,6 +231,7 @@ async function askFriend() {
     poll = setInterval(() => {
       void pullReply();
     }, 2000);
+    void subscribeLive();
   } catch {
     askBtn.disabled = false;
     askBtn.textContent = "Ask my friend";

@@ -136,6 +136,13 @@ async function route(ctx: Ctx): Promise<Response> {
     const input = pairSchema.parse(ctx.body)
     return json(ctx.repo.consumePairCode(input.code, input.deviceLabel ?? 'Chrome'))
   }
+  if (a === 'extension' && b === 'monitoring' && ctx.request.method === 'POST') {
+    // The only setting a browser session may change: it turns this person's own monitoring on or off.
+    const user = requireUser(ctx)
+    const enabled = z.object({ enabled: z.boolean() }).parse(ctx.body).enabled
+    const next = ctx.repo.updateSettings(user.userId, { monitoringEnabled: enabled })
+    return json({ monitoringEnabled: next.monitoringEnabled })
+  }
   if (a === 'extension' && b === 'status' && ctx.request.method === 'GET') {
     return json(ctx.repo.extensionStatus(requireUser(ctx).userId))
   }
@@ -223,7 +230,7 @@ async function route(ctx: Ctx): Promise<Response> {
     return json(row)
   }
   if (a === 'challenges' && ctx.request.method === 'GET') return json({ challenges: ctx.repo.listChallenges(requireUser(ctx, 'user').userId) })
-  if (a === 'challenges' && ctx.request.method === 'POST') {
+  if (a === 'challenges' && !b && ctx.request.method === 'POST') {
     const user = requireUser(ctx, 'user')
     const input = challengeSchema.parse(ctx.body)
     return json(ctx.repo.createChallenge(user.userId, input))
@@ -232,6 +239,11 @@ async function route(ctx: Ctx): Promise<Response> {
     ctx.repo.joinChallenge(requireUser(ctx, 'user').userId, b)
     return json({ ok: true })
   }
+  if (a === 'challenges' && b && c === 'decline' && ctx.request.method === 'POST') {
+    ctx.repo.declineChallenge(requireUser(ctx, 'user').userId, b)
+    return json({ ok: true })
+  }
+  if (a === 'changes' && ctx.request.method === 'GET') return changes(ctx)
   if (a === 'leaderboard' && ctx.request.method === 'GET') return json({ leaders: ctx.repo.leaderboard(requireUser(ctx, 'user').userId) })
   if (a === 'insights' && ctx.request.method === 'GET') {
     const period = ctx.url.searchParams.get('period') === 'month' ? 'month' : 'week'
@@ -239,6 +251,28 @@ async function route(ctx: Ctx): Promise<Response> {
   }
   if (a === 'insights' && b === 'summary' && ctx.request.method === 'POST') return insightSummary(ctx)
   return fail(404, 'not_found', 'Not found.')
+}
+
+const MAX_WAIT_MS = 25_000
+const POLL_STEP_MS = 400
+
+/**
+ * Change feed for the phone and the extension. Without `since` it returns the
+ * current revision. With `since` it holds the request open until the revision
+ * differs or `waitMs` passes, so a finished intervention reaches the dashboard
+ * in under a second without a client hammering the full endpoints.
+ */
+async function changes(ctx: Ctx): Promise<Response> {
+  const user = requireUser(ctx)
+  const since = ctx.url.searchParams.get('since')
+  const waitMs = Math.min(Math.max(Number(ctx.url.searchParams.get('waitMs') ?? 0) || 0, 0), MAX_WAIT_MS)
+  const deadline = Date.now() + waitMs
+  let revision = ctx.repo.revision(user.userId)
+  while (since && revision === since && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, Math.min(POLL_STEP_MS, Math.max(deadline - Date.now(), 0))))
+    revision = ctx.repo.revision(user.userId)
+  }
+  return json({ revision, changed: since ? revision !== since : true })
 }
 
 async function devAuth(ctx: Ctx): Promise<Response> {

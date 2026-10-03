@@ -3,8 +3,6 @@
 -- Authenticated clients may read their own rows. They cannot update scores,
 -- approvals, or interventions directly.
 
-create extension if not exists pgcrypto;
-
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
   onboarding_complete boolean not null default false,

@@ -11,6 +11,7 @@
     "lint": "tsc -p packages/shared --noEmit && tsc -p packages/db --noEmit && tsc -p packages/api --noEmit"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "typescript": "^5.8.2",
     "vitest": "^3.0.9"
   },

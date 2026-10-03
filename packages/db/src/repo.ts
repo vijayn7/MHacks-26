@@ -468,9 +468,9 @@ export class SqliteRepo {
     this.run(`UPDATE friendships SET status = 'removed' WHERE id = ?`, friendshipId)
   }
 
-  listFriends(userId: string): Array<{ id: string; name: string; status: string; direction: 'in' | 'out' }> {
+  listFriends(userId: string): Array<{ id: string; userId: string; name: string; status: string; direction: 'in' | 'out' }> {
     return this.all(
-      `SELECT f.id, f.status, f.requester_id, u.display_name
+      `SELECT f.id, f.status, f.requester_id, u.id AS friend_id, u.display_name
        FROM friendships f
        JOIN users u ON u.id = CASE WHEN f.requester_id = ? THEN f.addressee_id ELSE f.requester_id END
        WHERE (f.requester_id = ? OR f.addressee_id = ?) AND f.status != 'removed'`,
@@ -479,6 +479,7 @@ export class SqliteRepo {
       userId,
     ).map((row) => ({
       id: String(row.id),
+      userId: String(row.friend_id),
       name: String(row.display_name),
       status: String(row.status),
       direction: String(row.requester_id) === userId ? 'out' : 'in',
@@ -882,36 +883,128 @@ export class SqliteRepo {
   }
 
   joinChallenge(userId: string, challengeId: string): void {
-    const member = this.get(`SELECT status FROM challenge_members WHERE challenge_id = ? AND user_id = ?`, challengeId, userId)
+    const member = this.get(
+      `SELECT m.status, c.ends_at FROM challenge_members m JOIN challenges c ON c.id = m.challenge_id
+       WHERE m.challenge_id = ? AND m.user_id = ? AND c.status = 'active'`,
+      challengeId,
+      userId,
+    )
     if (!member) throw new AppError(404, 'not_found', 'Challenge not found.')
+    if (String(member.ends_at) <= this.iso()) throw new AppError(409, 'challenge_ended', 'This challenge has already ended.')
+    if (member.status === 'accepted') return
     this.run(`UPDATE challenge_members SET status = 'accepted', joined_at = ? WHERE challenge_id = ? AND user_id = ?`, this.iso(), challengeId, userId)
   }
 
-  listChallenges(userId: string): Array<Record<string, unknown>> {
-    return this.all(
-      `SELECT c.id, c.title, c.goal_type, c.goal_count, c.ends_at, m.status, m.joined_at
-       FROM challenge_members m JOIN challenges c ON c.id = m.challenge_id
-       WHERE m.user_id = ? AND c.status = 'active'`,
+  declineChallenge(userId: string, challengeId: string): void {
+    const member = this.get(`SELECT status FROM challenge_members WHERE challenge_id = ? AND user_id = ?`, challengeId, userId)
+    if (!member) throw new AppError(404, 'not_found', 'Challenge not found.')
+    this.run(
+      `UPDATE challenge_members SET status = 'declined' WHERE challenge_id = ? AND user_id = ? AND status = 'invited'`,
+      challengeId,
       userId,
-    ).map((row) => ({
-      id: row.id,
-      title: row.title,
-      goalType: row.goal_type,
-      goal: row.goal_count,
-      endsAt: row.ends_at,
-      membership: row.status,
-      progress: row.status === 'accepted' ? this.challengeProgress(userId, String(row.goal_type), String(row.joined_at ?? this.iso())) : 0,
-    }))
+    )
   }
 
-  private challengeProgress(userId: string, action: string, joinedAt: string): number {
+  /**
+   * Progress is counted from verified score events inside the challenge window,
+   * never from a number someone typed in. A challenge is `completed` the first
+   * time the goal is reached and `ended` once the window closes unmet.
+   */
+  listChallenges(userId: string): Array<Record<string, unknown>> {
+    const settings = this.getSettings(userId)
+    if (!settings.socialEnabled) return []
+    const now = this.iso()
+    const rows = this.all(
+      `SELECT c.id, c.title, c.goal_type, c.goal_count, c.starts_at, c.ends_at, m.status, m.joined_at
+       FROM challenge_members m JOIN challenges c ON c.id = m.challenge_id
+       WHERE m.user_id = ? AND c.status != 'canceled' AND m.status != 'declined'
+       ORDER BY c.ends_at DESC`,
+      userId,
+    )
+    return rows.map((row) => {
+      const accepted = row.status === 'accepted'
+      const progress = accepted
+        ? this.challengeProgress(userId, String(row.goal_type), String(row.joined_at ?? row.starts_at), String(row.ends_at))
+        : 0
+      const goal = Number(row.goal_count)
+      const over = String(row.ends_at) <= now
+      const state = progress >= goal && accepted ? 'completed' : over ? 'ended' : 'active'
+      return {
+        id: row.id,
+        title: row.title,
+        goalType: row.goal_type,
+        goal,
+        endsAt: row.ends_at,
+        membership: row.status,
+        progress: Math.min(progress, goal),
+        state,
+      }
+    })
+  }
+
+  private challengeProgress(userId: string, action: string, joinedAt: string, endsAt: string): number {
     const row = this.get(
-      `SELECT COUNT(*) AS n FROM score_events WHERE user_id = ? AND action = ? AND created_at >= ?`,
+      `SELECT COUNT(*) AS n FROM score_events WHERE user_id = ? AND action = ? AND created_at >= ? AND created_at <= ?`,
       userId,
       action,
       joinedAt,
+      endsAt,
     )
     return Number(row?.n ?? 0)
+  }
+
+  /** Writes one in-app note per completed challenge, respecting the notification preference. */
+  private sweepChallenges(userId: string): void {
+    const settings = this.getSettings(userId)
+    if (!settings.socialEnabled || !settings.notifyChallenges) return
+    for (const item of this.listChallenges(userId)) {
+      if (item.state !== 'completed') continue
+      const seen = this.get(
+        `SELECT id FROM notification_deliveries WHERE user_id = ? AND kind = 'challenge_complete' AND subject_id = ?`,
+        userId,
+        String(item.id),
+      )
+      if (seen) continue
+      this.run(
+        `INSERT INTO notification_deliveries (id, user_id, kind, channel, status, subject_id, detail, created_at)
+         VALUES (?, ?, 'challenge_complete', 'in_app', 'sent', ?, ?, ?)`,
+        randomUUID(),
+        userId,
+        String(item.id),
+        `You finished “${String(item.title)}”.`,
+        this.iso(),
+      )
+    }
+  }
+
+  /**
+   * A cheap fingerprint of everything a client renders. Clients compare it to the
+   * last value they saw and refetch only when it moves, which is how the phone and
+   * the browser stay in step without either one polling the full payloads.
+   */
+  revision(userId: string): string {
+    this.sweepNotifications(userId)
+    this.sweepChallenges(userId)
+    const parts: unknown[] = [
+      this.all(`SELECT * FROM profiles WHERE user_id = ?`, userId),
+      this.all(`SELECT domain, enabled FROM protected_sites WHERE user_id = ? ORDER BY domain`, userId),
+      this.all(`SELECT id, decision, updated_at FROM interventions WHERE user_id = ? ORDER BY id`, userId),
+      this.all(`SELECT id, status, cooldown_until, revisited_at FROM deferred_purchases WHERE user_id = ? ORDER BY id`, userId),
+      this.all(
+        `SELECT id, status, responded_at FROM approval_requests WHERE requester_id = ? ORDER BY created_at DESC LIMIT 25`,
+        userId,
+      ),
+      this.all(`SELECT id, status FROM trusted_contacts WHERE owner_id = ? ORDER BY id`, userId),
+      this.all(
+        `SELECT id, status FROM friendships WHERE requester_id = ? OR addressee_id = ? ORDER BY id`,
+        userId,
+        userId,
+      ),
+      this.listChallenges(userId),
+      this.all(`SELECT id FROM notification_deliveries WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`, userId),
+      this.all(`SELECT COALESCE(SUM(points), 0) AS n FROM score_events WHERE user_id = ?`, userId),
+    ]
+    return createHash('sha256').update(JSON.stringify(parts)).digest('hex').slice(0, 16)
   }
 
   leaderboard(viewerId: string): Array<{ name: string; score: number }> {
@@ -949,6 +1042,7 @@ export class SqliteRepo {
 
   home(userId: string): HomeSnapshot {
     this.sweepNotifications(userId)
+    this.sweepChallenges(userId)
     const scoreRow = this.get(`SELECT COALESCE(SUM(points), 0) AS n FROM score_events WHERE user_id = ?`, userId)
     const days = this.all(`SELECT DISTINCT substr(created_at, 1, 10) AS day FROM score_events WHERE user_id = ?`, userId).map((row) => String(row.day))
     const counts = this.all(
@@ -961,8 +1055,8 @@ export class SqliteRepo {
       `SELECT id, domain, decision, amount_cents, created_at FROM interventions WHERE user_id = ? ORDER BY created_at DESC LIMIT 8`,
       userId,
     )
-    const challenges = this.listChallenges(userId).filter((item) => item.membership === 'accepted')
-    const first = challenges[0]
+    const challenges = this.listChallenges(userId).filter((item) => item.membership === 'accepted' && item.state !== 'ended')
+    const first = challenges.find((item) => item.state === 'active') ?? challenges[0]
     const notes = this.all(
       `SELECT id, kind, detail, created_at FROM notification_deliveries WHERE user_id = ? ORDER BY created_at DESC LIMIT 8`,
       userId,

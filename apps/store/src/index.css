@@ -60,7 +60,7 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
   width: min(960px, 100%);
   margin: 0;
   padding: 2rem 1.5rem 3rem;
@@ -174,6 +174,86 @@ h2 {
   padding: 2.5rem 2rem;
 }
 
+.setup {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem 1.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.setup h2 {
+  margin-bottom: 0.85rem;
+}
+
+.setup form,
+.proposal,
+.fields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fields {
+  grid-template-columns: 1fr 1fr;
+}
+
+.setup label {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.78rem;
+}
+
+.setup input {
+  width: 100%;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font: 1rem/1.4 system-ui, sans-serif;
+}
+
+.setup button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #f6f1e7;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.setup button:hover {
+  background: var(--rust);
+}
+
+.setup button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.setup button:focus-visible,
+.setup input:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 3px;
+}
+
+.proposal {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+}
+
 .done h1 {
   margin: 0.4rem 0 0;
   font-size: 3rem;
@@ -181,7 +261,8 @@ h2 {
 
 @media (max-width: 720px) {
   .shop,
-  .product {
+  .product,
+  .fields {
     grid-template-columns: 1fr;
   }
 

@@ -1,4 +1,9 @@
-const rule = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
+const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
+let rule = { id: fallback.id, minAmount: fallback.minAmount, pauseMinutes: fallback.pauseMinutes };
+
+function pauseCopy() {
+  return `Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.`;
+}
 
 let bypass = false;
 let pauseId = "";
@@ -64,7 +69,7 @@ shadow.innerHTML = `
 </style>
 <div class="overlay" hidden>
   <div class="card" role="dialog" aria-label="Checkout pause">
-    <p>Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.</p>
+    <p class="copy">${pauseCopy()}</p>
     <p class="note">Ask a friend. YES approves the purchase. NO rejects it.</p>
     <p class="friend" hidden></p>
     <button type="button" data-action="drop">Drop</button>
@@ -80,6 +85,22 @@ const overlay = shadow.querySelector<HTMLElement>(".overlay")!;
 const statusEl = shadow.querySelector<HTMLElement>(".status")!;
 const friendEl = shadow.querySelector<HTMLElement>(".friend")!;
 const askBtn = shadow.querySelector<HTMLButtonElement>(".ask")!;
+const copyEl = shadow.querySelector<HTMLElement>(".copy")!;
+
+async function loadRule() {
+  try {
+    const res = await fetch("http://localhost:8787/rules/active");
+    if (!res.ok) return;
+    const data = (await res.json()) as { id?: unknown; minAmount?: unknown; pauseMinutes?: unknown };
+    if (typeof data.id !== "string" || data.id.length === 0) return;
+    if (typeof data.minAmount !== "number" || !Number.isFinite(data.minAmount)) return;
+    if (typeof data.pauseMinutes !== "number" || !Number.isFinite(data.pauseMinutes)) return;
+    rule = { id: data.id, minAmount: data.minAmount, pauseMinutes: data.pauseMinutes };
+    copyEl.textContent = pauseCopy();
+  } catch {
+    // Keep the hardcoded seed when the API or database is unavailable.
+  }
+}
 
 function post(type: string, id: string = crypto.randomUUID()) {
   fetch("http://localhost:8787/events", {
@@ -213,3 +234,4 @@ document.addEventListener(
 );
 
 document.documentElement.appendChild(host);
+void loadRule();

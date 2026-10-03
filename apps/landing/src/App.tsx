@@ -224,9 +224,10 @@ export function App() {
 
       <div className="field__center">
         <div className="hero">
-          <h1 className="brand">
-            <span>SecondThought</span>
-          </h1>
+            <h1 className="brand">
+              <span>Second</span>
+              <span>Thought</span>
+            </h1>
           <p className="headline">A pause between impulse and purchase.</p>
           <div className="cta-row">
             <a className="btn btn--primary" href="#download" id="download">

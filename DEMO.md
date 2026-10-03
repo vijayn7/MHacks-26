@@ -102,3 +102,66 @@ The extension does not scrape the page beyond those attributes and the checkout 
 - It does not sync a confirmed rule from Neon into the extension yet.
 - It does not run a 15-minute countdown.
 - It does not load outside `http://localhost:5173/*`.
+
+## Rehearsal
+
+Checked on this VM on 2026-10-03. Default Node was v22.14.0 (`/exec-daemon/node`). `npm run dev:api` was run with nvm Node v22.22.2 because v22.14.0 cannot load the API's `.ts` entry. A gitignored `.env` was copied from `.env.example` with the example's empty values so `node --env-file` could start. That file was not committed and was removed after the API stopped. No iMessage was sent.
+
+```bash
+npm install
+npm run build:extension
+npm run build -w @secondthought/store
+```
+
+All three exited 0. The store package has a `build` script and no typecheck script, so the store check was `vite build`.
+
+API, from the repo root, after the empty `.env` existed:
+
+```bash
+export PATH="$HOME/.nvm/versions/node/v22.22.2/bin:$PATH"
+npm run dev:api
+curl -sS http://localhost:8787/health
+curl -sS -H 'content-type: application/json' \
+  -d '{"id":"rehearsal-checkout-detected","type":"checkout_detected","ruleId":"seed-over-40"}' \
+  http://localhost:8787/events
+curl -sS http://localhost:8787/events
+```
+
+Then Ctrl-C.
+
+| Check | Result |
+| --- | --- |
+| `GET /health` | Pass. 200 `{"ok":true}`. |
+| `POST /events` with `checkout_detected` | Pass. 200 with that id, type, and `ruleId`. `pause_started` was not posted. |
+| `GET /events` | Pass. 200 and the same event is the only row. |
+| Server stop | Pass. Port 8787 then refused connections. |
+
+The process logged `api http://localhost:8787` and did not log `spectrum ready`. `/check-in` was not called.
+
+Earlier `dev:api` attempts failed and were not the checks above:
+
+- `npm run dev:api` with no `.env` file: Node exited with `../../.env: not found`.
+- The same command on Node v22.14.0 after the empty `.env` existed: `ERR_UNKNOWN_FILE_EXTENSION` for `src/index.ts`.
+
+Store:
+
+```bash
+npm run dev:store
+curl -sS http://localhost:5173/
+timeout 20 google-chrome --headless=new --no-sandbox --disable-gpu --user-data-dir=/tmp/chrome-rehearsal --dump-dom http://localhost:5173/
+```
+
+Then Ctrl-C. Vite printed `http://localhost:5173/`.
+
+| Check | Result |
+| --- | --- |
+| `curl` of the store | Pass for HTTP 200. The body is the Vite shell (`div#root` and `/src/main.tsx`). It does not include `#checkout` or `data-total`. |
+| Rendered document | Pass. The headless dump includes `button#checkout`, `data-total="64"`, and `data-name="Wool coat"`. Chrome kept running after writing the document, so `timeout` exited 124. |
+| Server stop | Pass. Port 5173 then refused connections. |
+
+This VM could not:
+
+- Load the unpacked extension in `chrome://extensions`, or click through Drop, Save for later, Continue, and Ask my friend.
+- Receive a live iMessage reply.
+
+No backup video was recorded.

@@ -4,3 +4,6 @@ declare function defineContentScript(definition: {
   registration?: 'runtime' | 'manifest'
   main: () => void
 }): void
+interface ImportMeta {
+  readonly env: Record<string, string | undefined>
+}

@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Pressable, Text } from 'react-native'
 import { api } from '../../src/api'
+import { useLive } from '../../src/live'
 import { type } from '../../src/theme'
 import { Card, Eyebrow, Screen } from '../../src/ui'
 
@@ -11,9 +12,11 @@ export default function Saved() {
   const router = useRouter()
   const [items, setItems] = useState<Item[]>([])
 
-  useEffect(() => {
-    void api<{ items: Item[] }>('/api/saved').then((result) => setItems(result.items))
+  const load = useCallback(async () => {
+    setItems((await api<{ items: Item[] }>('/api/saved')).items)
   }, [])
+
+  const { error } = useLive(load)
 
   return (
     <Screen>
@@ -30,6 +33,7 @@ export default function Saved() {
           </Card>
         </Pressable>
       ))}
+      {error ? <Text style={type.ash}>{error}</Text> : null}
       {items.length === 0 ? <Text style={type.ash}>Nothing saved yet.</Text> : null}
     </Screen>
   )

@@ -21,7 +21,7 @@ export default function SavedDetail() {
         label="Hold to cool this off"
         onComplete={() => {
           if (!id) return
-          void api<{ url: string; scoreAwarded: number }>(`/api/saved/${id}/revisit`)
+          void api<{ url: string; scoreAwarded: number }>(`/api/saved/${id}/revisit`, { body: {} })
             .then((result) => {
               setUrl(result.url)
               setNote(result.scoreAwarded ? 'Reviewed after the cooldown.' : 'Already reviewed.')

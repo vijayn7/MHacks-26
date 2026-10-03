@@ -1,37 +1,28 @@
 import type { HomeSnapshot } from '@impulse/shared'
 import { useRouter } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, Text } from 'react-native'
 import { api } from '../../src/api'
+import { useLive } from '../../src/live'
 import { colors, type } from '../../src/theme'
 import { Card, Eyebrow, Screen } from '../../src/ui'
 
 export default function Home() {
   const router = useRouter()
   const [data, setData] = useState<HomeSnapshot | null>(null)
-  const [error, setError] = useState('')
 
   const load = useCallback(async () => {
-    try {
-      setData(await api<HomeSnapshot>('/api/home'))
-      setError('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load home.')
-    }
+    setData(await api<HomeSnapshot>('/api/home'))
   }, [])
 
-  useEffect(() => {
-    void load()
-    const timer = setInterval(() => void load(), 8000)
-    return () => clearInterval(timer)
-  }, [load])
+  const { refresh, error } = useLive(load)
 
   const money =
     data?.avoidedCents == null ? 'No amounts recorded' : `$${(data.avoidedCents / 100).toFixed(2)} left unspent`
 
   return (
     <Screen>
-      <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => void load()} />}>
+      <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => void refresh()} />}>
         <Eyebrow>HOME</Eyebrow>
         <Text style={type.display}>{data ? data.score : '—'}</Text>
         <Text style={type.ash}>{data ? `${data.streakDays} day streak` : 'Score'}</Text>

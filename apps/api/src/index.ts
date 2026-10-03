@@ -132,6 +132,21 @@ async function persistEvent(event: PauseEvent) {
   `;
 }
 
+async function persistCheckIn(row: CheckIn) {
+  if (!sql) return;
+  try {
+    await sql`
+      insert into check_ins (id, rule_id, status, reply)
+      values (${row.id}, ${row.ruleId}, ${row.status}, ${row.reply})
+      on conflict (id) do update set
+        status = excluded.status,
+        reply = excluded.reply
+    `;
+  } catch (error) {
+    console.error("[check-in] persist failed", error instanceof Error ? error.message : "unknown");
+  }
+}
+
 function logEvent(type: string, ruleId: string | null) {
   return remember({ id: crypto.randomUUID(), type, ruleId, at: new Date().toISOString() });
 }
@@ -176,6 +191,13 @@ async function ensureDb() {
       rule_id text,
       at timestamptz not null
     )`;
+  await sql`
+    create table if not exists check_ins (
+      id text primary key,
+      rule_id text not null,
+      status text not null,
+      reply text
+    )`;
   await sql`alter table saved_items add column if not exists name text`;
   await sql`alter table saved_items add column if not exists amount numeric`;
   await sql`
@@ -200,6 +222,12 @@ async function ensureDb() {
       ruleId: row.rule_id,
       at: new Date(row.at).toISOString(),
     }, false);
+  }
+  const openCheckIns = await sql<{ id: string; rule_id: string; reply: string | null }[]>`
+    select id, rule_id, reply from check_ins where status = 'sent'`;
+  for (const row of openCheckIns) {
+    checkIns.set(row.id, { id: row.id, ruleId: row.rule_id, status: "sent", reply: row.reply });
+    waitingId = row.id;
   }
 }
 
@@ -429,12 +457,14 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       const row: CheckIn = { id, ruleId, status: "sent", reply: null };
       checkIns.set(id, row);
       waitingId = id;
+      await persistCheckIn(row);
       send(res, 200, { ...row, waiting: true });
       return;
     }
     const row: CheckIn = { id, ruleId, status: "sent", reply: null };
     checkIns.set(id, row);
     waitingId = id;
+    await persistCheckIn(row);
     logEvent("friend_message_sent", ruleId);
     send(res, 200, row);
     return;
@@ -549,6 +579,7 @@ if (projectId && projectSecret && friendHandle) {
     row.reply = text;
     row.status = decision;
     waitingId = null;
+    await persistCheckIn(row);
     logEvent("friend_replied", row.ruleId);
     console.log(`[imessage] friend ${decision} the pause`);
     const ack = decision === "approved" ? approvedAck : rejectedAck;

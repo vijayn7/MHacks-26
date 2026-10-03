@@ -81,11 +81,11 @@ const statusEl = shadow.querySelector<HTMLElement>(".status")!;
 const friendEl = shadow.querySelector<HTMLElement>(".friend")!;
 const askBtn = shadow.querySelector<HTMLButtonElement>(".ask")!;
 
-function post(type: string) {
+function post(type: string, id: string = crypto.randomUUID()) {
   fetch("http://localhost:8787/events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: crypto.randomUUID(), type, ruleId: rule.id }),
+    body: JSON.stringify({ id, type, ruleId: rule.id }),
   }).catch(() => {});
 }
 
@@ -96,6 +96,7 @@ function openCard() {
   friendEl.textContent = "";
   askBtn.disabled = false;
   askBtn.textContent = "Ask my friend";
+  post("checkout_detected", `${pauseId}:checkout_detected`);
   overlay.hidden = false;
   post("pause_started");
 }
@@ -104,6 +105,7 @@ function closeCard(type: string, status?: string) {
   if (poll) clearInterval(poll);
   overlay.hidden = true;
   post(type);
+  if (pauseId) post("pause_resolved", `${pauseId}:pause_resolved`);
   statusEl.hidden = !status;
   if (status) statusEl.textContent = status;
 }

@@ -83,6 +83,15 @@ async function handle(message: { type: string; url?: string; title?: string; amo
     })
     return { ok: true, decision, reflectionSeconds: boot.settings.reflectionSeconds }
   }
+  // Session storage is not readable from a content script, so the once-per-page
+  // check has to happen here.
+  if (message.type === 'claim-page' && message.url) {
+    const key = `seen:${message.url}`
+    const existing = await chrome.storage.session.get(key)
+    if (existing[key]) return { ok: true, first: false }
+    await chrome.storage.session.set({ [key]: Date.now() })
+    return { ok: true, first: true }
+  }
   if (message.type === 'act' && message.body) {
     try {
       const result = await extensionFetch('/api/interventions', { body: message.body })

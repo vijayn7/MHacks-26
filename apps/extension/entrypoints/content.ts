@@ -17,10 +17,11 @@ async function maybeShow() {
     amountCents: price,
   })
   if (!reply?.ok || !reply.decision?.ok) return
-  const key = `seen:${reply.decision.domain}:${location.pathname}`
-  const seen = await chrome.storage.session.get(key)
-  if (seen[key]) return
-  await chrome.storage.session.set({ [key]: Date.now() })
+  const claim = await chrome.runtime.sendMessage({
+    type: 'claim-page',
+    url: `${reply.decision.domain}:${location.pathname}`,
+  })
+  if (!claim?.first) return
   mount(reply.decision.domain as string, reply.reflectionSeconds as number, price)
 }
 

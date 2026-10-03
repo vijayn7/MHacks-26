@@ -6,8 +6,10 @@
   ],
   "scripts": {
     "dev:store": "npm run dev -w @secondthought/store",
+    "dev:landing": "npm run dev -w @secondthought/landing",
     "dev:api": "npm run dev -w @secondthought/api",
-    "build:extension": "npm run build -w @secondthought/extension"
+    "build:extension": "npm run build -w @secondthought/extension",
+    "build:landing": "npm run build -w @secondthought/landing"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

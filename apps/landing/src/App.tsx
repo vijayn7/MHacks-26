@@ -458,16 +458,14 @@ function PausePopup({ site }: { site: string }) {
   return (
     <div className="tile__block" role="dialog" aria-label={`${site} checkout pause`}>
       <p className="tile__block-headline">
-        It seems like you’re about to make an impulse purchase.
+        You’re about to make an impulse purchase.
       </p>
 
       <div className="tile__block-choices">
         <button type="button" className="tile__choice tile__choice--lead">
-          <span className="tile__choice-row">
-            <span className="tile__choice-title">
-              Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
-            </span>
-            <span className="tile__choice-score">+30</span>
+          <span className="tile__choice-score">+30</span>
+          <span className="tile__choice-title">
+            Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
           </span>
           <span className="tile__choice-sub">Or snuff your flame.</span>
         </button>

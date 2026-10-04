@@ -271,12 +271,20 @@ button {
 }
 
 .tile__choice--lead {
+  position: relative;
+  padding-right: 2rem;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--ember-wash) 88%, black) 0%,
     #0b0302 70%
   );
   border-color: color-mix(in srgb, var(--ember-mid) 35%, transparent);
+}
+
+.tile__choice--lead .tile__choice-score {
+  position: absolute;
+  top: 0.38rem;
+  right: 0.42rem;
 }
 
 .tile__choice-row {

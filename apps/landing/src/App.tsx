@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type Layer = "far" | "mid" | "near";
 
@@ -7,15 +7,17 @@ type Tile = {
   src: string;
   alt: string;
   layer: Layer;
+  /** Fully on-screen front windows that reveal the pause popup on hover */
+  interactive?: boolean;
   style: CSSProperties;
 };
 
 /**
- * Most frames sit in the far/mid field — full opacity, darkened.
- * A few near-edge accents stay at normal brightness so the center stays clear.
+ * Far/mid frames are darkened edge atmosphere.
+ * Interactive near frames sit fully inside the viewport at normal brightness.
  */
 const tiles: Tile[] = [
-  // Far atmosphere — large, soft, mostly off-edge
+  // Far atmosphere — large, darkened, mostly off-edge
   {
     id: "t1",
     src: "/sites/amazon.jpg",
@@ -102,162 +104,140 @@ const tiles: Tile[] = [
     id: "t11",
     src: "/sites/costco.jpg",
     alt: "Costco",
-    layer: "far",
-    style: { top: "8%", right: "22%", width: "15%", aspectRatio: "16 / 10" },
+    layer: "mid",
+    style: { top: "6%", right: "-8%", width: "22%", aspectRatio: "16 / 10" },
   },
   {
     id: "t12",
-    src: "/sites/princesspolly.jpg",
-    alt: "Princess Polly",
-    layer: "far",
-    style: { top: "18%", left: "14%", width: "13%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t13",
-    src: "/sites/ebay.jpg",
-    alt: "eBay",
-    layer: "far",
-    style: { top: "16%", right: "14%", width: "12%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t14",
     src: "/sites/zalando.jpg",
     alt: "Zalando",
     layer: "far",
-    style: { top: "40%", left: "8%", width: "14%", aspectRatio: "16 / 10" },
+    style: { top: "42%", left: "6%", width: "13%", aspectRatio: "16 / 10" },
   },
   {
-    id: "t15",
-    src: "/sites/amazon.jpg",
-    alt: "Amazon deals",
-    layer: "far",
-    style: {
-      top: "38%",
-      right: "7%",
-      width: "15%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "right center",
-    },
-  },
-  {
-    id: "t16",
+    id: "t13",
     src: "/sites/asos.jpg",
     alt: "ASOS sale",
     layer: "far",
     style: {
-      top: "50%",
-      left: "20%",
-      width: "12%",
+      top: "48%",
+      right: "6%",
+      width: "13%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
   },
   {
-    id: "t17",
-    src: "/sites/nike.jpg",
-    alt: "Nike store",
-    layer: "far",
-    style: {
-      top: "48%",
-      right: "18%",
-      width: "13%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left center",
-    },
-  },
-  {
-    id: "t18",
+    id: "t14",
     src: "/sites/shein.jpg",
     alt: "SHEIN browse",
-    layer: "far",
+    layer: "mid",
     style: {
-      bottom: "-6%",
-      left: "30%",
-      width: "17%",
+      bottom: "-5%",
+      left: "28%",
+      width: "18%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
   },
   {
-    id: "t19",
+    id: "t15",
     src: "/sites/edikted.jpg",
     alt: "Edikted look",
-    layer: "far",
+    layer: "mid",
     style: {
       bottom: "-5%",
-      left: "50%",
-      width: "16%",
+      right: "26%",
+      width: "17%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
     },
   },
   {
-    id: "t20",
+    id: "t16",
     src: "/sites/polymarket.jpg",
     alt: "Polymarket markets",
     layer: "far",
     style: {
-      bottom: "10%",
-      right: "28%",
-      width: "14%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-
-  // Soft mid accents — darkened, extreme edges
-  {
-    id: "t21",
-    src: "/sites/bestbuy.jpg",
-    alt: "Best Buy deals",
-    layer: "mid",
-    style: {
-      top: "4%",
-      left: "-8%",
-      width: "24%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center center",
-    },
-  },
-  {
-    id: "t22",
-    src: "/sites/etsy.jpg",
-    alt: "Etsy gifts",
-    layer: "mid",
-    style: {
-      bottom: "4%",
-      right: "-8%",
-      width: "25%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "right center",
-    },
-  },
-
-  // Front accents — normal brightness, kept to the edges
-  {
-    id: "t23",
-    src: "/sites/walmart.jpg",
-    alt: "Walmart edge",
-    layer: "near",
-    style: {
-      top: "58%",
+      bottom: "12%",
       left: "-6%",
       width: "20%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
   },
+
+  // Fully on-screen front windows — normal brightness + hover pause popup
   {
-    id: "t24",
-    src: "/sites/costco.jpg",
-    alt: "Costco edge",
+    id: "i1",
+    src: "/sites/princesspolly.jpg",
+    alt: "Princess Polly",
     layer: "near",
+    interactive: true,
+    style: { top: "14%", left: "6%", width: "16%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "i2",
+    src: "/sites/ebay.jpg",
+    alt: "eBay",
+    layer: "near",
+    interactive: true,
+    style: { top: "14%", right: "6%", width: "16%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "i3",
+    src: "/sites/nike.jpg",
+    alt: "Nike store",
+    layer: "near",
+    interactive: true,
     style: {
-      top: "2%",
-      right: "-6%",
-      width: "21%",
+      top: "40%",
+      left: "5%",
+      width: "15%",
       aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
+      ["--focus" as string]: "left center",
+    },
+  },
+  {
+    id: "i4",
+    src: "/sites/amazon.jpg",
+    alt: "Amazon deals",
+    layer: "near",
+    interactive: true,
+    style: {
+      top: "42%",
+      right: "5%",
+      width: "15%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "right center",
+    },
+  },
+  {
+    id: "i5",
+    src: "/sites/bestbuy.jpg",
+    alt: "Best Buy deals",
+    layer: "near",
+    interactive: true,
+    style: {
+      bottom: "9%",
+      left: "20%",
+      width: "14%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "center center",
+    },
+  },
+  {
+    id: "i6",
+    src: "/sites/etsy.jpg",
+    alt: "Etsy gifts",
+    layer: "near",
+    interactive: true,
+    style: {
+      bottom: "9%",
+      right: "18%",
+      width: "14%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "right center",
     },
   },
 ];
@@ -295,8 +275,28 @@ function DownloadIcon() {
   );
 }
 
+function PausePopup({ site }: { site: string }) {
+  return (
+    <div className="tile__block" role="dialog" aria-label="Checkout pause">
+      <p className="tile__block-brand">snuffed</p>
+      <p className="tile__block-copy">
+        Hold up — this {site} checkout matches your spending rule.
+      </p>
+      <div className="tile__block-actions">
+        <button type="button">Drop</button>
+        <button type="button">Save for later</button>
+        <button type="button">Continue</button>
+        <button type="button" className="tile__block-ask">
+          Ask my friend
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -346,16 +346,32 @@ export function App() {
 
   return (
     <main className="snuff" ref={rootRef}>
-      <div className="snuff__field" aria-hidden="true">
-        {tiles.map((tile) => (
-          <figure
-            key={tile.id}
-            className={`tile tile--${tile.layer}`}
-            style={tile.style}
-          >
-            <img src={tile.src} alt="" draggable={false} />
-          </figure>
-        ))}
+      <div className="snuff__field">
+        {tiles.map((tile) => {
+          const interactive = Boolean(tile.interactive);
+          const showBlock = interactive && activeId === tile.id;
+
+          return (
+            <figure
+              key={tile.id}
+              className={[
+                "tile",
+                `tile--${tile.layer}`,
+                interactive ? "tile--interactive" : null,
+                showBlock ? "tile--blocking" : null,
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              style={tile.style}
+              aria-hidden={interactive ? undefined : true}
+              onPointerEnter={interactive ? () => setActiveId(tile.id) : undefined}
+              onPointerLeave={interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined}
+            >
+              <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
+              {interactive ? <PausePopup site={tile.alt} /> : null}
+            </figure>
+          );
+        })}
       </div>
 
       <div className="snuff__center">

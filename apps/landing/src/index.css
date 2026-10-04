@@ -46,6 +46,10 @@ img {
   -webkit-user-drag: none;
 }
 
+button {
+  font: inherit;
+}
+
 .snuff {
   position: relative;
   width: 100%;
@@ -58,7 +62,7 @@ img {
 
 .snuff__field {
   position: absolute;
-  inset: -4%;
+  inset: 0;
   z-index: 1;
   pointer-events: none;
   overflow: visible;
@@ -126,11 +130,108 @@ img {
     scale(1.02);
 }
 
+.tile--interactive {
+  z-index: 4;
+  pointer-events: auto;
+  cursor: pointer;
+  filter: none;
+  /* Keep fully on-screen: milder parallax, no scale-up */
+  transform:
+    translate3d(
+      calc(var(--mx) * -22px),
+      calc(var(--my) * -16px),
+      48px
+    )
+    scale(1);
+}
+
+.tile--interactive:focus-within,
+.tile--blocking {
+  z-index: 6;
+}
+
 .tile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: var(--focus, top center);
+}
+
+.tile__block {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  padding: 0.7rem 0.75rem 0.75rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(12 10 8 / 0.15) 0%,
+      rgb(12 10 8 / 0.72) 42%,
+      rgb(12 10 8 / 0.92) 100%
+    );
+  color: #f4efe8;
+  opacity: 0;
+  transform: translateY(6%);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.tile--interactive:hover .tile__block,
+.tile--interactive:focus-within .tile__block,
+.tile--blocking .tile__block {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.tile__block-brand {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.tile__block-copy {
+  margin: 0;
+  font-size: clamp(0.68rem, 0.95vw, 0.78rem);
+  line-height: 1.35;
+  color: #d8d0c6;
+}
+
+.tile__block-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.tile__block-actions button {
+  appearance: none;
+  border: 1px solid rgb(244 239 232 / 0.28);
+  border-radius: 0.35rem;
+  min-height: 1.55rem;
+  padding: 0.2rem 0.35rem;
+  background: rgb(244 239 232 / 0.1);
+  color: #f4efe8;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.tile__block-actions button:hover {
+  background: rgb(244 239 232 / 0.2);
+}
+
+.tile__block-ask {
+  grid-column: 1 / -1;
+  background: #2f6bff !important;
+  border-color: transparent !important;
 }
 
 .snuff__center {
@@ -144,10 +245,11 @@ img {
   gap: 0.85rem;
   padding: 1.5rem;
   text-align: center;
+  pointer-events: none;
   background: radial-gradient(
-    ellipse 52% 40% at 50% 48%,
+    ellipse 48% 36% at 50% 48%,
     rgb(26 20 16 / 0.96) 0%,
-    rgb(26 20 16 / 0.72) 48%,
+    rgb(26 20 16 / 0.7) 48%,
     transparent 76%
   );
 }
@@ -178,6 +280,7 @@ img {
   justify-content: center;
   gap: 0.65rem;
   margin-top: 0.55rem;
+  pointer-events: auto;
 }
 
 .cta {
@@ -237,7 +340,8 @@ img {
 
   .tile--far,
   .tile--mid,
-  .tile--near {
+  .tile--near,
+  .tile--interactive {
     transform: none;
   }
 
@@ -267,7 +371,12 @@ img {
 
   .tile--far,
   .tile--mid,
-  .tile--near {
+  .tile--near,
+  .tile--interactive {
     transform: none;
+  }
+
+  .tile__block {
+    transition: none;
   }
 }

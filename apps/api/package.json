@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --packages=external && node --env-file=../../.env dist/index.js",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit",
+    "test": "esbuild src/native-approvals.test.ts src/scoring.test.ts --bundle --platform=node --format=esm --outdir=dist/tests && node --test dist/tests/*.test.js",
+    "test:scoring-db": "esbuild src/scoring.integration.test.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/scoring.integration.test.js && node --test dist/scoring.integration.test.js",
+    "demo:scoring": "esbuild src/scoring.demo.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/scoring.demo.js && node --env-file=../../.env dist/scoring.demo.js"
   },
   "dependencies": {
     "postgres": "^3.4.9",

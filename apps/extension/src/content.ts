@@ -1,3 +1,4 @@
+import { ScoreQueue, type ScoreReceipt } from "./score-queue";
 import { DbConnection, tables, type SubscriptionHandle } from "./module_bindings";
 
 const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
@@ -9,6 +10,9 @@ function pauseCopy() {
 
 let bypass = false;
 let pauseId = "";
+let pauseAmountCents: number | undefined;
+let scoreTotal: number | undefined;
+let outcomeText = "";
 let poll: ReturnType<typeof setInterval> | undefined;
 let decided = false;
 let live: { id: string; conn: DbConnection; sub?: SubscriptionHandle } | undefined;
@@ -76,6 +80,7 @@ shadow.innerHTML = `
     <p class="copy">${pauseCopy()}</p>
     <p class="note">Ask a friend. YES approves the purchase. NO rejects it.</p>
     <p class="friend" hidden></p>
+    <p class="score note" aria-live="polite">Loading your score…</p>
     <button type="button" data-action="drop">Drop</button>
     <button type="button" data-action="save">Save for later</button>
     <button type="button" data-action="continue">Continue</button>
@@ -89,6 +94,7 @@ const overlay = shadow.querySelector<HTMLElement>(".overlay")!;
 const statusEl = shadow.querySelector<HTMLElement>(".status")!;
 const friendEl = shadow.querySelector<HTMLElement>(".friend")!;
 const askBtn = shadow.querySelector<HTMLButtonElement>(".ask")!;
+const scoreEl = shadow.querySelector<HTMLElement>(".score")!;
 const copyEl = shadow.querySelector<HTMLElement>(".copy")!;
 
 async function loadRule() {
@@ -106,12 +112,38 @@ async function loadRule() {
   }
 }
 
-function post(type: string, id: string = crypto.randomUUID()) {
-  fetch("http://localhost:8787/events", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, type, ruleId: rule.id }),
-  }).catch(() => {});
+let scoreQueue: ScoreQueue | undefined;
+try { scoreQueue = new ScoreQueue(localStorage, async event => {
+  const res = await fetch("http://localhost:8787/pause-events", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(event),
+  });
+  if (!res.ok) throw new Error("score_sync_failed");
+  return await res.json() as ScoreReceipt;
+}); } catch { scoreEl.textContent = "Score storage is unavailable."; }
+function displayScore() {
+  scoreEl.textContent = scoreTotal === undefined ? "Score waiting to sync." : `Your score: ${scoreTotal} points.`;
+  if (outcomeText && overlay.hidden) statusEl.textContent = `${outcomeText}${scoreTotal === undefined ? "" : ` · Score: ${scoreTotal}`}`;
+}
+async function syncScores() {
+  try {
+    if (!scoreQueue) return;
+    const receipts = await scoreQueue.flush();
+    if (receipts.length) scoreTotal = receipts[receipts.length - 1]!.score;
+    else {
+      const res = await fetch("http://localhost:8787/score");
+      if (!res.ok) throw new Error("score_unavailable");
+      const data = await res.json() as { score?: number };
+      if (Number.isSafeInteger(data.score)) scoreTotal = data.score;
+    }
+    displayScore();
+  } catch { scoreEl.textContent = "Score update pending. Retrying when connected."; }
+}
+function post(type: string, id: string = `${pauseId}:${type}`) {
+  try {
+    if (!scoreQueue) throw new Error("score_storage_unavailable");
+    scoreQueue.enqueue({ id, type, ruleId: rule.id, pauseId, source: "web", amountCents: pauseAmountCents, at: new Date().toISOString() });
+    void syncScores();
+  } catch { scoreEl.textContent = "Score could not be queued. Check browser storage."; }
 }
 
 function stopLive() {
@@ -134,7 +166,11 @@ function openCard() {
   if (!overlay.hidden) return;
   stopLive();
   decided = false;
+  applying = false;
+  outcomeText = "";
   pauseId = crypto.randomUUID();
+  const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+  pauseAmountCents = Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : undefined;
   friendEl.hidden = true;
   friendEl.textContent = "";
   askBtn.disabled = false;
@@ -152,7 +188,9 @@ function closeCard(type: string, status?: string) {
   post(type);
   if (pauseId) post("pause_resolved", `${pauseId}:pause_resolved`);
   statusEl.hidden = !status;
+  outcomeText = status ?? "";
   if (status) statusEl.textContent = status;
+  displayScore();
 }
 
 let applying = false;
@@ -177,14 +215,16 @@ function showFriendDecision(status: "approved" | "rejected") {
   friendEl.textContent = status === "approved" ? "Friend approved this purchase." : "Friend rejected this purchase.";
   if (poll) clearInterval(poll);
   poll = undefined;
-  setTimeout(() => applyDecision(status), 1500);
+  const id = pauseId;
+  setTimeout(() => { if (pauseId === id) applyDecision(status); }, 1500);
 }
 
 async function pullReply() {
-  const res = await fetch(`http://localhost:8787/check-in?id=${encodeURIComponent(pauseId)}`);
+  const id = pauseId;
+  const res = await fetch(`http://localhost:8787/check-in?id=${encodeURIComponent(id)}`);
   if (!res.ok) return;
   const row = (await res.json()) as { status?: string; reply?: string | null };
-  if (row.status !== "approved" && row.status !== "rejected") return;
+  if (id !== pauseId || overlay.hidden || (row.status !== "approved" && row.status !== "rejected")) return;
   showFriendDecision(row.status);
 }
 
@@ -235,6 +275,8 @@ async function askFriend() {
   if (!pauseId || askBtn.disabled) return;
   askBtn.disabled = true;
   askBtn.textContent = "Asking…";
+  post("friend_ping_requested");
+  const requestedPauseId = pauseId;
   try {
     const product = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
     const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
@@ -244,6 +286,7 @@ async function askFriend() {
       body: JSON.stringify({ id: pauseId, ruleId: rule.id, product, amount }),
     });
     const row = (await res.json()) as { waiting?: boolean };
+    if (pauseId !== requestedPauseId || overlay.hidden) return;
     if (!res.ok) throw new Error(String(res.status));
     askBtn.textContent = "Asked";
     friendEl.hidden = false;
@@ -256,6 +299,7 @@ async function askFriend() {
     }, 2000);
     void subscribeLive();
   } catch {
+    if (pauseId !== requestedPauseId || overlay.hidden) return;
     askBtn.disabled = false;
     askBtn.textContent = "Ask my friend";
     statusEl.hidden = false;
@@ -278,6 +322,7 @@ shadow.addEventListener("click", (event) => {
   if (!(target instanceof Element)) return;
   const action = target.closest("button")?.getAttribute("data-action");
   if (action === "ask") void askFriend();
+  else if (overlay.hidden) return;
   else if (action === "drop") closeCard("purchase_dropped", "Purchase dropped");
   else if (action === "save") {
     void saveItem();
@@ -310,3 +355,7 @@ document.addEventListener(
 
 document.documentElement.appendChild(host);
 void loadRule();
+
+void syncScores();
+window.addEventListener("online", () => { void syncScores(); });
+setInterval(() => { void syncScores(); }, 15000);

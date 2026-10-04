@@ -12,9 +12,11 @@ enum PactStyle {
 
 struct PactRootView: View {
     @StateObject private var model = MonitorModel()
+    @StateObject private var blocker = BlockingModel()
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab = 0
     @State private var samplePresented = false
+    @State private var pausePreviewPresented = false
     private let refresh = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -35,12 +37,23 @@ struct PactRootView: View {
         .background(PactStyle.paper)
         .foregroundStyle(PactStyle.ink)
         .preferredColorScheme(.light)
-        .onReceive(refresh) { _ in model.refresh() }
-        .onChange(of: scenePhase) { _, phase in model.setVisible(phase == .active) }
+        .onReceive(refresh) { _ in
+            model.refresh(); blocker.refresh()
+            if scenePhase == .active { Task { await blocker.pollFriendReplyIfNeeded() } }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            model.setVisible(phase == .active)
+            if phase == .active { blocker.refresh() }
+        }
         .sheet(isPresented: $samplePresented) { SamplePreview(model: model) }
+        .sheet(isPresented: $pausePreviewPresented) { SamplePausePreview() }
+        .fullScreenCover(isPresented: $blocker.showingPause) {
+            PactPausePresentation(model: blocker)
+        }
         .task {
             if ProcessInfo.processInfo.arguments.contains("--ocr-self-test") { await model.verifyOCR() }
             if ProcessInfo.processInfo.arguments.contains("--preview-checkout") { samplePresented = true }
+            if ProcessInfo.processInfo.arguments.contains("--preview-pause") || ProcessInfo.processInfo.arguments.contains("--preview-friend-pending") { pausePreviewPresented = true }
         }
     }
 
@@ -78,6 +91,14 @@ struct PactRootView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             monitoringCard
+            CheckoutBlockingCard(model: blocker)
+            FriendMessagingCard(model: blocker)
+            PauseScoreCard(score: blocker.score, message: blocker.scoreMessage)
+            Button("Preview pause UI") { pausePreviewPresented = true }
+                .buttonStyle(PactButtonStyle()).accessibilityIdentifier("preview-pause")
+            if let message = model.snapshot.interventionMessage {
+                Text(message).font(.caption).foregroundStyle(PactStyle.coral)
+            }
             HStack(alignment: .top, spacing: 14) {
                 Image(systemName: "lock.shield").font(.system(size: 21)).foregroundStyle(PactStyle.coral)
                 VStack(alignment: .leading, spacing: 5) {
@@ -98,7 +119,7 @@ struct PactRootView: View {
                 }
                 .padding(18).background(PactStyle.paleCoral.opacity(0.65), in: RoundedRectangle(cornerRadius: 19))
             }.buttonStyle(.plain)
-            Text("EARLY PROTOTYPE  ·  RECOGNITION ONLY")
+            Text("EARLY PROTOTYPE  ·  LOCAL CHECKOUT PAUSE")
                 .font(.system(size: 9, weight: .medium)).tracking(1.2).foregroundStyle(PactStyle.muted)
                 .frame(maxWidth: .infinity)
         }
@@ -189,7 +210,7 @@ struct PactRootView: View {
                             .font(.system(size: 11)).foregroundStyle(PactStyle.muted)
                     }
                 }
-                Text("Signals are clues, not proof of a purchase. This prototype does not block apps or move money.")
+                Text("Signals are clues, not proof of a purchase. When enabled, Screen Time pauses your selected app. No money moves.")
                     .font(.system(size: 12)).foregroundStyle(PactStyle.muted).lineSpacing(3)
             }.card()
             VStack(alignment: .leading, spacing: 14) {
@@ -201,6 +222,7 @@ struct PactRootView: View {
             Button { samplePresented = true } label: {
                 Label("Explore sample screens", systemImage: "viewfinder").frame(maxWidth: .infinity)
             }.buttonStyle(PactButtonStyle())
+            CheckoutHistoryView(model: blocker)
         }
     }
 
@@ -209,8 +231,8 @@ struct PactRootView: View {
             title("Built around trust.", subtitle: "You decide when your screen is shared.")
             VStack(alignment: .leading, spacing: 20) {
                 Label("Local by design", systemImage: "lock.shield").font(.system(size: 23, weight: .semibold, design: .serif))
-                privacyRow("No cloud connection", "There are no accounts, analytics, or external API calls in this prototype.")
-                privacyRow("No screen archive", "Frames and recognized text are processed in memory and discarded. Only fixed signal labels and session counters are shared with the app.")
+                privacyRow("Friend confirmation is optional to set up", "When you choose Continue, Pact sends request IDs and times to your configured backend. Pause choices also sync to calculate your score using a demo price. Photon messages your linked friend. Their matching confirmation releases your pause. Screen content, item details and prices stay off the network.")
+                privacyRow("No screen archive", "Frames and recognized text are discarded. Pact stores fixed signals, pause times, choices and an opaque Screen Time token for your selected app. Saved reminders contain no product details.")
                 privacyRow("Audio is ignored", "Pact doesn't analyze microphone or app audio. Leave the microphone off in the system broadcast control.")
                 privacyRow("A visible, voluntary session", "The iPhone recording indicator stays visible. Stop there at any time. Monitoring never starts automatically.")
             }.card()
@@ -218,6 +240,7 @@ struct PactRootView: View {
                 Text("WHAT TO EXPECT").eyebrow()
                 Text("While enabled, iOS can share the whole display, including other apps. Pact cannot reliably identify or restrict capture to a particular app. Use demo data while testing.")
                 Text("Some screens are unavailable to capture. Checkout recognition is an English-language heuristic and can miss screens or make mistakes.")
+                Text("Blocking applies to the whole app you select. Detection and shield delivery take time, so Pact cannot guarantee it will interrupt every purchase before payment. Turn off blocking here or revoke Pact's Screen Time access to release it.")
             }.font(.system(size: 13)).foregroundStyle(PactStyle.muted).lineSpacing(4).card()
             Button(action: model.clearSummary) {
                 Label("Clear local session summary", systemImage: "trash").frame(maxWidth: .infinity)

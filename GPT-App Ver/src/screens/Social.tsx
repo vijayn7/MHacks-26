@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
@@ -6,8 +6,10 @@ import { useStore } from '../state/Store';
 import { money, validEmail } from '../state/model';
 import { colors, palettes, Hue } from '../design/tokens';
 import { Canvas, Icon, Input, QuietButton, Sheet, T, tap } from '../components/ui';
+import { CountUpText } from '../components/CountUp';
 import { ContactSync } from '../components/ContactSync';
 import { Mascot } from '../components/Mascot';
+import { useSharedCountUp } from '../hooks/useCountUp';
 
 export default function Social() {
   const { state, dispatch } = useStore();
@@ -21,11 +23,15 @@ export default function Social() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [added, setAdded] = useState(false);
-  const ranked = [
-    ...state.friends,
-    { id: 'you', name: 'You', email: '', savings: state.savings, hue: state.hue },
-  ].sort((a, b) => b.savings - a.savings);
-  const emptySpot = (id: string) => ({ id, name: ' ', hue: 'Ash' as Hue });
+  const ranked = useMemo(
+    () =>
+      [
+        ...state.friends,
+        { id: 'you', name: 'You', email: '', savings: state.savings, hue: state.hue },
+      ].sort((a, b) => b.savings - a.savings),
+    [state.friends, state.savings, state.hue],
+  );
+  const emptySpot = (id: string) => ({ id, name: ' ', hue: 'Ash' as Hue, savings: 0 });
   const podium = [
     ranked[1] || emptySpot('empty-left'),
     ranked[0],
@@ -33,6 +39,12 @@ export default function Social() {
   ];
   const heights = compact ? [105, 164, 90] : [135, 210, 116];
   const p = palettes[state.hue];
+  const replayKey = ranked.map((f) => `${f.id}:${f.savings}`).join('|');
+  const { amount, opacity } = useSharedCountUp({
+    delay: 80,
+    duration: 1300,
+    replayKey,
+  });
   const connect = () => {
     const value = email.trim().toLowerCase();
     if (!validEmail(value)) {
@@ -114,22 +126,31 @@ export default function Social() {
                       size={compact ? (i === 1 ? 78 : 64) : i === 1 ? 99 : 81}
                     />
                   </View>
-                  <LinearGradient
-                    colors={[
-                      palettes[f.hue].body + '35',
-                      palettes[f.hue].mid + '17',
-                      palettes[f.hue].wash + '03',
-                    ]}
+                  <View
                     style={{
-                      height: heights[i],
                       width: '100%',
-                      borderTopLeftRadius: 15,
-                      borderTopRightRadius: 15,
-                      borderWidth: 1,
-                      borderColor: palettes[f.hue].body + '13',
-                      borderBottomWidth: 0,
+                      height: Math.max(8, heights[i] * amount),
+                      overflow: 'hidden',
+                      opacity,
                     }}
-                  />
+                  >
+                    <LinearGradient
+                      colors={[
+                        palettes[f.hue].body + '35',
+                        palettes[f.hue].mid + '17',
+                        palettes[f.hue].wash + '03',
+                      ]}
+                      style={{
+                        height: heights[i],
+                        width: '100%',
+                        borderTopLeftRadius: 15,
+                        borderTopRightRadius: 15,
+                        borderWidth: 1,
+                        borderColor: palettes[f.hue].body + '13',
+                        borderBottomWidth: 0,
+                      }}
+                    />
+                  </View>
                   <T
                     variant="small"
                     color={f.id === 'you' ? p.body : colors.secondary}
@@ -215,9 +236,13 @@ export default function Social() {
               </T>
               <Mascot companionId={f.id} hue={f.hue} size={42} />
               <T style={{ flex: 1 }}>{f.name}</T>
-              <T variant="title" color={palettes[f.hue].body} style={{ fontSize: 23 }}>
-                {money(f.savings)}
-              </T>
+              <CountUpText
+                opacity={opacity}
+                color={palettes[f.hue].body}
+                textStyle={{ fontSize: 23 }}
+              >
+                {money(Math.round(f.savings * amount))}
+              </CountUpText>
               {managing && f.id !== 'you' && (
                 <Pressable
                   accessibilityRole="button"

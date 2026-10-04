@@ -5,11 +5,13 @@ import { useStore } from '../state/Store';
 import { money } from '../state/model';
 import { palettes } from '../design/tokens';
 import { Canvas, T } from '../components/ui';
+import { CountUpText } from '../components/CountUp';
 import { useCompanion } from '../state/Companion';
 import { Mascot } from '../components/Mascot';
 import { ExtensionScore } from '../components/ExtensionScore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavingsChart } from '../components/Chart';
+import { useCountUp } from '../hooks/useCountUp';
 
 export default function Home() {
   const { state } = useStore();
@@ -18,23 +20,29 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { level } = useCompanion();
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
-  const textSize = width < 360 ? 21 : 25;
-  const textLineHeight = width < 360 ? 28 : 33;
-  const pill = (value: string) => (
+  const textSize = width < 360 ? 17 : 19;
+  const textLineHeight = width < 360 ? 23 : 26;
+  const savings = useCountUp({ value: state.savings, delay: 900, duration: 1000 });
+  const pauses = useCountUp({ value: state.pauses, delay: 1800, duration: 850 });
+  const pill = (value: string, opacity: number) => (
     <LinearGradient
       colors={[p.body + '22', p.mid + '10']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
         borderRadius: 99,
-        paddingHorizontal: 11,
+        paddingHorizontal: 9,
         borderWidth: 1,
         borderColor: p.body + '20',
       }}
     >
-      <T variant="title" color={p.body} style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+      <CountUpText
+        opacity={opacity}
+        color={p.body}
+        textStyle={{ fontSize: textSize, lineHeight: textLineHeight }}
+      >
         {value}
-      </T>
+      </CountUpText>
     </LinearGradient>
   );
   return (
@@ -59,25 +67,30 @@ export default function Home() {
               {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame'}
             </T>
           </View>
-          <ExtensionScore />
-          <View style={{ alignItems: 'center', gap: 4, marginTop: 8, marginBottom: 22 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-                you saved
-              </T>
-              {pill(money(state.savings))}
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-                by pausing
-              </T>
-              {pill(String(state.pauses))}
-              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-                times
-              </T>
-            </View>
+          <ExtensionScore delay={0} duration={900} />
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              columnGap: 7,
+              rowGap: 4,
+              marginTop: 8,
+              marginBottom: 22,
+              paddingHorizontal: 4,
+            }}
+          >
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-              this week.
+              you saved
+            </T>
+            {pill(money(Math.round(savings.display)), savings.opacity)}
+            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+              by pausing
+            </T>
+            {pill(String(Math.round(pauses.display)), pauses.opacity)}
+            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+              times this week.
             </T>
           </View>
           <View style={{ marginHorizontal: 8, marginBottom: 10 }}>

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Animated, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 import { useStore } from '../state/Store';
@@ -40,9 +40,9 @@ export default function Social() {
   const heights = compact ? [105, 164, 90] : [135, 210, 116];
   const p = palettes[state.hue];
   const replayKey = ranked.map((f) => `${f.id}:${f.savings}`).join('|');
-  const { amount, progress, opacity } = useSharedCountUp({
+  const { amount, opacity } = useSharedCountUp({
     delay: 80,
-    duration: 1100,
+    duration: 1300,
     replayKey,
   });
   const connect = () => {
@@ -126,13 +126,10 @@ export default function Social() {
                       size={compact ? (i === 1 ? 78 : 64) : i === 1 ? 99 : 81}
                     />
                   </View>
-                  <Animated.View
+                  <View
                     style={{
                       width: '100%',
-                      height: progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [8, heights[i]],
-                      }),
+                      height: Math.max(8, heights[i] * amount),
                       overflow: 'hidden',
                       opacity,
                     }}
@@ -153,7 +150,7 @@ export default function Social() {
                         borderBottomWidth: 0,
                       }}
                     />
-                  </Animated.View>
+                  </View>
                   <T
                     variant="small"
                     color={f.id === 'you' ? p.body : colors.secondary}

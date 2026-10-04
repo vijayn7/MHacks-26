@@ -22,9 +22,9 @@ export default function Home() {
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
   const textSize = width < 360 ? 17 : 19;
   const textLineHeight = width < 360 ? 23 : 26;
-  const savings = useCountUp({ value: state.savings, delay: 720, duration: 880 });
-  const pauses = useCountUp({ value: state.pauses, delay: 1480, duration: 720 });
-  const pill = (value: string, opacity: typeof savings.opacity) => (
+  const savings = useCountUp({ value: state.savings, delay: 900, duration: 1000 });
+  const pauses = useCountUp({ value: state.pauses, delay: 1800, duration: 850 });
+  const pill = (value: string, opacity: number) => (
     <LinearGradient
       colors={[p.body + '22', p.mid + '10']}
       start={{ x: 0, y: 0 }}

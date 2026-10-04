@@ -396,7 +396,7 @@ test('purchase rules match exact thresholds, categories, either/both and survive
 test('extension score is deduplicated, persists, and is not awarded by local pauses', () => {
   let s = reducer(initialState(), { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'one', 'two'] });
   assert.deepEqual(s.extensionOptOutIds, ['one', 'two']);
-  s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: ['two', 'three'] });
+  s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'two', 'three'] });
   assert.equal(s.extensionOptOutIds.length * 10, 30);
   s = reducer(s, { type: 'PAUSE' });
   s = reducer(s, { type: 'SNUFF_NUDGE', id: 'headphones' });
@@ -406,6 +406,8 @@ test('extension score is deduplicated, persists, and is not awarded by local pau
     'two',
     'three',
   ]);
+  s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: [] });
+  assert.equal(s.extensionOptOutIds.length, 0);
   assert.deepEqual(migrate({ version: 2 }).extensionOptOutIds, []);
 });
 

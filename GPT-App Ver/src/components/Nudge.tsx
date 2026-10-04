@@ -29,6 +29,9 @@ import { fetchCheckIn, sendCheckIn } from '../services/checkin';
 export function NudgeSheet() {
   const { state, activeNudge, openNudge } = useStore();
   const nudge = state.nudges.find((n) => n.id === activeNudge);
+  useEffect(() => {
+    if (activeNudge && !nudge) openNudge(null);
+  }, [activeNudge, nudge, openNudge]);
   return nudge ? <NudgePopup key={nudge.id} nudge={nudge} onClose={() => openNudge(null)} /> : null;
 }
 

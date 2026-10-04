@@ -8,6 +8,7 @@ let rule = {
   pauseMinutes: fallback.pauseMinutes,
   enabled: fallback.enabled,
 };
+let domains = ["localhost"];
 
 function pauseCopy() {
   return `Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.`;
@@ -107,7 +108,9 @@ async function loadRule() {
       minAmount?: unknown;
       pauseMinutes?: unknown;
       enabled?: unknown;
+      domains?: unknown;
     };
+    if (Array.isArray(data.domains)) domains = data.domains.filter((d) => typeof d === "string");
     if (typeof data.id !== "string" || data.id.length === 0) return;
     if (typeof data.minAmount !== "number" || !Number.isFinite(data.minAmount)) return;
     if (typeof data.pauseMinutes !== "number" || !Number.isFinite(data.pauseMinutes)) return;
@@ -160,7 +163,7 @@ function createPause(): Promise<void> {
   return fetch("http://localhost:8787/pauses", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: pauseId, name, amount }),
+    body: JSON.stringify({ id: pauseId, name, amount, source: "chrome" }),
   }).then(
     () => undefined,
     () => undefined,
@@ -195,7 +198,7 @@ function openCard() {
   poll = undefined;
   stopPauseWatch();
   decided = false;
-  pauseId = crypto.randomUUID();
+  pauseId = `chrome-${crypto.randomUUID()}`;
   friendEl.hidden = true;
   friendEl.textContent = "";
   askBtn.disabled = false;
@@ -405,5 +408,14 @@ function watchBuyPage() {
   look();
 }
 
+// Demo reset: reloading a store page wipes what earlier Chrome pauses added to the demo account.
+async function clearOnReload() {
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (nav?.type !== "reload") return;
+  const here = location.hostname;
+  if (!domains.some((d) => here === d || here.endsWith(`.${d}`))) return;
+  await fetch("http://localhost:8787/pauses/clear", { method: "POST" }).catch(() => undefined);
+}
+
 document.documentElement.appendChild(host);
-void loadRule().then(watchBuyPage);
+void loadRule().then(clearOnReload).then(watchBuyPage);

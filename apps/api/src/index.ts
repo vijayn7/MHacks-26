@@ -17,7 +17,7 @@ import {
 } from "./checkin.js";
 import { pauseBodyFrom, statusForNudgeAction } from "./pause-bridge";
 import { handleSnuff, setupSnuff, userId as snuffUserId } from "./snuff/index";
-import { createNudge, nudgeStatus } from "./snuff/pauses";
+import { chromePrefix, clearChromePauses, createNudge, nudgeStatus } from "./snuff/pauses";
 import {
   clampPlanProposal,
   loadUserPlan,
@@ -702,6 +702,23 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       return;
     }
     send(res, 200, { id, status });
+    return;
+  }
+  if (req.method === "POST" && path === "/pauses/clear") {
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    await clearChromePauses(sql, snuffUserId);
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (!events[i].id.startsWith(chromePrefix)) continue;
+      eventsById.delete(events[i].id);
+      events.splice(i, 1);
+    }
+    for (const id of checkIns.keys()) if (id.startsWith(chromePrefix)) checkIns.delete(id);
+    await sql`delete from pause_events where id like ${chromePrefix + "%"}`;
+    await sql`delete from check_ins where id like ${chromePrefix + "%"}`;
+    send(res, 200, { ok: true });
     return;
   }
   if (req.method === "POST" && path === "/pauses") {

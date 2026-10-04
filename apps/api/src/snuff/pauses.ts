@@ -57,6 +57,7 @@ async function ensureTables(sql: Sql) {
       pos bigint not null,
       primary key (user_id, id)
     )`;
+  await sql`alter table snuff_nudges add column if not exists source text`;
   // Shared with the Chrome extension via GET/POST /saved (created in ensureDb).
   await sql`
     create table if not exists saved_items (
@@ -114,14 +115,26 @@ async function loadNudge(sql: Sql, userId: string, id: string): Promise<NudgeRow
 export async function createNudge(
   sql: Sql,
   userId: string,
-  nudge: { id: string; name: string; amount: number },
+  nudge: { id: string; name: string; amount: number; source?: string },
 ): Promise<void> {
   if (!nudge.id || !nudge.name.trim() || !Number.isFinite(nudge.amount)) return;
   const pos = await nextPos(sql, userId);
   await sql`
-    insert into snuff_nudges (user_id, id, name, amount, status, due_at, pos)
-    values (${userId}, ${nudge.id}, ${nudge.name}, ${nudge.amount}, 'waiting', null, ${pos})
+    insert into snuff_nudges (user_id, id, name, amount, status, due_at, pos, source)
+    values (${userId}, ${nudge.id}, ${nudge.name}, ${nudge.amount}, 'waiting', null, ${pos}, ${nudge.source ?? null})
     on conflict (user_id, id) do nothing`;
+}
+
+export const chromePrefix = "chrome-";
+
+/** Undo everything Chrome pauses wrote for this user: pauses, Drop savings, and saved items. */
+export async function clearChromePauses(sql: Sql, userId: string): Promise<void> {
+  const like = `${chromePrefix}%`;
+  await sql.begin(async (tx) => {
+    await tx`delete from snuff_ledger where user_id = ${userId} and id like ${"snuff-" + like}`;
+    await tx`delete from saved_items where user_id = ${userId} and id like ${like}`;
+    await tx`delete from snuff_nudges where user_id = ${userId} and id like ${like}`;
+  });
 }
 
 export async function nudgeStatus(
@@ -297,8 +310,9 @@ export const pauses: Slice = {
       amount: number | string;
       status: string;
       due_at: number | string | null;
+      source: string | null;
     }[]>`
-      select id, name, amount, status, due_at
+      select id, name, amount, status, due_at, source
       from snuff_nudges
       where user_id = ${userId}
       order by pos asc, id asc`;
@@ -312,6 +326,7 @@ export const pauses: Slice = {
           amount: asAmount(row.amount),
           status: row.status as NudgeStatus,
           dueAt: dueRaw != null && Number.isFinite(dueRaw) ? dueRaw : null,
+          ...(row.source ? { source: row.source } : {}),
         };
       });
 

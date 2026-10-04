@@ -29,7 +29,9 @@ import { fetchCheckIn, sendCheckIn } from '../services/checkin';
 export function NudgeSheet() {
   const { state, activeNudge, openNudge } = useStore();
   const nudge = state.nudges.find((n) => n.id === activeNudge);
-  return nudge ? <NudgePopup key={nudge.id} nudge={nudge} onClose={() => openNudge(null)} /> : null;
+  return nudge && !state.protectionPaused ? (
+    <NudgePopup key={nudge.id} nudge={nudge} onClose={() => openNudge(null)} />
+  ) : null;
 }
 
 function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }) {

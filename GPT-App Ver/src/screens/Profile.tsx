@@ -2,7 +2,7 @@ import { blendPalette } from '../design/blend';
 import { useCompanion } from '../state/Companion';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { GlowSlider } from '../components/GlowSlider';
 import { colors, Hue, palettes } from '../design/tokens';
@@ -20,7 +20,8 @@ export default function Profile() {
   const { level } = useCompanion();
   const flame =
     level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
-  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | null>(null);
+  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | 'pause' | null>(null);
+  const [pauseStep, setPauseStep] = useState(1);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [customize, setCustomize] = useState<'color' | 'face'>('color');
@@ -290,6 +291,21 @@ export default function Profile() {
         <QuietButton onPress={() => setSheet(null)}>done</QuietButton>
       </Sheet>
       <Sheet visible={sheet === 'settings'} title="settings" onClose={() => setSheet(null)}>
+        <View style={s.row}>
+          <T>pause snuff</T>
+          <Switch
+            accessibilityLabel="pause snuff"
+            value={state.protectionPaused}
+            trackColor={{ true: flame.mid, false: '#352D2B' }}
+            onValueChange={(paused) => {
+              if (!paused) dispatch({ type: 'PROTECTION_PAUSED', paused: false });
+              else {
+                setPauseStep(1);
+                setSheet('pause');
+              }
+            }}
+          />
+        </View>
         <Input label="your name" value={name} onChangeText={setName} placeholder="your name" />
         <QuietButton
           secondary
@@ -320,6 +336,33 @@ export default function Profile() {
           }}
         >
           done
+        </QuietButton>
+      </Sheet>
+      <Sheet
+        visible={sheet === 'pause'}
+        title={pauseStep === 1 ? 'pause your flame?' : 'are you sure?'}
+        onClose={() => setSheet('settings')}
+      >
+        <View style={{ alignItems: 'center' }}>
+          <Mascot hue={state.hue} size={150} expression="wistful" intensity="Low" />
+          <T variant="small" style={{ textAlign: 'center' }}>
+            {pauseStep === 1
+              ? 'purchase pauses on this device will stop until you turn snuff back on.'
+              : 'your flame will wait. your saved preferences will stay.'}
+          </T>
+        </View>
+        <QuietButton onPress={() => setSheet('settings')}>keep snuff on</QuietButton>
+        <QuietButton
+          secondary
+          onPress={() => {
+            if (pauseStep === 1) setPauseStep(2);
+            else {
+              dispatch({ type: 'PROTECTION_PAUSED', paused: true });
+              setSheet('settings');
+            }
+          }}
+        >
+          {pauseStep === 1 ? 'continue to pause' : 'yes, pause snuff'}
         </QuietButton>
       </Sheet>
       <Sheet

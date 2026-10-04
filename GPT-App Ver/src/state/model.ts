@@ -45,12 +45,14 @@ export type AppState = {
   savings: number;
   pauses: number;
   notificationsEnabled: boolean;
+  protectionPaused: boolean;
   dailySavings: Record<string, number>;
   friends: Friend[];
   nudges: Nudge[];
   archive: SavedItem[];
 };
 export type Action =
+  | { type: 'PROTECTION_PAUSED'; paused: boolean }
   | { type: 'SYNC_EXTENSION_SCORE'; ids: string[] }
   | { type: 'RENAME_FRIEND'; id: string; name: string }
   | { type: 'REMOVE_FRIEND'; id: string }
@@ -104,6 +106,7 @@ export function initialState(now = Date.now()): AppState {
     trustedFriendId: 'sam',
     savings: 284,
     pauses: 11,
+    protectionPaused: false,
     notificationsEnabled: false,
     dailySavings: Object.fromEntries(
       [8, 24, 12, 19, 32, 51, 138].map((v, i) => [dayKey(now - (6 - i) * 86400000), v]),
@@ -144,6 +147,7 @@ export function migrate(raw: unknown): AppState {
       spendingCategories: Array.isArray(old.spendingCategories)
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
         : [],
+      protectionPaused: old.protectionPaused === true,
       plan: readPlan(old.plan),
       purchaseRules: readPurchaseRules(old.purchaseRules),
       archive: readArchive(old.archive),
@@ -236,18 +240,17 @@ export function reducer(s: AppState, a: Action): AppState {
             ],
           };
     case 'SYNC_EXTENSION_SCORE': {
-      // The API is the source of truth, so a demo reset can lower the score.
       const ids = [
-        ...new Set(
-          a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
-        ),
+        ...new Set([
+          ...s.extensionOptOutIds,
+          ...a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
+        ]),
       ];
-      return ids.join('\n') === s.extensionOptOutIds.join('\n')
-        ? s
-        : { ...s, extensionOptOutIds: ids };
+      return ids.length === s.extensionOptOutIds.length ? s : { ...s, extensionOptOutIds: ids };
     }
     case 'INCOMING_PURCHASE':
-      return matchesPurchase(s.purchaseRules, a.amount, a.category) &&
+      return !s.protectionPaused &&
+        matchesPurchase(s.purchaseRules, a.amount, a.category) &&
         !s.nudges.some((n) => n.id === a.id)
         ? {
             ...s,
@@ -298,6 +301,8 @@ export function reducer(s: AppState, a: Action): AppState {
       return a.id === null || s.friends.some((friend) => friend.id === a.id)
         ? { ...s, trustedFriendId: a.id }
         : s;
+    case 'PROTECTION_PAUSED':
+      return { ...s, protectionPaused: a.paused };
     case 'NOTIFICATIONS':
       return { ...s, notificationsEnabled: a.enabled };
     case 'RENAME_FRIEND':

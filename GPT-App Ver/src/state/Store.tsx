@@ -75,6 +75,7 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     if (!apiEnabled || action.type === 'SYNC_EXTENSION_SCORE') return;
     edits.current += 1;
     const body = { id: newId(), action };
+    if (action.type === 'PROTECTION_PAUSED') return;
     outbox.current = outbox.current
       .then(() => post('/app/actions', body))
       .then(() => setOnline(true))
@@ -101,8 +102,13 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
       if (apiEnabled) {
         try {
           const server = await api('/app/state');
+          const local = await AsyncStorage.getItem(STORAGE_KEY);
+          const protectionPaused = local ? migrate(JSON.parse(local)).protectionPaused : false;
           if (active) {
-            apply({ type: 'HYDRATE', state: { ...migrate(server), onboardingComplete: false } });
+            apply({
+              type: 'HYDRATE',
+              state: { ...migrate(server), protectionPaused, onboardingComplete: false },
+            });
             setOnline(true);
           }
           return;
@@ -174,7 +180,11 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     category?: string;
     source?: string;
   }) => {
-    if (!matchesPurchase(state.purchaseRules, purchase.amount, purchase.category)) return false;
+    if (
+      state.protectionPaused ||
+      !matchesPurchase(state.purchaseRules, purchase.amount, purchase.category)
+    )
+      return false;
     const existing = state.nudges.find((n) => n.id === purchase.id);
     if (existing && existing.status !== 'waiting') return false;
     dispatch({ type: 'INCOMING_PURCHASE', ...purchase });

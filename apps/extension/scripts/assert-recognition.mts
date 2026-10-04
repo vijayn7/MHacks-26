@@ -90,4 +90,12 @@ assert.match(functionBody("pauseAnalyzedCheckout"), /firstOrderTotalAmount/);
 assert.match(functionBody("pauseAnalyzedCheckout"), /data-total/);
 console.log("ok wool-coat #checkout path is special-cased from [data-total] before analyze");
 
+assert.match(functionBody("pauseAnalyzedCheckout"), /if \(bypass\) \{\s*bypass = false;\s*return;\s*\}/);
+const release = functionBody("releaseCheckout");
+assert.match(release, /const control = heldControl;\s*bypass = true;/);
+assert.match(release, /if \(control\) control\.click\(\);\s*else document\.querySelector<HTMLButtonElement>\("#checkout"\)\?\.click\(\);/);
+assert.match(content, /action === "continue"\) releaseCheckout\(\)/);
+assert.match(content, /status === "approved"\) \{\s*releaseCheckout\("Friend approved"\);/);
+console.log("ok analyzed pause replays the held control, otherwise #checkout");
+
 console.log("passed");

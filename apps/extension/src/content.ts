@@ -9,6 +9,7 @@ function pauseCopy() {
 }
 
 let bypass = false;
+let heldControl: HTMLElement | undefined;
 let pauseId = "";
 let poll: ReturnType<typeof setInterval> | undefined;
 let decided = false;
@@ -146,6 +147,7 @@ function openCard() {
 }
 
 function closeCard(type: string, status?: string) {
+  heldControl = undefined;
   if (poll) clearInterval(poll);
   poll = undefined;
   stopLive();
@@ -158,14 +160,20 @@ function closeCard(type: string, status?: string) {
 
 let applying = false;
 
+function releaseCheckout(status?: string) {
+  const control = heldControl;
+  bypass = true;
+  closeCard("continue_selected", status);
+  if (control) control.click();
+  else document.querySelector<HTMLButtonElement>("#checkout")?.click();
+}
+
 function applyDecision(status: "approved" | "rejected") {
   if (applying || overlay.hidden) return;
   applying = true;
   if (poll) clearInterval(poll);
   if (status === "approved") {
-    bypass = true;
-    closeCard("continue_selected", "Friend approved");
-    document.querySelector<HTMLButtonElement>("#checkout")?.click();
+    releaseCheckout("Friend approved");
     return;
   }
   closeCard("purchase_dropped", "Friend rejected");
@@ -284,11 +292,7 @@ shadow.addEventListener("click", (event) => {
     void saveItem();
     closeCard("saved_for_later", "Saved for later");
   }
-  else if (action === "continue") {
-    bypass = true;
-    closeCard("continue_selected");
-    document.querySelector<HTMLButtonElement>("#checkout")?.click();
-  }
+  else if (action === "continue") releaseCheckout();
 });
 
 function holdCheckout(event: MouseEvent) {
@@ -324,6 +328,10 @@ function pauseWoolCoatCheckout(event: MouseEvent) {
 
 // One click is the shopper's action. Pause when that click's text analyzes as checkout.
 function pauseAnalyzedCheckout(event: MouseEvent, target: Element) {
+  if (bypass) {
+    bypass = false;
+    return;
+  }
   const control = target.closest("button, a");
   if (!(control instanceof HTMLElement)) return;
   const lines = [
@@ -334,6 +342,7 @@ function pauseAnalyzedCheckout(event: MouseEvent, target: Element) {
   const marked = document.querySelector("[data-total]");
   const amount = marked?.hasAttribute("data-total") ? markedTotal() : firstOrderTotalAmount(lines);
   if (amount === undefined || !(amount >= rule.minAmount)) return;
+  heldControl = control;
   holdCheckout(event);
 }
 

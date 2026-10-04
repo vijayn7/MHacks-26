@@ -13,6 +13,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mascot } from '../components/Mascot';
 import { OnboardingChat } from '../components/OnboardingChat';
+import { OrangeMeshBackground } from '../components/OrangeMeshBackground';
 import type { PurchaseRules } from '../state/purchase-rules';
 import { Icon, Input, T } from '../components/ui';
 import { colors, palettes } from '../design/tokens';
@@ -91,11 +92,13 @@ export default function Onboarding() {
         style={{
           opacity: fade,
           flex: 1,
-          backgroundColor: colors.bg,
+          backgroundColor: '#0C0401',
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
+          overflow: 'hidden',
         }}
       >
+        <OrangeMeshBackground />
         <View
           style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 100 }}
         >
@@ -122,6 +125,7 @@ export default function Onboarding() {
             borderColor: colors.border,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: '#00000055',
           }}
         >
           <Icon name="arrow-right" size={20} color={p.body} />
@@ -134,11 +138,13 @@ export default function Onboarding() {
       style={{
         opacity: fade,
         flex: 1,
-        backgroundColor: colors.bg,
+        backgroundColor: '#0C0401',
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
+        overflow: 'hidden',
       }}
     >
+      <OrangeMeshBackground />
       <ScrollView
         ref={chatScroll}
         key={step}

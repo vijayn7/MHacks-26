@@ -379,3 +379,25 @@ test('wearable readings expire, require consent in the demo, and data deletion l
     [],
   );
 });
+
+test('watch emotion samples validate independently of heart rate and stay in sync', async () => {
+  const { sampleWatchReading } = await import('../src/services/watch-feed');
+  const reading = sampleWatchReading(1000000);
+  const state = reducer(initialState(), {
+    type: 'WEARABLE',
+    settings: {
+      status: 'connected',
+      enabled: true,
+      reading,
+    },
+  });
+  assert.equal(recentReading(state.wearable, 1000000), reading.bpm);
+  assert.deepEqual(state.wearable.reading?.emotions, reading.emotions);
+  assert.equal(state.wearable.reading?.intensity, reading.intensity);
+  const invalid = readWearable({
+    reading: { bpm: 80, at: 1, emotions: ['calm', 'bad'], intensity: 500 },
+  });
+  assert.deepEqual(invalid.reading?.emotions, ['calm']);
+  assert.equal(invalid.reading?.intensity, 100);
+  assert.deepEqual(readWearable({ reading: { bpm: 80, at: 1 } }).reading?.emotions, []);
+});

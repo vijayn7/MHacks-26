@@ -1,3 +1,4 @@
+import { sampleWatchReading } from '../services/watch-feed';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -320,7 +321,7 @@ export default function Profile() {
                     enabled: true,
                     status: 'connected',
                     baseline: 68,
-                    reading: { bpm: 82, at: Date.now() },
+                    reading: sampleWatchReading(),
                   },
             })
           }
@@ -331,7 +332,7 @@ export default function Profile() {
           <QuietButton
             secondary
             onPress={() =>
-              dispatch({ type: 'WEARABLE', settings: { reading: { bpm: 82, at: Date.now() } } })
+              dispatch({ type: 'WEARABLE', settings: { reading: sampleWatchReading() } })
             }
           >
             refresh reading

@@ -78,17 +78,20 @@ export function ExtensionScore() {
         </SoftPressable>
       </View>
       <Sheet visible={info} title="your snuff score." onClose={() => setInfo(false)}>
-        <T>10 points for each purchase you choose to drop in the chrome extension.</T>
+        <T>
+          a reflection of your progress: money saved, urges resisted, and consistent choices across
+          your phone and browser.
+        </T>
         <T variant="small" style={{ marginTop: 14 }}>
-          each checkout counts once. saving for later, continuing, and in-app demos don’t earn
-          points.
+          designed to reward steady habits, not bigger price tags. balanced weighting keeps the
+          leaderboard fair, so expensive purchases alone won’t put you ahead.
         </T>
         <T variant="small" style={{ marginTop: 14 }}>
           {status === 'connected'
-            ? 'synced with chrome. your score refreshes while home is open.'
+            ? 'your score is up to date.'
             : status === 'loading'
-              ? 'syncing with chrome…'
-              : 'extension offline. showing your last saved score.'}
+              ? 'syncing your score…'
+              : 'showing your last synced score.'}
         </T>
       </Sheet>
     </View>

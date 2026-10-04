@@ -6,6 +6,8 @@ test('three-step demo onboarding saves categories and strength, then stays compl
   await page.goto('/');
   await expect(page.getByTestId('flame-mascot')).toBeVisible();
   await page.getByRole('button', { name: 'begin onboarding' }).click();
+  await page.getByRole('textbox', { name: 'first name', exact: true }).fill('Jamie');
+  await page.getByRole('textbox', { name: 'last name', exact: true }).fill('Chen');
   await expect(
     page.getByRole('button', { name: 'continue with google', exact: true }),
   ).toBeVisible();
@@ -22,10 +24,12 @@ test('three-step demo onboarding saves categories and strength, then stays compl
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
   const state = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
   expect(state.onboardingComplete).toBe(true);
+  expect(state.name).toBe('jamie chen');
   expect(state.spendingCategories).toEqual(['sports betting', 'tech & gadgets']);
   expect(state.burnRate).toBe(85);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
-  await page.getByRole('button', { name: 'revisit onboarding', exact: true }).click();
+  await page.getByRole('button', { name: 'open settings', exact: true }).click();
+  await page.getByRole('button', { name: 'spending preferences', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'sports betting' })).toBeChecked();
 });
 
@@ -33,6 +37,8 @@ test('email demo and optional categories work on a small phone', async ({ page }
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('/onboarding');
   await page.getByRole('button', { name: 'begin onboarding' }).click();
+  await page.getByRole('textbox', { name: 'first name', exact: true }).fill('Jamie');
+  await page.getByRole('textbox', { name: 'last name', exact: true }).fill('Chen');
   await page.getByRole('button', { name: 'continue with email', exact: true }).click();
   await page.getByRole('textbox', { name: 'email address' }).fill('demo@example.com');
   await page.getByRole('button', { name: 'continue', exact: true }).click();

@@ -3,7 +3,7 @@ import { test, expect } from './fixtures';
 
 test('profile color and burn rate persist across screens and reload', async ({ page }) => {
   await page.goto('/profile');
-  await expect(page.getByText('make it yours.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'open settings' })).toBeVisible();
   await page.getByRole('button', { name: 'choose your blend color' }).click();
   await page.getByRole('button', { name: 'crimson flame', exact: true }).click();
   // Wait for the closing sheet to release its focus trap before keyboard input.

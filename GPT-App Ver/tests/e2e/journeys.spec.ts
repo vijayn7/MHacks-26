@@ -61,7 +61,7 @@ test('notification snuffing updates the Home sentence and chart and remains idem
 });
 test('the Social leaderboard is inline and adds a persistent connection', async ({ page }) => {
   await page.goto('/social');
-  await expect(page.getByText('leaderboard', { exact: true })).toBeVisible();
+  await expect(page.getByText('leaderboard', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'leaderboard', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('leaderboard-list')).toBeVisible();
   await expect(page.getByTestId('leaderboard-list').getByText('$284')).toBeVisible();
@@ -99,10 +99,10 @@ test('minimal Profile saves the name and preferences and delivers a test nudge w
   page,
 }) => {
   await page.goto('/profile');
-  await page.getByRole('button', { name: 'edit your name' }).click();
+  await page.getByRole('button', { name: 'open settings' }).click();
   await page.getByRole('textbox', { name: 'your name' }).fill('Nico');
   await page.getByRole('button', { name: 'done', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'edit your name' })).toHaveText('nico');
+  await expect(page.getByText('nico', { exact: true })).toBeVisible();
   await page.getByRole('switch', { name: 'quiet notifications' }).click();
   await expect.poll(async () => (await snapshot(page)).notificationsEnabled).toBe(true);
   await page.getByRole('button', { name: 'try a nudge' }).click();
@@ -112,7 +112,7 @@ test('minimal Profile saves the name and preferences and delivers a test nudge w
   await expect(page.getByText('snuff · a quiet nudge')).not.toBeVisible();
   expect((await snapshot(page)).nudges[0].dueAt).toBeGreaterThan(Date.now() + 86000000);
   await page.reload();
-  await expect(page.getByRole('button', { name: 'edit your name' })).toHaveText('nico');
+  await expect(page.getByText('nico', { exact: true })).toBeVisible();
   await expect(page.getByRole('switch', { name: 'quiet notifications' })).toBeChecked();
 });
 test('all refreshed Figma assets and six mascot hues load correctly without browser errors', async ({

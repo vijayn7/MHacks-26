@@ -15,7 +15,7 @@ import { disableNudges, enableNudges, scheduleNudge } from '../services/notifica
 export default function Profile() {
   const { state, dispatch, openNudge, storageError } = useStore();
   const p = palettes[state.hue];
-  const [sheet, setSheet] = useState<'name' | 'flame' | null>(null);
+  const [sheet, setSheet] = useState<'settings' | 'flame' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [customize, setCustomize] = useState<'color' | 'face'>('color');
@@ -90,22 +90,19 @@ export default function Profile() {
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
         <View style={s.header}>
-          <View>
-            <T variant="title" style={{ fontSize: 28 }}>
-              make it yours.
-            </T>
-          </View>
+          <T variant="title" style={{ fontSize: 25, flex: 1 }}>
+            {state.name}
+          </T>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="edit your name"
+            accessibilityLabel="open settings"
             onPress={() => {
               setName(state.name);
-              setSheet('name');
+              setSheet('settings');
             }}
-            hitSlop={12}
-            style={s.name}
+            style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
           >
-            <T variant="small">{state.name}</T>
+            <Icon name="settings" size={20} />
           </Pressable>
         </View>
 
@@ -275,16 +272,6 @@ export default function Profile() {
             {message}
           </T>
         )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="revisit onboarding"
-          onPress={() => router.push('/onboarding?edit=1')}
-          style={{ alignSelf: 'center', padding: 12 }}
-        >
-          <T variant="small" style={{ fontSize: 11 }}>
-            your spending preferences
-          </T>
-        </Pressable>
         {storageError && (
           <T variant="small" style={{ marginTop: 12 }}>
             {storageError}
@@ -292,8 +279,20 @@ export default function Profile() {
         )}
       </ScrollView>
 
-      <Sheet visible={sheet === 'name'} title="just you." onClose={() => setSheet(null)}>
+      <Sheet visible={sheet === 'settings'} title="settings" onClose={() => setSheet(null)}>
         <Input label="your name" value={name} onChangeText={setName} placeholder="your name" />
+        <QuietButton
+          secondary
+          onPress={() => {
+            setSheet(null);
+            router.push('/onboarding?edit=1');
+          }}
+        >
+          spending preferences
+        </QuietButton>
+        <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
+          {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}
+        </QuietButton>
         <QuietButton
           disabled={!name.trim()}
           onPress={() => {

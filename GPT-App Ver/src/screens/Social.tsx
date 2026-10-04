@@ -51,13 +51,6 @@ export default function Social() {
         contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 34, paddingBottom: 28 }}
       >
         <View style={{ height: compact ? 260 : 330 }}>
-          <T
-            variant="small"
-            color={colors.secondary}
-            style={{ alignSelf: 'flex-end', fontSize: 12 }}
-          >
-            leaderboard
-          </T>
           <View style={{ position: 'absolute', inset: 0, top: 38, justifyContent: 'flex-end' }}>
             <Svg
               width="100%"

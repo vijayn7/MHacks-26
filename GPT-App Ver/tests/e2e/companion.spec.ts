@@ -27,7 +27,7 @@ test('strokes soothe the same companion across screens without recording a pause
   expect((await progress(page)).pauses).toBe(11);
   expect((await progress(page)).savings).toBe(284);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'edit your name' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'open settings' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
     'aria-label',
     /content/,
@@ -106,7 +106,7 @@ test('the user flame carries its resting and low status between screens', async 
   await page.mouse.up();
   await expect(flame).toHaveAttribute('aria-label', /resting/);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'edit your name' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'open settings' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
     'aria-label',
     /resting/,

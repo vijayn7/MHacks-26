@@ -46,9 +46,7 @@ for (const width of [320, 390])
     await expect(page.getByText('04 / 06', { exact: true })).toBeVisible();
     await expect.poll(() => card.evaluate((e) => getComputedStyle(e).transform)).not.toBe(before);
     await page.getByRole('button', { name: /^everyday tote, / }).click();
-    await expect(
-      page.getByText('a sample item for the archive preview.', { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'keep for later', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'keep for later', exact: true }).click();
     await page.getByRole('button', { name: 'close archive preview', exact: true }).click();
     await expect(page.getByText('nothing here, yet.', { exact: true })).toBeVisible();

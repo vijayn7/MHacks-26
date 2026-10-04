@@ -68,14 +68,6 @@ export default function Archive() {
   return (
     <View style={[s.page, { paddingTop: insets.top + 24, paddingBottom: 100 + insets.bottom }]}>
       {focused && <StatusBar style="light" />}
-      <View style={s.header}>
-        <T color={colors.text} style={{ fontSize: 14 }}>
-          for another day.
-        </T>
-        <T variant="mono" color={colors.secondary}>
-          {preview ? 'preview' : `${items.length} saved`}
-        </T>
-      </View>
       {!items.length ? (
         <View style={s.empty}>
           <Icon name="archive" size={24} color={colors.secondary} />
@@ -99,7 +91,7 @@ export default function Archive() {
             style={s.preview}
           >
             <T variant="small" color={colors.text}>
-              preview the collection ↗
+              explore collection ↗
             </T>
           </Pressable>
         </View>
@@ -262,7 +254,7 @@ export default function Archive() {
             style={s.bottom}
           >
             <T variant="small" color={colors.secondary} style={{ fontSize: 10 }}>
-              {preview ? 'sample collection · close preview' : 'tap an item to revisit'}
+              {preview ? 'close' : 'tap an item to revisit'}
             </T>
           </Pressable>
         </>
@@ -279,11 +271,7 @@ export default function Archive() {
             <T variant="small" style={{ textAlign: 'center', marginTop: 8 }}>
               saved {savedDate(detail.savedAt)}
             </T>
-            {preview ? (
-              <T variant="small" style={{ textAlign: 'center', marginTop: 24 }}>
-                a sample item for the archive preview.
-              </T>
-            ) : (
+            {!preview && (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="revisit this item"

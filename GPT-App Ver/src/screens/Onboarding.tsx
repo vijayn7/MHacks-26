@@ -20,9 +20,17 @@ export default function Onboarding() {
   const [strength, setStrength] = useState(state.burnRate);
   const [provider, setProvider] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState(
+    state.onboardingComplete ? state.name.split(' ')[0] : '',
+  );
+  const [lastName, setLastName] = useState(
+    state.onboardingComplete ? state.name.split(' ').slice(1).join(' ') : '',
+  );
+  const named = !!firstName.trim() && !!lastName.trim();
   const support = supportLevel(strength);
   const p = palettes[state.hue];
   const finish = () => {
+    if (named) dispatch({ type: 'NAME', name: `${firstName.trim()} ${lastName.trim()}` });
     dispatch({ type: 'COMPLETE_ONBOARDING', categories, strength });
     router.replace('/');
   };
@@ -110,14 +118,34 @@ export default function Onboarding() {
         </T>
         {step === 0 ? (
           <View style={{ gap: 10, marginTop: 8 }}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Input
+                  label="first name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder="first name"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Input
+                  label="last name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder="last name"
+                />
+              </View>
+            </View>
             {['google', 'apple', 'email'].map((name) => (
               <Pressable
                 key={name}
                 accessibilityRole="button"
                 accessibilityLabel={`continue with ${name}`}
+                disabled={!named}
                 onPress={() => (name === 'email' ? setProvider(name) : setStep(1))}
                 style={{
-                  minHeight: 54,
+                  opacity: named ? 1 : 0.4,
+                  minHeight: 50,
                   borderRadius: 28,
                   borderWidth: 1,
                   borderColor: colors.border,
@@ -131,7 +159,7 @@ export default function Onboarding() {
                 <T style={{ fontSize: 15 }}>continue with {name}</T>
               </Pressable>
             ))}
-            <QuietButton secondary onPress={() => setStep(1)}>
+            <QuietButton secondary disabled={!named} onPress={() => setStep(1)}>
               continue as guest
             </QuietButton>
             <T variant="small" style={{ textAlign: 'center', fontSize: 10 }}>

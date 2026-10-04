@@ -7,7 +7,7 @@ export type Nudge = {
   id: string;
   name: string;
   amount: number;
-  status: 'waiting' | 'snuffed';
+  status: 'waiting' | 'snuffed' | 'kept';
   dueAt: number | null;
 };
 export type AppState = {
@@ -40,6 +40,7 @@ export type Action =
   | { type: 'TRUSTED_FRIEND'; id: string | null }
   | { type: 'NOTIFICATIONS'; enabled: boolean }
   | { type: 'CONNECT'; email: string }
+  | { type: 'KEEP_NUDGE'; id: string }
   | { type: 'SNUFF_NUDGE'; id: string; at?: number }
   | { type: 'SNOOZE_NUDGE'; id: string; until: number };
 export const dayKey = (at: number) => new Date(at).toLocaleDateString('en-CA');
@@ -208,9 +209,16 @@ export function reducer(s: AppState, a: Action): AppState {
         ],
       };
     }
+    case 'KEEP_NUDGE':
+      return {
+        ...s,
+        nudges: s.nudges.map((n) =>
+          n.id === a.id && n.status === 'waiting' ? { ...n, status: 'kept', dueAt: null } : n,
+        ),
+      };
     case 'SNUFF_NUDGE': {
       const n = s.nudges.find((n) => n.id === a.id);
-      if (!n || n.status === 'snuffed' || !Number.isFinite(n.amount) || n.amount <= 0) return s;
+      if (!n || n.status !== 'waiting' || !Number.isFinite(n.amount) || n.amount <= 0) return s;
       const key = dayKey(a.at ?? Date.now());
       return {
         ...s,
@@ -226,7 +234,7 @@ export function reducer(s: AppState, a: Action): AppState {
       return {
         ...s,
         nudges: s.nudges.map((n) =>
-          n.id === a.id && n.status === 'waiting' ? { ...n, dueAt: a.until } : n,
+          n.id === a.id && n.status !== 'snuffed' ? { ...n, status: 'waiting', dueAt: a.until } : n,
         ),
       };
   }

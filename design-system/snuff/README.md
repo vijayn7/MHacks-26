@@ -63,3 +63,11 @@ The current profile reference is `previews/snuff-friend-strip.png`. Replace the 
 The latest profile reference is `previews/snuff-faces.png`. A compact color / face toggle switches between the existing gradient control and four expression buttons: classic, happy, dreamy, wink. Keep the control region the same height to avoid layout jumps. Selected buttons have a faint ivory outline and fill.
 
 Reuse `../../GPT-App Ver/src/design/faces.ts` and `../../GPT-App Ver/src/components/FlameFace.tsx`. Vector eyes stay anchored to the mascot’s original face coordinates; the same component renders the selector previews and live eyes. `Mascot.tsx` eases every expression into contented eyes when petted or resting. The locally saved face applies to the user’s companion across screens; friend expressions are unchanged. Older profiles safely default to classic.
+
+## Notification popup
+
+See `previews/snuff-notification.png` and `previews/snuff-notification-friend.png`. The in-app notification is a centered 390-point maximum-width popup with 36-point corners, a dark translucent backdrop, a large pettable companion, and a temporary wistful face. Yes / no sit side by side: neutral grey for yes, the saved flame blend for no. A separate outlined friend action opens the quiet circle. Keep all copy lowercase.
+
+Yes shrinks and dims the flame over 1.1 seconds, easing it through low into ash/resting, and records the sample savings once. No restores the saved face, keeps the flame colorful, and dismisses the nudge without adding savings or pauses. A reminder remains available after no. Reduced motion removes the settling movement. Reuse `../../GPT-App Ver/src/components/Nudge.tsx` and the expression override in `Mascot.tsx` / `FlameFace.tsx`.
+
+The friend path previews a generic supportive check-in without purchase details. Messaging is not connected and no request is sent; friends do not gate the shopper’s choice. Operating-system notification banners use their native layouts; this reference is the app popup opened by a notification.

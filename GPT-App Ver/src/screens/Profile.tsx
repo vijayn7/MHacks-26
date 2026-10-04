@@ -40,7 +40,7 @@ export default function Profile() {
   const test = async () => {
     const n = state.nudges.find((n) => n.status === 'waiting') || state.nudges[0];
     if (!n) return;
-    if (n.status === 'snuffed') {
+    if (n.status !== 'waiting') {
       openNudge(n.id);
       return;
     }

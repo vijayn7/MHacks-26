@@ -94,6 +94,14 @@ Profile has a compact color / face toggle beneath the companion. The face view o
 
 Reuse `src/design/faces.ts` and `src/components/FlameFace.tsx` for expression choices and vector geometry; `Mascot.tsx` owns the petting transition. Controls support keyboard activation and expose their selected state.
 
+## Notification popup
+
+The notification opens a centered, rounded popup with a large pettable flame, a temporary wistful face, “snuff this urge?”, and side-by-side yes / no buttons. Yes is neutral grey; no uses the saved flame blend. Snuffing eases the companion down into a smaller ash-colored resting state and records the sample savings once. No restores the saved expression and keeps the flame colorful, dismissing the pending nudge without adding savings or pauses. An optional reminder on the no result can explicitly schedule it for tomorrow. Closing the popup records no decision.
+
+“Ask a friend” opens the existing quiet circle and a generic request preview, with no purchase details included. Empty circles link to Social. Messaging is not connected and the preview explicitly states that nothing has been sent; friend approval does not gate the user’s choice. The popup is the in-app notification response screen; operating-system notification banners retain the platform’s native layout.
+
+`src/components/Nudge.tsx` contains the popup, responsive layout, and subdued snuff animation; `FlameFace.tsx` supplies the temporary eyes without changing the saved profile expression. The usual companion petting, haptics, and reduced-motion behavior remain available. Mobile browser checks cover 320px / 390px widths, both decisions, idempotent savings, reminders, request previews, and empty-circle navigation.
+
 ## Designer handoff
 
 See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.

@@ -47,7 +47,7 @@ test('notification snuffing updates the Home sentence and chart and remains idem
   await page.goto('/profile');
   await page.getByRole('button', { name: 'try a nudge', exact: true }).click();
   await expect(page.getByText('studio headphones · $149')).toBeVisible({ timeout: 8000 });
-  await page.getByRole('button', { name: 'snuff this urge' }).click();
+  await page.getByRole('button', { name: 'yes, snuff this urge' }).click();
   await expect(page.getByText('$149, kept.')).toBeVisible();
   await page.getByRole('button', { name: 'back to my day' }).click();
   await expect(page.getByText('$433', { exact: true })).toBeVisible();
@@ -56,7 +56,7 @@ test('notification snuffing updates the Home sentence and chart and remains idem
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.getByRole('button', { name: 'try a nudge' }).click();
   await expect(page.getByText('$149, kept.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'snuff this urge' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'yes, snuff this urge' })).toHaveCount(0);
   expect((await snapshot(page)).savings).toBe(433);
 });
 test('the simple Social podium opens leaderboards and adds a persistent connection', async ({
@@ -108,6 +108,7 @@ test('minimal Profile saves the name and preferences and delivers a test nudge w
   await expect.poll(async () => (await snapshot(page)).notificationsEnabled).toBe(true);
   await page.getByRole('button', { name: 'try a nudge' }).click();
   await expect(page.getByText('snuff · a quiet nudge')).toBeVisible({ timeout: 8000 });
+  await page.getByRole('button', { name: 'no, keep my flame' }).click();
   await page.getByRole('button', { name: 'tomorrow, maybe' }).click();
   await expect(page.getByText('snuff · a quiet nudge')).not.toBeVisible();
   expect((await snapshot(page)).nudges[0].dueAt).toBeGreaterThan(Date.now() + 86000000);

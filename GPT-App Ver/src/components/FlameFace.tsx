@@ -8,7 +8,7 @@ export function FlameFace({
   color,
   relaxed = false,
 }: {
-  face?: Face;
+  face?: Face | 'wistful';
   color: string;
   relaxed?: boolean;
 }) {
@@ -41,6 +41,11 @@ export function FlameFace({
         <>
           {curve('M 104.8 167.1 Q 111.2 173.5 117.6 166.2')}
           {curve('M 138.8 165.2 Q 145.2 171.7 151.7 164.3')}
+        </>
+      ) : face === 'wistful' ? (
+        <>
+          {curve('M 104 162 Q 110 172 118 168')}
+          {curve('M 138 166 Q 146 170 152 159')}
         </>
       ) : face === 'happy' ? (
         <>

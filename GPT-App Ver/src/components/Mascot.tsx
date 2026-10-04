@@ -15,6 +15,7 @@ import Svg, {
 import { Hue, palettes } from '../design/tokens';
 import { useStore } from '../state/Store';
 import { blendPalette } from '../design/blend';
+import type { Face } from '../design/faces';
 import { FlameFace } from './FlameFace';
 import { Flame } from './Flame';
 import { usePetting } from '../hooks/usePetting';
@@ -45,6 +46,7 @@ export function Mascot({
   intensity,
   companionId = 'you',
   companionName,
+  expression,
   onLongPress,
   animate = true,
 }: {
@@ -54,6 +56,7 @@ export function Mascot({
   intensity?: FlameLevel;
   companionId?: string;
   companionName?: string;
+  expression?: Face | 'wistful';
   onLongPress?: () => void;
   progress?: Animated.Value;
   animate?: boolean;
@@ -69,7 +72,7 @@ export function Mascot({
   );
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const { state } = useStore();
-  const face = companionId === 'you' ? state.face : 'classic';
+  const face = expression ?? (companionId === 'you' ? state.face : 'classic');
   const p = calm
     ? palettes.Ash
     : companionId === 'you'

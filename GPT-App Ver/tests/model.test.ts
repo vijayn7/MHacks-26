@@ -189,3 +189,21 @@ test('face preferences survive reload and older or invalid preferences keep clas
   assert.equal(migrate({ ...original, face: undefined }).face, 'classic');
   assert.equal(migrate({ ...original, face: 'unknown' }).face, 'classic');
 });
+
+test('declining a nudge clears its delivery without awarding savings or overriding a snuff', () => {
+  const before = initialState();
+  const kept = reducer(before, { type: 'KEEP_NUDGE', id: 'headphones' });
+  assert.equal(kept.nudges[0].status, 'kept');
+  assert.equal(kept.nudges[0].dueAt, null);
+  assert.equal(kept.savings, before.savings);
+  assert.equal(kept.pauses, before.pauses);
+  assert.equal(migrate(JSON.parse(JSON.stringify(kept))).nudges[0].status, 'kept');
+  assert.equal(reducer(kept, { type: 'SNUFF_NUDGE', id: 'headphones' }), kept);
+  const reminded = reducer(kept, { type: 'SNOOZE_NUDGE', id: 'headphones', until: 123 });
+  assert.equal(reminded.nudges[0].status, 'waiting');
+  const snuffed = reducer(before, { type: 'SNUFF_NUDGE', id: 'headphones' });
+  assert.equal(
+    reducer(snuffed, { type: 'KEEP_NUDGE', id: 'headphones' }).nudges[0].status,
+    'snuffed',
+  );
+});

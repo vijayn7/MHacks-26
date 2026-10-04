@@ -74,7 +74,7 @@ test('taps and holds have distinct reactions on small mascots, including resting
   await page.mouse.up();
   expect((await progress(page)).pauses).toBe(11);
   await page.getByRole('button', { name: 'try a nudge' }).click();
-  await page.getByRole('button', { name: 'snuff this urge' }).click({ timeout: 9000 });
+  await page.getByRole('button', { name: 'yes, snuff this urge' }).click({ timeout: 9000 });
   const resting = page.getByTestId('flame-mascot').last();
   await expect(resting).toHaveAttribute('aria-label', /resting/);
   await stroke(page, resting, 3);

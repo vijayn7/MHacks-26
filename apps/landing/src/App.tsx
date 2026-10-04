@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-type Layer = "far" | "mid" | "near";
+type Layer = "void" | "far" | "mid" | "near";
 
 type Tile = {
   id: string;
@@ -18,10 +18,9 @@ type Tile = {
 
 /**
  * Dense organic scatter — roughly balanced, intentionally irregular.
- * Far/mid darkened; a handful of near tiles stay interactive + full brightness.
+ * Void sits behind everything (near-black). Extra mid-field windows live in void.
  */
 const tiles: Tile[] = [
-  // Far atmosphere — same count as before, hung just past the edges
   {
     id: "t1",
     src: "/sites/amazon.jpg",
@@ -55,20 +54,6 @@ const tiles: Tile[] = [
     style: { bottom: "-14%", right: "-16%", width: "37%", aspectRatio: "16 / 10" },
   },
   {
-    id: "t5",
-    src: "/sites/homedepot.jpg",
-    alt: "Home Depot",
-    layer: "far",
-    drift: 0.95,
-    style: {
-      top: "22%",
-      left: "-18%",
-      width: "32%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
     id: "t6",
     src: "/sites/edikted.jpg",
     alt: "Edikted",
@@ -80,20 +65,6 @@ const tiles: Tile[] = [
       width: "33%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
-    },
-  },
-  {
-    id: "t7",
-    src: "/sites/nike.jpg",
-    alt: "Nike far",
-    layer: "far",
-    drift: 0.8,
-    style: {
-      top: "60%",
-      left: "-17%",
-      width: "30%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
     },
   },
   {
@@ -110,13 +81,11 @@ const tiles: Tile[] = [
       ["--focus" as string]: "left center",
     },
   },
-
-  // Mid scatter — irregular sizes/gaps around the brand
   {
     id: "c1",
     src: "/sites/walmart.jpg",
     alt: "Walmart",
-    layer: "mid",
+    layer: "void",
     drift: 0.9,
     style: { top: "1%", left: "34%", width: "15%", aspectRatio: "16 / 10" },
   },
@@ -124,14 +93,14 @@ const tiles: Tile[] = [
     id: "c2",
     src: "/sites/costco.jpg",
     alt: "Costco",
-    layer: "mid",
+    layer: "void",
     drift: 1.2,
     style: { top: "4%", right: "30%", width: "13%", aspectRatio: "16 / 10" },
   },
   {
     id: "c3",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando",
+    src: "/sites/depop.jpg",
+    alt: "Depop",
     layer: "mid",
     drift: 0.75,
     style: { top: "22%", left: "22%", width: "14%", aspectRatio: "16 / 10" },
@@ -139,24 +108,17 @@ const tiles: Tile[] = [
   {
     id: "c4",
     src: "/sites/asos.jpg",
-    alt: "ASOS sale",
-    layer: "mid",
+    alt: "ASOS",
+    layer: "near",
+    interactive: true,
     drift: 1.1,
     style: {
-      top: "26%",
-      right: "18%",
-      width: "16%",
+      top: "-3%",
+      left: "70%",
+      width: "22%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
-  },
-  {
-    id: "c5",
-    src: "/sites/etsy.jpg",
-    alt: "Etsy mid",
-    layer: "far",
-    drift: 0.65,
-    style: { top: "10%", left: "48%", width: "11%", aspectRatio: "16 / 10" },
   },
   {
     id: "c6",
@@ -201,20 +163,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c9",
-    src: "/sites/homedepot.jpg",
-    alt: "Home Depot mid",
-    layer: "mid",
-    drift: 1.15,
-    style: {
-      bottom: "1%",
-      right: "34%",
-      width: "12%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
     id: "c10",
     src: "/sites/amazon.jpg",
     alt: "Amazon mid",
@@ -229,20 +177,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c11",
-    src: "/sites/nike.jpg",
-    alt: "Nike mid",
-    layer: "mid",
-    drift: 1.25,
-    style: {
-      top: "34%",
-      right: "32%",
-      width: "11%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left center",
-    },
-  },
-  {
     id: "c12",
     src: "/sites/ebay.jpg",
     alt: "eBay mid",
@@ -254,34 +188,6 @@ const tiles: Tile[] = [
       width: "13%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
-    },
-  },
-  {
-    id: "c13",
-    src: "/sites/princesspolly.jpg",
-    alt: "Polly mid",
-    layer: "far",
-    drift: 1.05,
-    style: {
-      top: "16%",
-      right: "36%",
-      width: "10%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
-    },
-  },
-  {
-    id: "c14",
-    src: "/sites/walmart.jpg",
-    alt: "Walmart low",
-    layer: "mid",
-    drift: 0.8,
-    style: {
-      top: "58%",
-      right: "16%",
-      width: "14%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
     },
   },
   {
@@ -310,20 +216,6 @@ const tiles: Tile[] = [
       width: "12%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
-    },
-  },
-  {
-    id: "c18",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando high",
-    layer: "mid",
-    drift: 0.7,
-    style: {
-      top: "-4%",
-      right: "18%",
-      width: "13%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
     },
   },
   {
@@ -369,20 +261,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c26",
-    src: "/sites/homedepot.jpg",
-    alt: "Home Depot high",
-    layer: "mid",
-    drift: 1.05,
-    style: {
-      top: "12%",
-      left: "28%",
-      width: "10%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
     id: "c27",
     src: "/sites/polymarket.jpg",
     alt: "Polymarket high",
@@ -397,24 +275,10 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c28",
-    src: "/sites/princesspolly.jpg",
-    alt: "Polly low",
-    layer: "mid",
-    drift: 1.2,
-    style: {
-      bottom: "14%",
-      right: "28%",
-      width: "11%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
-    },
-  },
-  {
     id: "c30",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy high",
-    layer: "mid",
+    layer: "void",
     drift: 1.1,
     style: {
       top: "-1%",
@@ -426,9 +290,9 @@ const tiles: Tile[] = [
   },
   {
     id: "c32",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando low",
-    layer: "mid",
+    src: "/sites/depop.jpg",
+    alt: "Depop low",
+    layer: "void",
     drift: 1.25,
     style: {
       bottom: "-3%",
@@ -452,17 +316,6 @@ const tiles: Tile[] = [
       ["--focus" as string]: "center top",
     },
   },
-
-  // Interactive front windows — organic ring, slightly larger
-  {
-    id: "i1",
-    src: "/sites/princesspolly.jpg",
-    alt: "Princess Polly",
-    layer: "near",
-    interactive: true,
-    drift: 0.85,
-    style: { top: "5%", left: "3%", width: "24%", aspectRatio: "16 / 10" },
-  },
   {
     id: "i2",
     src: "/sites/ebay.jpg",
@@ -470,12 +323,12 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     drift: 1.2,
-    style: { top: "8%", right: "2%", width: "23%", aspectRatio: "16 / 10" },
+    style: { top: "-4%", left: "-3%", width: "26%", aspectRatio: "16 / 10" },
   },
   {
     id: "i3",
-    src: "/sites/nike.jpg",
-    alt: "Nike store",
+    src: "/sites/princesspolly.jpg",
+    alt: "Princess Polly",
     layer: "near",
     interactive: true,
     drift: 1.0,
@@ -504,8 +357,8 @@ const tiles: Tile[] = [
   },
   {
     id: "i5",
-    src: "/sites/bestbuy.jpg",
-    alt: "Best Buy deals",
+    src: "/sites/polymarket.jpg",
+    alt: "Polymarket",
     layer: "near",
     interactive: true,
     drift: 0.9,
@@ -519,17 +372,18 @@ const tiles: Tile[] = [
   },
   {
     id: "i6",
-    src: "/sites/etsy.jpg",
-    alt: "Etsy gifts",
+    src: "/sites/kalshi.jpg",
+    alt: "Kalshi",
     layer: "near",
     interactive: true,
     drift: 1.1,
+    depth: 0.97,
     style: {
-      bottom: "7%",
-      right: "10%",
-      width: "21%",
+      bottom: "-4%",
+      right: "-4%",
+      width: "40%",
       aspectRatio: "16 / 10",
-      ["--focus" as string]: "right center",
+      ["--focus" as string]: "center top",
     },
   },
 ];
@@ -537,12 +391,13 @@ const tiles: Tile[] = [
 /** Spread each layer across a unique Z band so tiles don't share one plane. */
 function withStaggeredDepth(list: Tile[]): Tile[] {
   const bands: Record<Layer, [number, number]> = {
-    far: [0.12, 0.42],
+    void: [0.0, 0.1],
+    far: [0.16, 0.4],
     mid: [0.45, 0.7],
     near: [0.78, 0.97],
   };
 
-  const byLayer: Record<Layer, Tile[]> = { far: [], mid: [], near: [] };
+  const byLayer: Record<Layer, Tile[]> = { void: [], far: [], mid: [], near: [] };
   for (const tile of list) byLayer[tile.layer].push(tile);
 
   const depthOf = new Map<string, number>();
@@ -580,9 +435,10 @@ function AppleIcon() {
 function WindowsIcon() {
   return (
     <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
+      {/* Flat Windows 11 mark — axis-aligned 2×2 panes */}
       <path
         fill="currentColor"
-        d="M3 5.2 10.6 4.1v7.1H3V5.2zm0 13.6 7.6 1.1v-7.2H3v6.1zM11.5 4 21 2.6v8.6h-9.5V4zm0 17.4L21 20.1v-8.7h-9.5v10z"
+        d="M3 3h8.2v8.2H3V3zm9.8 0H21v8.2h-8.2V3zM3 12.8h8.2V21H3v-8.2zm9.8 0H21V21h-8.2v-8.2z"
       />
     </svg>
   );
@@ -601,30 +457,139 @@ function DownloadIcon() {
 
 function PausePopup({ site }: { site: string }) {
   return (
-    <div className="tile__block" role="dialog" aria-label="Checkout pause">
-      <p className="tile__block-brand">snuffed</p>
-      <p className="tile__block-copy">
-        Hold up — this {site} checkout matches your spending rule.
-      </p>
-      <div className="tile__block-actions">
-        <button type="button">Drop</button>
-        <button type="button">Save for later</button>
-        <button type="button">Continue</button>
-        <button type="button" className="tile__block-ask">
-          Ask my friend
-        </button>
+    <div className="tile__block" role="dialog" aria-label={`${site} checkout pause`}>
+      <div className="tile__popup">
+        <p className="tile__block-headline">You’re about to make an impulse purchase.</p>
+
+        <div className="tile__block-choices">
+          <div className="tile__choice tile__choice--lead" role="button">
+            <span className="tile__choice-score">+30</span>
+            <span className="tile__choice-title">Snuff the urge</span>
+            <span className="tile__choice-hint">(Close tab)</span>
+            <span className="tile__choice-sub">Or snuff your flame.</span>
+          </div>
+
+          <div className="tile__choice-pair">
+            <div className="tile__choice" role="button">
+              <span className="tile__choice-title">Ask Maya</span>
+              <span className="tile__choice-hint">(Texts a trusted friend)</span>
+              <span className="tile__choice-sub">They’ll know best.</span>
+            </div>
+            <div className="tile__choice" role="button">
+              <span className="tile__choice-title">Save for later</span>
+              <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
+              <span className="tile__choice-sub">Sit on it. Do you really need this?</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="tile__block-continue" role="button">
+          <span className="tile__block-continue-label">Continue</span>
+          <span className="tile__choice-sub">Are you sure?</span>
+        </div>
       </div>
     </div>
   );
 }
 
+const FLAME_SILHOUETTE =
+  "M 59 179 C 42 158 42 131 48 111 C 61 139 76 133 84 108 C 94 79 103 46 114 22 C 119 59 116 87 137 102 C 151 113 163 103 161 83 C 188 95 202 116 202 149 C 202 188 176 215 131 216 C 96 218 73 201 59 179 Z";
+
+/** Little Snuff flame mascot — same silhouette + awake eyes as the app. */
+function FlameCursor() {
+  return (
+    <svg className="snuff__mascot-svg" viewBox="0 0 240 270" aria-hidden="true">
+      <defs>
+        <filter id="cursor-edge" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="3.2" />
+        </filter>
+        <linearGradient id="cursor-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FFD66B" stopOpacity="0" />
+          <stop offset="19%" stopColor="#FFD66B" stopOpacity="0.28" />
+          <stop offset="43%" stopColor="#FFD66B" stopOpacity="0.9" />
+          <stop offset="64%" stopColor="#F5A524" />
+          <stop offset="100%" stopColor="#ED7014" />
+        </linearGradient>
+        <radialGradient id="cursor-core" cx="47%" cy="74%" r="58%">
+          <stop offset="0%" stopColor="#FFF3D6" stopOpacity="0.96" />
+          <stop offset="37%" stopColor="#FFF3D6" stopOpacity="0.76" />
+          <stop offset="73%" stopColor="#FFD66B" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#FFD66B" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="cursor-bloom" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFF3D6" stopOpacity="0.28" />
+          <stop offset="50%" stopColor="#F5A524" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#ED7014" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="cursor-plume" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFD66B" stopOpacity="0.4" />
+          <stop offset="35%" stopColor="#F5A524" stopOpacity="0.22" />
+          <stop offset="70%" stopColor="#ED7014" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#ED7014" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="125" cy="181" rx="91" ry="75" fill="url(#cursor-bloom)" />
+      <ellipse
+        cx="120"
+        cy="100"
+        rx="42"
+        ry="78"
+        fill="url(#cursor-plume)"
+        transform="rotate(10 120 100)"
+        opacity="0.75"
+      />
+      <g transform="translate(10 30) scale(0.92)">
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" filter="url(#cursor-edge)" opacity="0.55" />
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" />
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-core)" />
+      </g>
+      {/* awake eyes — slightly larger than app so they read at cursor scale */}
+      <ellipse
+        cx="111.2"
+        cy="165.24"
+        rx="5.6"
+        ry="9.2"
+        fill="#3A0F02"
+        transform="rotate(22 111.2 165.24)"
+      />
+      <ellipse
+        cx="145.24"
+        cy="163.4"
+        rx="5.6"
+        ry="9.2"
+        fill="#3A0F02"
+        transform="rotate(22 145.24 163.4)"
+      />
+    </svg>
+  );
+}
+
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
+  const trailRef = useRef<HTMLCanvasElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const canvas = trailRef.current;
+    const cursor = cursorRef.current;
+    if (!root || !canvas || !cursor) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    type Ember = {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      maxLife: number;
+      size: number;
+      spin: number;
+    };
 
     let raf = 0;
     let targetX = 0;
@@ -632,6 +597,50 @@ export function App() {
     let curX = 0;
     let curY = 0;
     let active = true;
+    let pointerX = -9999;
+    let pointerY = -9999;
+    let lastX = -9999;
+    let lastY = -9999;
+    let moving = false;
+    let lastMove = 0;
+    const embers: Ember[] = [];
+
+    // Hotspot is the flame tip (~18.5% from top of the 240×270 mascot viewBox).
+    const placeCursor = (x: number, y: number, visible: boolean) => {
+      cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -18%)`;
+      cursor.style.opacity = visible ? "1" : "0";
+    };
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = root.clientWidth;
+      const h = root.clientHeight;
+      canvas.width = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+
+    const spawn = (x: number, y: number, speed: number) => {
+      const count = Math.min(5, 1 + Math.floor(speed / 8));
+      for (let i = 0; i < count; i++) {
+        if (embers.length > 90) embers.shift();
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
+        const burst = 0.4 + Math.random() * 1.6 + speed * 0.02;
+        embers.push({
+          x: x + (Math.random() - 0.5) * 6,
+          y: y + (Math.random() - 0.5) * 6,
+          vx: Math.cos(angle) * burst * 0.55 + (Math.random() - 0.5) * 0.6,
+          vy: Math.sin(angle) * burst - 0.4 - Math.random() * 0.8,
+          life: 0,
+          maxLife: 28 + Math.random() * 36,
+          size: 2.2 + Math.random() * 3.4,
+          spin: (Math.random() - 0.5) * 0.18,
+        });
+      }
+    };
 
     const tick = () => {
       if (!active) return;
@@ -641,6 +650,66 @@ export function App() {
       root.style.setProperty("--my", curY.toFixed(4));
       root.style.setProperty("--pox", `${50 + curX * 42}%`);
       root.style.setProperty("--poy", `${50 + curY * 42}%`);
+
+      const w = root.clientWidth;
+      const h = root.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = embers.length - 1; i >= 0; i--) {
+        const e = embers[i];
+        e.life += 1;
+        e.x += e.vx;
+        e.y += e.vy;
+        e.vx += e.spin * 0.15;
+        e.vy -= 0.035;
+        e.vx *= 0.985;
+        e.size *= 1.012;
+
+        const t = e.life / e.maxLife;
+        if (t >= 1) {
+          embers.splice(i, 1);
+          continue;
+        }
+
+        // Fire (hot) → smoke (cool gray) over lifetime
+        let r: number;
+        let g: number;
+        let b: number;
+        let a: number;
+        if (t < 0.28) {
+          const u = t / 0.28;
+          r = 255;
+          g = 230 - u * 90;
+          b = 140 - u * 100;
+          a = 0.95 - u * 0.15;
+        } else if (t < 0.55) {
+          const u = (t - 0.28) / 0.27;
+          r = 255 - u * 90;
+          g = 140 - u * 90;
+          b = 40 + u * 40;
+          a = 0.8 - u * 0.25;
+        } else {
+          const u = (t - 0.55) / 0.45;
+          r = 165 - u * 55;
+          g = 150 - u * 40;
+          b = 140 - u * 25;
+          a = 0.45 * (1 - u);
+        }
+
+        const radius = e.size * (0.7 + t * 1.6);
+        const glow = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, radius);
+        glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
+        glow.addColorStop(0.45, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.45})`);
+        glow.addColorStop(1, `rgba(${r | 0}, ${g | 0}, ${b | 0}, 0)`);
+        ctx.globalCompositeOperation = t < 0.5 ? "lighter" : "source-over";
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+
+      if (Date.now() - lastMove > 120) moving = false;
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -650,26 +719,50 @@ export function App() {
       if (rect.width === 0 || rect.height === 0) return;
       targetX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       targetY = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+
+      pointerX = event.clientX - rect.left;
+      pointerY = event.clientY - rect.top;
+      const dx = pointerX - lastX;
+      const dy = pointerY - lastY;
+      const speed = Math.hypot(dx, dy);
+      lastX = pointerX;
+      lastY = pointerY;
+      lastMove = Date.now();
+      moving = true;
+      placeCursor(pointerX, pointerY, true);
+
+      // Smoke rises from the flame tip (cursor hotspot)
+      if (!reduceMotion && speed > 0.4) spawn(pointerX, pointerY - 4, speed);
     };
 
     const onLeave = () => {
       targetX = 0;
       targetY = 0;
+      moving = false;
+      pointerX = -9999;
+      pointerY = -9999;
+      placeCursor(0, 0, false);
     };
 
     root.addEventListener("pointermove", onMove);
     root.addEventListener("pointerleave", onLeave);
+    window.addEventListener("resize", resize);
 
     return () => {
       active = false;
       cancelAnimationFrame(raf);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
   return (
     <main className="snuff" ref={rootRef}>
+      <canvas className="snuff__trail" ref={trailRef} aria-hidden="true" />
+      <div className="snuff__cursor" ref={cursorRef} aria-hidden="true">
+        <FlameCursor />
+      </div>
       <div className="snuff__field">
         {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);
@@ -699,7 +792,14 @@ export function App() {
                 interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined
               }
             >
-              <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
+              <img
+                src={tile.src}
+                alt={interactive ? tile.alt : ""}
+                draggable={false}
+                loading={tile.layer === "near" ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={interactive ? "high" : "low"}
+              />
               {interactive ? <PausePopup site={tile.alt} /> : null}
             </figure>
           );
@@ -708,7 +808,7 @@ export function App() {
 
       <div className="snuff__center">
         <h1 className="snuff__brand">snuffed</h1>
-        <p className="snuff__tag">put out the flame. defeat your impulse spending.</p>
+        <p className="snuff__tag">snuff the spend. save the flame.</p>
         <div className="snuff__ctas">
           <a className="cta cta--primary" href="#mac">
             <AppleIcon />

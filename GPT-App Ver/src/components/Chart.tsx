@@ -1,3 +1,5 @@
+import { blendPalette } from '../design/blend';
+import { useCompanion } from '../state/Companion';
 import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, {
@@ -17,7 +19,8 @@ import { useNow } from '../hooks/useNow';
 
 export function SavingsChart() {
   const { state } = useStore();
-  const p = palettes[state.hue];
+  const { level } = useCompanion();
+  const p = level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
   const now = useNow(60000);
   const [selected, setSelected] = useState<number | null>(null);
   const data = useMemo(() => {

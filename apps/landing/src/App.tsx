@@ -507,19 +507,19 @@ function SleepingFlame({ uid }: { uid: string }) {
         <path d={FLAME_SILHOUETTE} fill={`url(#${body})`} />
         <path d={FLAME_SILHOUETTE} fill={`url(#${core})`} />
       </g>
-      {/* Closed peaceful eyes */}
+      {/* Closed peaceful eyes — soft downward arcs */}
       <path
-        d="M102 164c4 6 12 6 16 0"
+        d="M100 160c3.5 8 14.5 8 18 0"
         fill="none"
         stroke="#3A0F02"
-        strokeWidth="5.5"
+        strokeWidth="6.5"
         strokeLinecap="round"
       />
       <path
-        d="M136 162c4 6 12 6 16 0"
+        d="M134 158c3.5 8 14.5 8 18 0"
         fill="none"
         stroke="#3A0F02"
-        strokeWidth="5.5"
+        strokeWidth="6.5"
         strokeLinecap="round"
       />
     </svg>

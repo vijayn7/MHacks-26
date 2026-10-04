@@ -520,11 +520,6 @@ button {
   outline-offset: 3px;
 }
 
-.cta--primary,
-.cta--secondary {
-  /* Shared black default; orange gradient lives on :hover */
-}
-
 @media (max-width: 760px) {
   .tile:nth-child(n + 9) {
     display: none;

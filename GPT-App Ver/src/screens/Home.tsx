@@ -7,6 +7,7 @@ import { palettes } from '../design/tokens';
 import { Canvas, T } from '../components/ui';
 import { useCompanion } from '../state/Companion';
 import { Mascot } from '../components/Mascot';
+import { WearableSummary } from '../components/WearableSummary';
 import { GoalFlow } from '../components/GoalFlow';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavingsChart } from '../components/Chart';
@@ -89,6 +90,7 @@ export default function Home() {
             a little intention ↓
           </T>
         </View>
+        <WearableSummary />
         <GoalFlow />
       </ScrollView>
     </Canvas>

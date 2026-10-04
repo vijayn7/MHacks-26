@@ -1,0 +1,24 @@
+{
+  "name": "@impulse/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS='--experimental-sqlite' next dev",
+    "build": "NODE_OPTIONS='--experimental-sqlite' next build",
+    "start": "NODE_OPTIONS='--experimental-sqlite' next start"
+  },
+  "dependencies": {
+    "@impulse/api": "workspace:*",
+    "@impulse/db": "workspace:*",
+    "@impulse/shared": "workspace:*",
+    "next": "^15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "~18.3.12",
+    "@types/react-dom": "~18.3.1",
+    "typescript": "^5.8.2"
+  }
+}

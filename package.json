@@ -7,9 +7,23 @@
   "scripts": {
     "dev:store": "npm run dev -w @secondthought/store",
     "dev:api": "npm run dev -w @secondthought/api",
-    "build:extension": "npm run build -w @secondthought/extension"
+    "build:extension": "npm run build -w @secondthought/extension",
+    "setup": "bash scripts/setup.sh",
+    "test": "NODE_OPTIONS='--experimental-sqlite' vitest run",
+    "typecheck": "tsc -p packages/shared --noEmit && tsc -p packages/db --noEmit && tsc -p packages/api --noEmit && tsc -p apps/web --noEmit && tsc -p apps/mobile --noEmit",
+    "dev:web": "pnpm --filter @impulse/web dev",
+    "build:web": "pnpm --filter @impulse/web build",
+    "lint": "tsc -p packages/shared --noEmit && tsc -p packages/db --noEmit && tsc -p packages/api --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@electric-sql/pglite": "^0.5.8",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.31",
+      "@types/react-dom": "18.3.7"
+    }
   }
 }

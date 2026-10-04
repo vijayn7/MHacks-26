@@ -606,18 +606,16 @@ function UrgeOverlay({
   flame: FlamePalette;
 }) {
   return (
-    <div
-      className="tile__block"
-      role="dialog"
-      aria-label={`Snuff urge on ${site}`}
-      style={
-        {
-          ["--urge-accent" as string]: flame.button,
-          ["--urge-glow" as string]: flame.glow,
-        } as CSSProperties
-      }
-    >
-      <div className="urge">
+    <div className="tile__block" role="dialog" aria-label={`Snuff urge on ${site}`}>
+      <div
+        className="urge"
+        style={
+          {
+            ["--urge-accent" as string]: flame.button,
+            ["--urge-glow" as string]: flame.glow,
+          } as CSSProperties
+        }
+      >
         <span className="urge__close" aria-hidden="true">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path

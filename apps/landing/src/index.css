@@ -258,8 +258,6 @@ button {
 
 /* Desktop urge overlay — scales with the hosting window */
 .urge {
-  --urge-accent: #f7d0c6;
-  --urge-glow: 232 155 138;
   position: relative;
   display: flex;
   align-items: center;

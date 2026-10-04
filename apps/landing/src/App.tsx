@@ -87,7 +87,7 @@ const FLAMES = {
 const tiles: Tile[] = [
   {
     id: "t1",
-    src: "/sites/amazon.jpg",
+    src: "sites/amazon.jpg",
     alt: "Amazon",
     layer: "far",
     drift: 0.7,
@@ -95,7 +95,7 @@ const tiles: Tile[] = [
   },
   {
     id: "t2",
-    src: "/sites/asos.jpg",
+    src: "sites/asos.jpg",
     alt: "ASOS",
     layer: "far",
     drift: 1.2,
@@ -103,7 +103,7 @@ const tiles: Tile[] = [
   },
   {
     id: "t3",
-    src: "/sites/polymarket.jpg",
+    src: "sites/polymarket.jpg",
     alt: "Polymarket",
     layer: "far",
     drift: 0.85,
@@ -111,7 +111,7 @@ const tiles: Tile[] = [
   },
   {
     id: "t4",
-    src: "/sites/shein.jpg",
+    src: "sites/shein.jpg",
     alt: "SHEIN",
     layer: "far",
     drift: 1.15,
@@ -119,7 +119,7 @@ const tiles: Tile[] = [
   },
   {
     id: "t6",
-    src: "/sites/edikted.jpg",
+    src: "sites/edikted.jpg",
     alt: "Edikted",
     layer: "far",
     drift: 1.05,
@@ -133,7 +133,7 @@ const tiles: Tile[] = [
   },
   {
     id: "t8",
-    src: "/sites/bestbuy.jpg",
+    src: "sites/bestbuy.jpg",
     alt: "Best Buy far",
     layer: "far",
     drift: 1.25,
@@ -147,7 +147,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c1",
-    src: "/sites/walmart.jpg",
+    src: "sites/walmart.jpg",
     alt: "Walmart",
     layer: "void",
     drift: 0.9,
@@ -155,7 +155,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c2",
-    src: "/sites/costco.jpg",
+    src: "sites/costco.jpg",
     alt: "Costco",
     layer: "void",
     drift: 1.2,
@@ -163,7 +163,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c3",
-    src: "/sites/depop.jpg",
+    src: "sites/depop.jpg",
     alt: "Depop",
     layer: "mid",
     drift: 0.75,
@@ -171,7 +171,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c4",
-    src: "/sites/asos.jpg",
+    src: "sites/asos.jpg",
     alt: "ASOS",
     layer: "near",
     interactive: true,
@@ -188,7 +188,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c6",
-    src: "/sites/shein.jpg",
+    src: "sites/shein.jpg",
     alt: "SHEIN mid",
     layer: "mid",
     drift: 1.3,
@@ -202,7 +202,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c7",
-    src: "/sites/edikted.jpg",
+    src: "sites/edikted.jpg",
     alt: "Edikted mid",
     layer: "mid",
     drift: 0.85,
@@ -216,7 +216,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c8",
-    src: "/sites/polymarket.jpg",
+    src: "sites/polymarket.jpg",
     alt: "Polymarket mid",
     layer: "far",
     drift: 1.0,
@@ -230,7 +230,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c10",
-    src: "/sites/amazon.jpg",
+    src: "sites/amazon.jpg",
     alt: "Amazon mid",
     layer: "far",
     drift: 0.7,
@@ -244,7 +244,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c12",
-    src: "/sites/ebay.jpg",
+    src: "sites/ebay.jpg",
     alt: "eBay mid",
     layer: "far",
     drift: 0.9,
@@ -258,7 +258,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c15",
-    src: "/sites/costco.jpg",
+    src: "sites/costco.jpg",
     alt: "Costco high",
     layer: "far",
     drift: 1.35,
@@ -272,7 +272,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c16",
-    src: "/sites/bestbuy.jpg",
+    src: "sites/bestbuy.jpg",
     alt: "Best Buy mid",
     layer: "mid",
     drift: 0.95,
@@ -286,7 +286,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c20",
-    src: "/sites/edikted.jpg",
+    src: "sites/edikted.jpg",
     alt: "Edikted side",
     layer: "mid",
     drift: 0.85,
@@ -300,7 +300,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c22",
-    src: "/sites/amazon.jpg",
+    src: "sites/amazon.jpg",
     alt: "Amazon low",
     layer: "mid",
     drift: 1.3,
@@ -314,7 +314,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c24",
-    src: "/sites/walmart.jpg",
+    src: "sites/walmart.jpg",
     alt: "Walmart side",
     layer: "mid",
     drift: 1.15,
@@ -328,7 +328,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c27",
-    src: "/sites/polymarket.jpg",
+    src: "sites/polymarket.jpg",
     alt: "Polymarket high",
     layer: "far",
     drift: 0.8,
@@ -342,7 +342,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c30",
-    src: "/sites/bestbuy.jpg",
+    src: "sites/bestbuy.jpg",
     alt: "Best Buy high",
     layer: "void",
     drift: 1.1,
@@ -356,7 +356,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c32",
-    src: "/sites/depop.jpg",
+    src: "sites/depop.jpg",
     alt: "Depop low",
     layer: "void",
     drift: 1.25,
@@ -370,7 +370,7 @@ const tiles: Tile[] = [
   },
   {
     id: "c33",
-    src: "/sites/shein.jpg",
+    src: "sites/shein.jpg",
     alt: "SHEIN low",
     layer: "far",
     drift: 0.85,
@@ -384,7 +384,7 @@ const tiles: Tile[] = [
   },
   {
     id: "i2",
-    src: "/sites/ebay.jpg",
+    src: "sites/ebay.jpg",
     alt: "eBay",
     layer: "near",
     interactive: true,
@@ -395,7 +395,7 @@ const tiles: Tile[] = [
   },
   {
     id: "i3",
-    src: "/sites/princesspolly.jpg",
+    src: "sites/princesspolly.jpg",
     alt: "Princess Polly",
     layer: "near",
     interactive: true,
@@ -412,7 +412,7 @@ const tiles: Tile[] = [
   },
   {
     id: "i4",
-    src: "/sites/amazon.jpg",
+    src: "sites/amazon.jpg",
     alt: "Amazon deals",
     layer: "near",
     interactive: true,
@@ -429,7 +429,7 @@ const tiles: Tile[] = [
   },
   {
     id: "i5",
-    src: "/sites/polymarket.jpg",
+    src: "sites/polymarket.jpg",
     alt: "Polymarket",
     layer: "near",
     interactive: true,
@@ -446,7 +446,7 @@ const tiles: Tile[] = [
   },
   {
     id: "i6",
-    src: "/sites/kalshi.jpg",
+    src: "sites/kalshi.jpg",
     alt: "Kalshi",
     layer: "near",
     interactive: true,

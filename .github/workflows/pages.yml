@@ -1,9 +1,9 @@
-name: Deploy store to GitHub Pages
+name: Deploy landing and store to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths: ["apps/store/**", ".github/workflows/pages.yml"]
+    paths: ["apps/landing/**", "apps/store/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -25,12 +25,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run build -w @secondthought/landing
       - run: npm run build -w @secondthought/store
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - run: cp -r apps/store/dist apps/landing/dist/store
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/store/dist
+          path: apps/landing/dist
 
   deploy:
     needs: build

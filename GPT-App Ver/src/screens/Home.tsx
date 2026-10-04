@@ -5,11 +5,13 @@ import { useStore } from '../state/Store';
 import { money } from '../state/model';
 import { palettes } from '../design/tokens';
 import { Canvas, T } from '../components/ui';
+import { CountUpText } from '../components/CountUp';
 import { useCompanion } from '../state/Companion';
 import { Mascot } from '../components/Mascot';
 import { ExtensionScore } from '../components/ExtensionScore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavingsChart } from '../components/Chart';
+import { useCountUp } from '../hooks/useCountUp';
 
 export default function Home() {
   const { state } = useStore();
@@ -20,7 +22,9 @@ export default function Home() {
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
   const textSize = width < 360 ? 17 : 19;
   const textLineHeight = width < 360 ? 23 : 26;
-  const pill = (value: string) => (
+  const savings = useCountUp({ value: state.savings, delay: 720, duration: 880 });
+  const pauses = useCountUp({ value: state.pauses, delay: 1480, duration: 720 });
+  const pill = (value: string, opacity: typeof savings.opacity) => (
     <LinearGradient
       colors={[p.body + '22', p.mid + '10']}
       start={{ x: 0, y: 0 }}
@@ -32,9 +36,13 @@ export default function Home() {
         borderColor: p.body + '20',
       }}
     >
-      <T variant="title" color={p.body} style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+      <CountUpText
+        opacity={opacity}
+        color={p.body}
+        textStyle={{ fontSize: textSize, lineHeight: textLineHeight }}
+      >
         {value}
-      </T>
+      </CountUpText>
     </LinearGradient>
   );
   return (
@@ -59,7 +67,7 @@ export default function Home() {
               {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame'}
             </T>
           </View>
-          <ExtensionScore />
+          <ExtensionScore delay={0} duration={900} />
           <View
             style={{
               flexDirection: 'row',
@@ -76,11 +84,11 @@ export default function Home() {
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
               you saved
             </T>
-            {pill(money(state.savings))}
+            {pill(money(Math.round(savings.display * 100) / 100), savings.opacity)}
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
               by pausing
             </T>
-            {pill(String(state.pauses))}
+            {pill(String(Math.round(pauses.display)), pauses.opacity)}
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
               times this week.
             </T>

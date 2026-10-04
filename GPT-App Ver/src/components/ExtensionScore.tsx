@@ -4,15 +4,24 @@ import { useIsFocused } from 'expo-router';
 import { useStore } from '../state/Store';
 import { snuffScore } from '../state/model';
 import { palettes } from '../design/tokens';
+import { useCountUp } from '../hooks/useCountUp';
+import { CountUpText } from './CountUp';
 import { T, Icon, Sheet } from './ui';
 import { SoftPressable } from './SoftPressable';
 
-export function ExtensionScore() {
+export function ExtensionScore({
+  delay = 0,
+  duration = 900,
+}: {
+  delay?: number;
+  duration?: number;
+}) {
   const { state, dispatch } = useStore();
   const focused = useIsFocused();
   const [info, setInfo] = useState(false);
   const [status, setStatus] = useState<'loading' | 'connected' | 'offline'>('loading');
   const score = snuffScore(state.extensionOptOutIds);
+  const { display, opacity } = useCountUp({ value: score, delay, duration });
   useEffect(() => {
     if (!focused || !state.onboardingComplete) return;
     let active = true;
@@ -65,9 +74,13 @@ export function ExtensionScore() {
       testID="extension-score"
       style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
     >
-      <T variant="title" color={palettes[state.hue].body} style={{ fontSize: 68, lineHeight: 76 }}>
-        {score}
-      </T>
+      <CountUpText
+        opacity={opacity}
+        color={palettes[state.hue].body}
+        textStyle={{ fontSize: 68, lineHeight: 76 }}
+      >
+        {Math.round(display)}
+      </CountUpText>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 34 }}>
         <T variant="small">snuff score</T>
         <SoftPressable

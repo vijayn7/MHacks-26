@@ -731,14 +731,15 @@ export function App() {
       for (let i = 1; i <= steps; i++) {
         const t = i / steps;
         pushPoint(x0 + dx * t, y0 + dy * t, nx, ny);
-        // Extra side embers for flame volume
-        pushPoint(
-          x0 + dx * t + nx * (10 + Math.random() * 16) * (Math.random() < 0.5 ? -1 : 1),
-          y0 + dy * t + ny * (10 + Math.random() * 16) * (Math.random() < 0.5 ? -1 : 1),
-          nx,
-          ny,
-        );
-        if (i % 3 === 0) emitSmoke(x0 + dx * t, y0 + dy * t - 4, 0.8);
+        if (Math.random() < 0.55) {
+          pushPoint(
+            x0 + dx * t + nx * (14 + Math.random() * 20) * (Math.random() < 0.5 ? -1 : 1),
+            y0 + dy * t + ny * (14 + Math.random() * 20) * (Math.random() < 0.5 ? -1 : 1),
+            nx,
+            ny,
+          );
+        }
+        emitSmoke(x0 + dx * t, y0 + dy * t - 8, 1.4);
       }
     };
 
@@ -830,17 +831,17 @@ export function App() {
       }
 
       if (!reduceMotion) {
-        // Cool smoke — drawn high and soft so it separates from the fire
+        // Light ash smoke — must stay bright to read on the dark landing
         ctx.globalCompositeOperation = "source-over";
         for (const s of smoke) {
           const t = s.age / s.maxAge;
           const fade = 1 - t;
-          const a = 0.5 * fade;
-          const radius = s.size * (1.2 + t * 2.4);
+          const a = 0.38 * fade;
+          const radius = s.size * (1.4 + t * 2.8);
           const puff = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
-          puff.addColorStop(0, `rgba(186, 188, 196, ${a})`);
-          puff.addColorStop(0.4, `rgba(140, 142, 150, ${a * 0.4})`);
-          puff.addColorStop(1, `rgba(60, 60, 65, 0)`);
+          puff.addColorStop(0, `rgba(236, 232, 226, ${a})`);
+          puff.addColorStop(0.4, `rgba(190, 186, 180, ${a * 0.45})`);
+          puff.addColorStop(1, `rgba(140, 136, 130, 0)`);
           ctx.fillStyle = puff;
           ctx.beginPath();
           ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);

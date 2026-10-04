@@ -12,6 +12,7 @@ import {
 } from '../state/blocking';
 import { Icon, QuietButton, Sheet, T } from './ui';
 import { useNow } from '../hooks/useNow';
+import { apiEnabled, post } from '../services/api';
 
 const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const titles = [
@@ -139,6 +140,9 @@ export function GoalFlow() {
   const [website, setWebsite] = useState('');
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
+  const [words, setWords] = useState('');
+  const [parseBusy, setParseBusy] = useState(false);
+  const [parseError, setParseError] = useState('');
   const update = (patch: Partial<BlockPlan>) => {
     setDraft((d) => ({ ...d, ...patch }));
     setError('');
@@ -152,7 +156,54 @@ export function GoalFlow() {
     setStep(0);
     setError('');
     setWebsite('');
+    setWords('');
+    setParseError('');
     setOpen(true);
+  };
+  const draftFromWords = async () => {
+    if (!apiEnabled || !words.trim() || parseBusy) return;
+    setParseError('');
+    setParseBusy(true);
+    try {
+      const res = await post<{
+        proposal: {
+          domains?: string[];
+          minAmount?: number;
+          schedule?: BlockPlan['schedule'];
+          days?: number[];
+          start?: string;
+          end?: string;
+          mode?: BlockPlan['mode'];
+          cooldownMinutes?: number;
+          allowOverride?: boolean;
+        };
+      }>('/rules/parse', { text: words.trim() }, 30000);
+      const p = res.proposal;
+      const patch: Partial<BlockPlan> = {};
+      if (Array.isArray(p.domains)) {
+        const domains = [
+          ...new Set(p.domains.map((d) => domainName(d)).filter((d): d is string => !!d)),
+        ];
+        if (domains.length) patch.domains = domains;
+      }
+      if (typeof p.minAmount === 'number' && Number.isFinite(p.minAmount)) patch.minAmount = p.minAmount;
+      if (p.schedule === 'always' || p.schedule === 'scheduled') patch.schedule = p.schedule;
+      if (Array.isArray(p.days) && p.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)) {
+        patch.days = [...new Set(p.days)];
+      }
+      if (typeof p.start === 'string') patch.start = p.start;
+      if (typeof p.end === 'string') patch.end = p.end;
+      if (p.mode === 'nudge' || p.mode === 'pause') patch.mode = p.mode;
+      if (typeof p.cooldownMinutes === 'number' && Number.isInteger(p.cooldownMinutes)) {
+        patch.cooldownMinutes = p.cooldownMinutes;
+      }
+      if (typeof p.allowOverride === 'boolean') patch.allowOverride = p.allowOverride;
+      update(patch);
+    } catch {
+      setParseError('could not draft from that right now.');
+    } finally {
+      setParseBusy(false);
+    }
   };
   const addSite = () => {
     const domain = domainName(website);
@@ -280,6 +331,33 @@ export function GoalFlow() {
         )}
         {step === 1 && (
           <>
+            {apiEnabled && (
+              <>
+                <Field
+                  label="describe it in your words"
+                  value={words}
+                  onChange={setWords}
+                  placeholder="pause anything over $50 on amazon after 9pm"
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="draft from this"
+                  disabled={parseBusy || !words.trim()}
+                  onPress={() => void draftFromWords()}
+                  style={[s.add, (parseBusy || !words.trim()) && { opacity: 0.45 }]}
+                >
+                  <Icon name="edit-2" size={15} color={palettes.Ember.body} />
+                  <T variant="small" color={palettes.Ember.body}>
+                    {parseBusy ? 'drafting…' : 'draft from this'}
+                  </T>
+                </Pressable>
+                {!!parseError && (
+                  <T color={palettes.Ember.body} style={{ fontSize: 13, marginBottom: 12 }}>
+                    {parseError}
+                  </T>
+                )}
+              </>
+            )}
             <T variant="small" style={s.label}>
               where do you want a pause?
             </T>

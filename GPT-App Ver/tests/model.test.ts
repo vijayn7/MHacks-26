@@ -142,6 +142,8 @@ test('goal rules survive reload without changing savings and reject malformed pl
   assert.equal(migrate({ ...saved, plan: { title: 'broken' } }).plan, null);
   assert.equal(reducer(saved, { type: 'PLAN_ENABLED', enabled: false }).plan?.enabled, false);
   assert.equal(domainName('https://www.amazon.com/cart?q=hello'), 'amazon.com');
+  assert.equal(domainName('localhost'), 'localhost');
+  assert.equal(domainName('http://localhost:5173'), 'localhost');
   assert.equal(domainName('not a site'), null);
   assert.equal(domainName('https://person:password@amazon.com'), null);
 });

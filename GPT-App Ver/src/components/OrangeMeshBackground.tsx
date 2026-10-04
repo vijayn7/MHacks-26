@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
@@ -196,18 +196,14 @@ function RibbonView({
 export function OrangeMeshBackground() {
   const { width, height } = useWindowDimensions();
   const [reduce, setReduce] = useState(false);
-  const livesRef = useRef<LiveRibbon[] | null>(null);
-  if (!livesRef.current) {
-    livesRef.current = RIBBONS.map((config) => ({
+  const [lives] = useState<LiveRibbon[]>(() => RIBBONS.map((config) => ({
       config,
       tx: new Animated.Value(0),
       ty: new Animated.Value(0),
       rot: new Animated.Value(config.rot),
       sx: new Animated.Value(1),
       sy: new Animated.Value(1),
-    }));
-  }
-  const lives = livesRef.current;
+    })));
 
   useEffect(() => {
     let active = true;

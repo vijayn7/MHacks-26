@@ -730,7 +730,7 @@ export function App() {
 
       <div className="snuff__center">
         <h1 className="snuff__brand">snuffed</h1>
-        <p className="snuff__tag">put out the flame. defeat your impulse spending.</p>
+        <p className="snuff__tag">snuff the spend. save the flame.</p>
         <div className="snuff__ctas">
           <a className="cta cta--primary" href="#mac">
             <AppleIcon />

@@ -26,7 +26,6 @@ export function SavingsChart() {
   const { level } = useCompanion();
   const p = level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
   const now = useNow(60000);
-  const [touching, setTouching] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const data = useMemo(() => {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -95,17 +94,9 @@ export function SavingsChart() {
         ))}
         <Line x1="0" x2="318" y1="137" y2="137" stroke={p.body} strokeOpacity=".08" />
         <Path d={line} fill="none" stroke={p.body} strokeOpacity=".8" strokeWidth="1.5" />
-        {[
-          ...new Set([
-            1,
-            3,
-            5,
-            ...(selected === null ? [] : [selected]),
-            ...(touching === null ? [] : [touching]),
-          ]),
-        ].map((i) => (
+        {[...new Set([1, 3, 5, ...(selected === null ? [] : [selected])])].map((i) => (
           <G key={i}>
-            {touching === i && (
+            {selected === i && (
               <>
                 <Circle cx={points[i].x} cy={points[i].y} r={45} fill={`url(#${orbId})`} />
                 <Circle cx={points[i].x} cy={points[i].y} r={6} fill={p.mid} />
@@ -115,7 +106,7 @@ export function SavingsChart() {
               cx={points[i].x}
               cy={points[i].y}
               r={2.5}
-              fill={touching === i ? p.core : '#FFFFFF'}
+              fill={selected === i ? p.core : '#FFFFFF'}
             />
           </G>
         ))}
@@ -138,10 +129,8 @@ export function SavingsChart() {
               ' savings'
             }
             key={i}
-            onPressIn={() => setTouching(i)}
-            onPressOut={() => setTouching(null)}
-            onBlur={() => setTouching(null)}
-            onPress={() => setSelected(i)}
+            accessibilityState={{ selected: selected === i }}
+            onPress={() => setSelected((current) => (current === i ? null : i))}
             style={{ flex: 1 }}
           />
         ))}

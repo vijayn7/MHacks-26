@@ -668,13 +668,12 @@ export function App() {
     let smokeBudget = 0;
     const ribbon: RibbonPoint[] = [];
     const smoke: SmokePuff[] = [];
-    const MAX_POINTS = 22;
-    const MAX_SMOKE = 18;
-    const MAX_AGE = 22;
-    const STEP = 14;
+    const MAX_POINTS = 26;
+    const MAX_SMOKE = 20;
+    const MAX_AGE = 26;
+    const STEP = 12;
 
     const resize = () => {
-      // Cap DPR — full retina + huge soft blobs was melting the GPU
       const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       const w = root.clientWidth;
       const h = root.clientHeight;
@@ -688,12 +687,12 @@ export function App() {
 
     const pushPoint = (x: number, y: number) => {
       ribbon.push({
-        x: x + (Math.random() - 0.5) * 6,
-        y: y + (Math.random() - 0.5) * 4,
+        x: x + (Math.random() - 0.5) * 4,
+        y: y + (Math.random() - 0.5) * 3,
         age: 0,
-        wobble: (Math.random() - 0.5) * 1.2,
-        size: 5 + Math.random() * 4,
-        lean: (Math.random() - 0.5) * 0.7,
+        wobble: (Math.random() - 0.5) * 0.9,
+        size: 4.5 + Math.random() * 3,
+        lean: (Math.random() - 0.5) * 0.5,
       });
       while (ribbon.length > MAX_POINTS) ribbon.shift();
     };
@@ -701,51 +700,36 @@ export function App() {
     const emitSmoke = (x: number, y: number) => {
       if (smoke.length >= MAX_SMOKE) smoke.shift();
       smoke.push({
-        x: x + (Math.random() - 0.5) * 8,
-        y: y - 4 - Math.random() * 6,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: -0.7 - Math.random() * 0.6,
+        x: x + (Math.random() - 0.5) * 10,
+        y: y - 6 - Math.random() * 8,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: -0.45 - Math.random() * 0.5,
         age: 0,
-        maxAge: 28 + Math.random() * 18,
-        size: 10 + Math.random() * 10,
-        lean: (Math.random() - 0.5) * 1.1,
+        maxAge: 36 + Math.random() * 22,
+        size: 8 + Math.random() * 8,
+        lean: (Math.random() - 0.5) * 0.8,
       });
     };
 
-    /** Pointed flame tongue rising from (x,y). */
-    const drawFlame = (x: number, y: number, w: number, h: number, lean: number) => {
-      const tipX = x + lean * h * 0.45;
-      const tipY = y - h;
+    const softEllipse = (
+      x: number,
+      y: number,
+      rx: number,
+      ry: number,
+      lean: number,
+      stops: Array<[number, string]>,
+    ) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(lean * 0.35);
+      ctx.scale(1, ry / Math.max(rx, 0.01));
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      for (const [t, c] of stops) g.addColorStop(t, c);
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.moveTo(x - w * 0.35, y);
-      ctx.quadraticCurveTo(x - w * 0.85, y - h * 0.35, tipX, tipY);
-      ctx.quadraticCurveTo(x + w * 0.85, y - h * 0.35, x + w * 0.35, y);
-      ctx.quadraticCurveTo(x, y + w * 0.2, x - w * 0.35, y);
-      ctx.closePath();
-    };
-
-    /** Soft elongated smoke wisp. */
-    const drawWisp = (x: number, y: number, w: number, h: number, lean: number) => {
-      const midX = x + lean * h * 0.35;
-      ctx.beginPath();
-      ctx.moveTo(x - w * 0.2, y + h * 0.15);
-      ctx.bezierCurveTo(
-        x - w,
-        y - h * 0.1,
-        midX - w * 0.9,
-        y - h * 0.75,
-        midX,
-        y - h,
-      );
-      ctx.bezierCurveTo(
-        midX + w * 0.9,
-        y - h * 0.75,
-        x + w,
-        y - h * 0.1,
-        x + w * 0.2,
-        y + h * 0.15,
-      );
-      ctx.closePath();
+      ctx.arc(0, 0, rx, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     };
 
     const layPath = (x0: number, y0: number, x1: number, y1: number) => {
@@ -754,13 +738,13 @@ export function App() {
         pushPoint(x1, y1);
         return;
       }
-      const steps = Math.min(6, Math.max(1, Math.ceil(dist / STEP)));
+      const steps = Math.min(5, Math.max(1, Math.ceil(dist / STEP)));
       for (let i = 1; i <= steps; i++) {
         const t = i / steps;
         pushPoint(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
       }
       smokeBudget += dist;
-      if (smokeBudget > 28) {
+      if (smokeBudget > 32) {
         smokeBudget = 0;
         emitSmoke(x1, y1);
       }
@@ -785,10 +769,10 @@ export function App() {
       for (let i = ribbon.length - 1; i >= 0; i--) {
         const p = ribbon[i];
         p.age += 1;
-        p.y -= 0.35;
-        p.x += p.wobble * 0.1;
-        p.lean += p.wobble * 0.02;
-        if (p.age === 12) emitSmoke(p.x, p.y);
+        p.y -= 0.28 + p.age * 0.008;
+        p.x += p.wobble * 0.08;
+        p.lean += p.wobble * 0.015;
+        if (p.age === 14) emitSmoke(p.x, p.y);
         if (p.age > MAX_AGE) ribbon.splice(i, 1);
       }
 
@@ -797,56 +781,85 @@ export function App() {
         s.age += 1;
         s.x += s.vx;
         s.y += s.vy;
-        s.size *= 1.02;
-        s.lean += s.vx * 0.04;
+        s.vx *= 0.99;
+        s.size *= 1.018;
+        s.lean += s.vx * 0.03;
         if (s.age > s.maxAge) smoke.splice(i, 1);
       }
 
       if (!reduceMotion) {
         ctx.globalCompositeOperation = "source-over";
+
+        // Diffuse smoke — soft gray haze, no hard edges
         for (const s of smoke) {
           const t = s.age / s.maxAge;
-          const a = 0.3 * (1 - t);
-          const sw = s.size * (0.7 + t * 0.8);
-          const sh = s.size * (1.4 + t * 1.8);
-          ctx.fillStyle = `rgba(230, 226, 220, ${a})`;
-          drawWisp(s.x, s.y, sw, sh, s.lean);
-          ctx.fill();
+          const fade = 1 - t;
+          const rx = s.size * (1.1 + t * 1.6);
+          const ry = s.size * (1.6 + t * 2.2);
+          const a = 0.22 * fade;
+          softEllipse(s.x, s.y, rx, ry, s.lean, [
+            [0, `rgba(210, 206, 200, ${a})`],
+            [0.45, `rgba(170, 166, 160, ${a * 0.4})`],
+            [1, "rgba(120, 118, 114, 0)"],
+          ]);
         }
 
+        // Soft continuous ember ribbon (muted, layered)
+        if (ribbon.length > 1) {
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.beginPath();
+          ctx.moveTo(ribbon[0].x, ribbon[0].y);
+          for (let i = 1; i < ribbon.length; i++) {
+            const prev = ribbon[i - 1];
+            const curr = ribbon[i];
+            ctx.quadraticCurveTo(prev.x, prev.y, (prev.x + curr.x) * 0.5, (prev.y + curr.y) * 0.5);
+          }
+          ctx.strokeStyle = "rgba(180, 55, 18, 0.28)";
+          ctx.lineWidth = 7;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 140, 45, 0.22)";
+          ctx.lineWidth = 3.5;
+          ctx.stroke();
+        }
+
+        // Flame kernels — soft vertical glows, not hard cartoon tongues
         for (const p of ribbon) {
           const t = p.age / MAX_AGE;
-          const fw = p.size * (0.7 + t * 0.25);
-          const fh = p.size * (1.8 + t * 1.4);
-          let r: number;
-          let g: number;
-          let b: number;
-          let a: number;
-          if (t < 0.35) {
-            r = 255;
-            g = 170 - t * 80;
-            b = 40;
-            a = 0.9;
-          } else if (t < 0.7) {
-            r = 240;
-            g = 80;
-            b = 20;
-            a = 0.7;
-          } else {
-            r = 180;
-            g = 40;
-            b = 15;
-            a = 0.35 * (1 - (t - 0.7) / 0.3);
+          const fade = 1 - t;
+          const rx = p.size * (0.9 + t * 0.35);
+          const ry = p.size * (1.7 + t * 1.5);
+
+          // Outer cool envelope
+          softEllipse(p.x, p.y - ry * 0.15, rx * 1.35, ry * 1.15, p.lean, [
+            [0, `rgba(160, 40, 10, ${0.18 * fade})`],
+            [0.55, `rgba(120, 25, 8, ${0.08 * fade})`],
+            [1, "rgba(40, 8, 0, 0)"],
+          ]);
+
+          // Mid flame
+          softEllipse(p.x, p.y - ry * 0.25, rx * 0.85, ry * 0.95, p.lean, [
+            [0, `rgba(255, 120, 30, ${0.45 * fade})`],
+            [0.5, `rgba(220, 60, 15, ${0.2 * fade})`],
+            [1, "rgba(80, 15, 0, 0)"],
+          ]);
+
+          // Hot core (only while young)
+          if (t < 0.55) {
+            softEllipse(p.x, p.y - ry * 0.3, rx * 0.35, ry * 0.55, p.lean * 0.6, [
+              [0, `rgba(255, 230, 160, ${0.55 * (1 - t / 0.55)})`],
+              [0.55, `rgba(255, 170, 60, ${0.2 * (1 - t / 0.55)})`],
+              [1, "rgba(255, 100, 20, 0)"],
+            ]);
           }
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-          drawFlame(p.x, p.y, fw, fh, p.lean);
-          ctx.fill();
         }
 
         if (isLive) {
-          ctx.fillStyle = "rgba(255, 210, 100, 0.85)";
-          drawFlame(pointerX, pointerY, 4.5, 11, 0);
-          ctx.fill();
+          softEllipse(pointerX, pointerY - 4, 4, 9, 0, [
+            [0, "rgba(255, 236, 180, 0.7)"],
+            [0.4, "rgba(255, 150, 40, 0.35)"],
+            [1, "rgba(180, 40, 10, 0)"],
+          ]);
         }
       }
 

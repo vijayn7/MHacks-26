@@ -119,6 +119,9 @@ export function initialState(now = Date.now()): AppState {
       { id: 'jules', name: 'Jules', email: 'jules@example.com', hue: 'Violet', savings: 362 },
       { id: 'sam', name: 'Sam', email: 'sam@example.com', hue: 'Azure', savings: 248 },
       { id: 'ria', name: 'Ria', email: 'ria@example.com', hue: 'Verdigris', savings: 195 },
+      { id: 'leo', name: 'Leo', email: 'leo@example.com', hue: 'Ember', savings: 176 },
+      { id: 'maya', name: 'Maya', email: 'maya@example.com', hue: 'Crimson', savings: 142 },
+      { id: 'kai', name: 'Kai', email: 'kai@example.com', hue: 'Ash', savings: 98 },
     ],
     nudges: [
       { id: 'headphones', name: 'Studio headphones', amount: 149, status: 'waiting', dueAt: null },
@@ -282,6 +285,17 @@ export function reducer(s: AppState, a: Action): AppState {
       return {
         ...s,
         onboardingComplete: true,
+        friends: [
+          ...s.friends,
+          ...initialState()
+            .friends.filter((sample) => !s.friends.some((friend) => friend.hue === sample.hue))
+            .map((sample) => ({
+              ...sample,
+              id: s.friends.some((friend) => friend.id === sample.id)
+                ? `sample-${sample.hue.toLowerCase()}-${s.friends.length}`
+                : sample.id,
+            })),
+        ],
         purchaseRules: a.rules ? readPurchaseRules(a.rules) : s.purchaseRules,
         spendingCategories: [...new Set(a.categories)].filter((v) =>
           spendingCategories.includes(v as (typeof spendingCategories)[number]),

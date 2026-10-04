@@ -53,8 +53,8 @@ test('connections validate email and reject duplicate contacts regardless of cas
   const s = initialState();
   assert.equal(reducer(s, { type: 'CONNECT', email: 'bad' }), s);
   const added = reducer(s, { type: 'CONNECT', email: ' Jamie.Lee@example.com ' });
-  assert.equal(added.friends.length, 4);
-  assert.equal(added.friends[3].name, 'Jamie');
+  assert.equal(added.friends.length, s.friends.length + 1);
+  assert.equal(added.friends[s.friends.length].name, 'Jamie');
   assert.equal(reducer(added, { type: 'CONNECT', email: 'JAMIE.LEE@EXAMPLE.COM' }), added);
 });
 test('the previous Ember schema migrates meaningful progress without old interface complexity', () => {
@@ -440,4 +440,13 @@ test('archive retains the incoming save source through persistence and revisits'
   s = reducer(s, { type: 'REVISIT_ITEM', id: 'source-item' });
   s = reducer(s, { type: 'SAVE_FOR_LATER', id: 'source-item' });
   assert.equal(s.archive[0].source, 'chrome · example.com');
+});
+
+test('onboarding fills missing friend colors without repeated samples', () => {
+  const before = { ...initialState(), friends: initialState().friends.slice(0, 2) };
+  const action = { type: 'COMPLETE_ONBOARDING', categories: [], strength: 50 } as const;
+  const first = reducer(before, { ...action, categories: [] });
+  const second = reducer(first, { ...action, categories: [] });
+  assert.equal(new Set(first.friends.map((friend) => friend.hue)).size, 6);
+  assert.deepEqual(second.friends, first.friends);
 });

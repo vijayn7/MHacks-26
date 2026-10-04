@@ -18,7 +18,7 @@ import { useStore } from '../state/Store';
 import { supportLevel } from '../design/onboarding';
 import { savedDate } from '../state/archive';
 import { money, type Nudge } from '../state/model';
-import { colors, palettes } from '../design/tokens';
+import { colors } from '../design/tokens';
 import { blendPalette } from '../design/blend';
 import { celebrate, Icon, QuietButton, T, tap } from './ui';
 import { Mascot } from './Mascot';
@@ -29,9 +29,6 @@ import { fetchCheckIn, sendCheckIn } from '../services/checkin';
 export function NudgeSheet() {
   const { state, activeNudge, openNudge } = useStore();
   const nudge = state.nudges.find((n) => n.id === activeNudge);
-  useEffect(() => {
-    if (activeNudge && !nudge) openNudge(null);
-  }, [activeNudge, nudge, openNudge]);
   return nudge ? <NudgePopup key={nudge.id} nudge={nudge} onClose={() => openNudge(null)} /> : null;
 }
 
@@ -107,10 +104,10 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
     else tap();
   };
   const askFriend = async () => {
-    if (!friend || !apiEnabled || checkInStatus === 'sending' || checkInStatus === 'sent') return;
+    if (!friend || checkInStatus === 'sending' || checkInStatus === 'sent') return;
     setCheckInStatus('sending');
     try {
-      await sendCheckIn(n.id, friend.name);
+      if (apiEnabled) await sendCheckIn(n.id, friend.name);
       setSentTo(friend.name);
       setCheckInStatus('sent');
     } catch {
@@ -159,7 +156,7 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                   <T variant="small">← back</T>
                 </Pressable>
                 <T variant="title" style={s.heading}>
-                  {friend ? `a little help from\n${friend.name}.` : 'a little company.'}
+                  {friend ? `send to ${friend.name.toLowerCase()}?` : 'a little company.'}
                 </T>
                 {friend ? (
                   <>
@@ -171,54 +168,59 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                         size={150}
                       />
                     </View>
-                    <T variant="mono" style={s.centerText}>
-                      request preview
-                    </T>
                     <T style={[s.centerText, { marginTop: 18 }]}>
                       i’m taking a moment before buying something. can you check in with me?
                     </T>
-                    {apiEnabled ? (
+                    {checkInStatus === 'sent' ? (
                       <>
-                        {checkInStatus === 'sent' || checkInStatus === 'sending' ? (
-                          <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
-                            {checkInStatus === 'sending'
-                              ? 'sending…'
-                              : `sent to ${sentTo ?? friend.name}.`}
-                          </T>
-                        ) : (
-                          <>
-                            <QuietButton
-                              onPress={() => {
-                                void askFriend();
-                              }}
-                            >
-                              send
-                            </QuietButton>
-                            {checkInStatus === 'error' && (
-                              <T
-                                variant="small"
-                                color={palettes.Crimson.body}
-                                style={[s.centerText, { marginTop: 12 }]}
-                              >
-                                couldn’t send right now
-                              </T>
-                            )}
-                          </>
-                        )}
+                        <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
+                          {apiEnabled
+                            ? `sent to ${sentTo ?? friend.name}.`
+                            : 'demo complete · no message was sent.'}
+                        </T>
                         {!!friendReply && (
-                          <T variant="quote" style={[s.centerText, { marginTop: 22 }]}>
+                          <T variant="quote" style={s.centerText}>
                             {friendReply}
                           </T>
                         )}
+                        <QuietButton
+                          onPress={() => {
+                            setFriendsOpen(false);
+                            setFriendId(null);
+                          }}
+                        >
+                          back to my purchase
+                        </QuietButton>
                       </>
                     ) : (
-                      <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
-                        messaging isn’t connected yet. nothing has been sent.
-                      </T>
+                      <>
+                        <QuietButton
+                          disabled={checkInStatus === 'sending'}
+                          onPress={() => {
+                            void askFriend();
+                          }}
+                        >
+                          {checkInStatus === 'sending' ? 'sending…' : 'yes, send'}
+                        </QuietButton>
+                        <QuietButton
+                          secondary
+                          disabled={checkInStatus === 'sending'}
+                          onPress={() => setFriendId(null)}
+                        >
+                          no, go back
+                        </QuietButton>
+                        {checkInStatus === 'error' && (
+                          <T variant="small" style={s.centerText}>
+                            couldn’t send. please try again.
+                          </T>
+                        )}
+                        {!apiEnabled && (
+                          <T variant="small" style={[s.centerText, { marginTop: 12 }]}>
+                            demo only · no message will be sent
+                          </T>
+                        )}
+                      </>
                     )}
-                    <QuietButton secondary onPress={() => setFriendId(null)}>
-                      choose someone else
-                    </QuietButton>
                   </>
                 ) : state.friends.length ? (
                   <View style={{ marginTop: 22 }}>

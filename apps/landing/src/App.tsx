@@ -599,20 +599,38 @@ function DownloadIcon() {
   );
 }
 
-function PausePopup({ site }: { site: string }) {
+function ImpulseModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="tile__block" role="dialog" aria-label="Checkout pause">
-      <p className="tile__block-brand">snuffed</p>
-      <p className="tile__block-copy">
-        Hold up — this {site} checkout matches your spending rule.
-      </p>
-      <div className="tile__block-actions">
-        <button type="button">Drop</button>
-        <button type="button">Save for later</button>
-        <button type="button">Continue</button>
-        <button type="button" className="tile__block-ask">
-          Ask my friend
-        </button>
+    <div
+      className="impulse"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="impulse__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="impulse-title"
+      >
+        <p id="impulse-title" className="impulse__copy">
+          I see you’re about to make an impulse purchase...
+        </p>
+        <div className="impulse__actions">
+          <button type="button" onClick={onClose}>
+            Drop
+          </button>
+          <button type="button" onClick={onClose}>
+            Save for later
+          </button>
+          <button type="button" onClick={onClose}>
+            Continue
+          </button>
+          <button type="button" className="impulse__ask" onClick={onClose}>
+            Ask a friend
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -620,7 +638,7 @@ function PausePopup({ site }: { site: string }) {
 
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -668,12 +686,22 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!modalOpen) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setModalOpen(false);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modalOpen]);
+
   return (
-    <main className="snuff" ref={rootRef}>
+    <main className={["snuff", modalOpen ? "snuff--paused" : null].filter(Boolean).join(" ")} ref={rootRef}>
       <div className="snuff__field">
         {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);
-          const showBlock = interactive && activeId === tile.id;
 
           return (
             <figure
@@ -682,7 +710,6 @@ export function App() {
                 "tile",
                 `tile--${tile.layer}`,
                 interactive ? "tile--interactive" : null,
-                showBlock ? "tile--blocking" : null,
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -694,13 +721,9 @@ export function App() {
                 } as CSSProperties
               }
               aria-hidden={interactive ? undefined : true}
-              onPointerEnter={interactive ? () => setActiveId(tile.id) : undefined}
-              onPointerLeave={
-                interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined
-              }
+              onPointerEnter={interactive && !modalOpen ? () => setModalOpen(true) : undefined}
             >
               <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
-              {interactive ? <PausePopup site={tile.alt} /> : null}
             </figure>
           );
         })}
@@ -724,6 +747,8 @@ export function App() {
           </a>
         </div>
       </div>
+
+      {modalOpen ? <ImpulseModal onClose={() => setModalOpen(false)} /> : null}
     </main>
   );
 }

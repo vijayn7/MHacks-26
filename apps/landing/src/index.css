@@ -124,8 +124,7 @@ button {
   filter: none;
 }
 
-.tile--interactive:focus-within,
-.tile--blocking {
+.tile--interactive:focus-within {
   z-index: 6;
 }
 
@@ -136,81 +135,154 @@ button {
   object-position: var(--focus, top center);
 }
 
-.tile__block {
+/* Dim + blur the whole field when the impulse modal is open */
+.snuff--paused .snuff__field {
+  filter: brightness(0.28) saturate(0.7) blur(7px);
+  transition: filter 220ms ease;
+}
+
+.snuff--paused .snuff__center {
+  opacity: 0.18;
+  filter: blur(6px);
+  transition:
+    opacity 220ms ease,
+    filter 220ms ease;
+}
+
+.snuff__field,
+.snuff__center {
+  transition:
+    opacity 220ms ease,
+    filter 220ms ease;
+}
+
+.impulse {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.45rem;
-  padding: 0.7rem 0.75rem 0.75rem;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(6 4 3 / 0.62);
+  animation: impulse-in 240ms ease;
+}
+
+@keyframes impulse-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.impulse__dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.4rem);
+  width: min(44rem, 92vw);
+  min-height: clamp(11rem, 22vw, 14.5rem);
+  padding: clamp(1.35rem, 3vw, 2.1rem) clamp(1.35rem, 3vw, 2rem);
+  border-radius: 1.65rem;
+  color: #fff;
   background:
     linear-gradient(
-      180deg,
-      rgb(12 10 8 / 0.15) 0%,
-      rgb(12 10 8 / 0.72) 42%,
-      rgb(12 10 8 / 0.92) 100%
+      105deg,
+      #e8782e 0%,
+      #c44a28 18%,
+      #6b2a58 42%,
+      #2a1a6e 68%,
+      #0a0814 100%
     );
-  color: #f4efe8;
-  opacity: 0;
-  transform: translateY(6%);
+  box-shadow:
+    0 0 0 3px #1a100c,
+    0 0 48px rgb(232 120 46 / 0.45),
+    0 0 90px rgb(42 26 110 / 0.35),
+    0 28px 64px rgb(0 0 0 / 0.55);
+  overflow: hidden;
+  animation: impulse-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.impulse__dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity: 0.22;
+  mix-blend-mode: overlay;
   pointer-events: none;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
 }
 
-.tile--interactive:hover .tile__block,
-.tile--interactive:focus-within .tile__block,
-.tile--blocking .tile__block {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+@keyframes impulse-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-.tile__block-brand {
+.impulse__copy {
+  position: relative;
+  z-index: 1;
   margin: 0;
-  font-family: var(--font-brand);
-  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
-  line-height: 1;
+  max-width: 18ch;
+  font-size: clamp(1.2rem, 2.6vw, 1.85rem);
+  font-weight: 500;
   letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: #fff;
 }
 
-.tile__block-copy {
-  margin: 0;
-  font-size: clamp(0.68rem, 0.95vw, 0.78rem);
-  line-height: 1.35;
-  color: #d8d0c6;
+.impulse__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: min(12.5rem, 100%);
+  justify-self: end;
 }
 
-.tile__block-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.3rem;
-}
-
-.tile__block-actions button {
+.impulse__actions button {
   appearance: none;
-  border: 1px solid rgb(244 239 232 / 0.28);
-  border-radius: 0.35rem;
-  min-height: 1.55rem;
-  padding: 0.2rem 0.35rem;
-  background: rgb(244 239 232 / 0.1);
-  color: #f4efe8;
-  font-size: 0.62rem;
+  border: none;
+  border-radius: 999px;
+  min-height: 2.55rem;
+  padding: 0.55rem 1.1rem;
+  background: #fff;
+  color: #14110f;
+  font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    filter 140ms ease;
 }
 
-.tile__block-actions button:hover {
-  background: rgb(244 239 232 / 0.2);
+.impulse__actions button:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.97);
 }
 
-.tile__block-ask {
-  grid-column: 1 / -1;
-  background: #2f6bff !important;
-  border-color: transparent !important;
+.impulse__actions button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.impulse__ask {
+  background: #e8782e !important;
+  color: #fff !important;
+}
+
+.impulse__ask:hover {
+  filter: brightness(1.06) !important;
 }
 
 .snuff__center {
@@ -344,6 +416,22 @@ button {
       transparent 80%
     );
   }
+
+  .impulse__dialog {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    min-height: 0;
+    padding: 1.35rem 1.25rem 1.4rem;
+  }
+
+  .impulse__copy {
+    max-width: none;
+  }
+
+  .impulse__actions {
+    width: 100%;
+    justify-self: stretch;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -359,7 +447,11 @@ button {
     transform: none;
   }
 
-  .tile__block {
+  .impulse,
+  .impulse__dialog,
+  .snuff__field,
+  .snuff__center {
+    animation: none;
     transition: none;
   }
 }

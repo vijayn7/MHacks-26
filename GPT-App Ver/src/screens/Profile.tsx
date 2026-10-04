@@ -149,7 +149,14 @@ export default function Profile() {
               </View>
             </>
           ) : (
-            <View style={s.faces}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.faces}
+              snapToInterval={84}
+              decelerationRate="fast"
+              accessibilityLabel="flame faces"
+            >
               {faces.map((face) => (
                 <Pressable
                   key={face}
@@ -178,7 +185,7 @@ export default function Profile() {
                   </T>
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
@@ -365,9 +372,9 @@ const s = StyleSheet.create({
   customizeTab: { paddingHorizontal: 20, paddingVertical: 6, borderRadius: 99 },
   selectedTab: { backgroundColor: 'rgba(255,245,226,.07)' },
   customizeControls: { height: 70, justifyContent: 'center' },
-  faces: { flexDirection: 'row', gap: 6 },
+  faces: { flexDirection: 'row', gap: 8, paddingHorizontal: 2 },
   faceOption: {
-    flex: 1,
+    width: 76,
     minHeight: 64,
     borderRadius: 18,
     gap: 7,

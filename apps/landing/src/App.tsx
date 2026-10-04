@@ -68,20 +68,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "t7",
-    src: "/sites/nike.jpg",
-    alt: "Nike far",
-    layer: "far",
-    drift: 0.8,
-    style: {
-      top: "60%",
-      left: "-17%",
-      width: "30%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
-    },
-  },
-  {
     id: "t8",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy far",
@@ -337,6 +323,21 @@ const tiles: Tile[] = [
     interactive: true,
     drift: 1.2,
     style: { top: "-4%", left: "-3%", width: "26%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "i3",
+    src: "/sites/nike.jpg",
+    alt: "Nike store",
+    layer: "near",
+    interactive: true,
+    drift: 1.0,
+    style: {
+      top: "38%",
+      left: "1%",
+      width: "21%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "left center",
+    },
   },
   {
     id: "i4",

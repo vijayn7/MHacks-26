@@ -22,7 +22,8 @@ export function ArchiveObject({
   const active = hovered || focused || pressed;
   useEffect(() => {
     const motion = Animated.timing(scale, {
-      toValue: active ? 1.24 : 1,
+      // Keep hover zoom subtle — Archive already magnifies the focused card heavily.
+      toValue: active ? 1.06 : 1,
       duration: reduce ? 0 : 240,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: Platform.OS !== 'web',

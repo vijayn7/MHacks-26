@@ -1,4 +1,5 @@
 import React, { useId } from 'react';
+import { Image, View } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -10,10 +11,25 @@ import Svg, {
   Stop,
   RadialGradient,
 } from 'react-native-svg';
+import { archivePlaceholderFor } from '../design/archive-assets';
 
-/** Local, reusable product illustrations; no third-party image requests. */
+/** Local product art for archive / sample store; prefers studio placeholders. */
 export function ItemArtwork({ name, size = 112 }: { name: string; size?: number }) {
   const id = useId().replace(/[^a-z0-9]/gi, '');
+  const photo = archivePlaceholderFor(name);
+  if (photo) {
+    return (
+      <View style={{ width: size, height: size }}>
+        <Image
+          accessibilityIgnoresInvertColors
+          source={photo}
+          resizeMode="contain"
+          style={{ width: size, height: size }}
+        />
+      </View>
+    );
+  }
+
   const kind = /headphone/i.test(name)
     ? 'headphones'
     : /camera/i.test(name)

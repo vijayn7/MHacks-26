@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,8 +20,14 @@ import { ArchiveObject } from '../components/ArchiveObject';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
-const step = 140,
-  tile = 112;
+/** Colton lens-scroll approximation + slow infinite ticker. */
+const step = 200;
+const tile = 128;
+const focusScale = 2.72;
+/** Pixels per second — one row every ~8s. */
+const tickerSpeed = 24;
+const copies = 3;
+
 export default function Archive() {
   const { state, dispatch, openNudge } = useStore();
   const insets = useSafeAreaInsets();
@@ -33,12 +38,32 @@ export default function Archive() {
   const [samples] = useState(() => archiveSamples());
   const items = preview ? samples : state.archive;
   const [scrollIndex, setSelected] = useState(0);
-  const selected = Math.min(scrollIndex, Math.max(0, items.length - 1));
+  const selected = items.length ? ((scrollIndex % items.length) + items.length) % items.length : 0;
+  const [activeRow, setActiveRow] = useState(0);
   const [detail, setDetail] = useState<SavedItem | null>(null);
   const [viewport, setViewport] = useState(500);
   const [reduce, setReduce] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
   const scroll = useRef<ScrollView>(null);
   const [offset] = useState(() => new Animated.Value(0));
+  const yRef = useRef(0);
+  const dragging = useRef(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const labelClearance = Math.min(118, Math.max(72, (tile * focusScale) / 2 + 18));
+  const sideWidth = Math.max(64, Math.min(96, width / 2 - labelClearance - 8));
+  const loopHeight = items.length * step;
+  const padY = Math.max(0, (viewport - step) / 2);
+  const rows = Array.from({ length: copies * items.length }, (_, index) => {
+    const item = items[index % items.length];
+    const lane = Math.floor(index / Math.max(1, items.length));
+    return {
+      item,
+      key: `${item.id}-lane-${lane}-${index}`,
+      index,
+      testID: lane === 1 ? `archive-card-${item.id}` : `archive-card-${item.id}-L${lane}`,
+    };
+  });
+
   useEffect(() => {
     let active = true;
     AccessibilityInfo.isReduceMotionEnabled().then((v) => {
@@ -50,21 +75,97 @@ export default function Archive() {
       sub.remove();
     };
   }, []);
-  useEffect(() => {
-    const y = preview ? 2 * step : 0;
-    offset.setValue(y);
-    scroll.current?.scrollTo({ y, animated: false });
-  }, [preview, items.length, offset]);
-  const focus = (index: number) => {
-    tap();
-    scroll.current?.scrollTo({ y: index * step, animated: !reduce });
-    setSelected(index);
+
+  const syncSelection = (y: number) => {
+    if (!items.length) return;
+    const row = Math.round(y / step);
+    setActiveRow(row);
+    setSelected(((row % items.length) + items.length) % items.length);
   };
+
+  const jumpTo = (y: number, animated = false) => {
+    yRef.current = y;
+    offset.setValue(y);
+    scroll.current?.scrollTo({ y, animated });
+    syncSelection(y);
+  };
+
+  const wrapY = (y: number) => {
+    if (!loopHeight) return y;
+    // Keep the playhead inside the middle copy for a seamless loop.
+    let next = y;
+    while (next >= loopHeight * 2) next -= loopHeight;
+    while (next < loopHeight) next += loopHeight;
+    return next;
+  };
+
+  useEffect(() => {
+    if (!items.length) return;
+    const startRow = (preview ? 2 : 0) + items.length; // middle lane
+    const frame = requestAnimationFrame(() => jumpTo(startRow * step, false));
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview, items.length, loopHeight]);
+
+  const pauseTicker = (ms = 2200) => {
+    setUserPaused(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setUserPaused(false), ms);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduce || !focused || !!detail || !items.length || userPaused || dragging.current) return;
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!dragging.current) {
+        const next = wrapY(yRef.current + tickerSpeed * dt);
+        if (Math.abs(next - yRef.current) > loopHeight * 0.5) {
+          // Hard wrap — teleport without animation.
+          jumpTo(next, false);
+        } else {
+          yRef.current = next;
+          offset.setValue(next);
+          scroll.current?.scrollTo({ y: next, animated: false });
+          syncSelection(next);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduce, focused, detail, items.length, userPaused, loopHeight]);
+
+  const focus = (logicalIndex: number) => {
+    if (!items.length) return;
+    tap();
+    pauseTicker(2800);
+    const targetLogical = ((logicalIndex % items.length) + items.length) % items.length;
+    // Prefer the copy of that item nearest the current playhead in the middle lane.
+    const base = items.length + targetLogical;
+    const candidates = [base - items.length, base, base + items.length];
+    const current = yRef.current / step;
+    const best = candidates.reduce((a, b) =>
+      Math.abs(b - current) < Math.abs(a - current) ? b : a,
+    );
+    jumpTo(best * step, !reduce);
+  };
+
   const revisit = (item: SavedItem) => {
     setDetail(null);
     dispatch({ type: 'REVISIT_ITEM', id: item.id });
     openNudge(item.id);
   };
+
   return (
     <View style={[s.page, { paddingTop: insets.top + 24, paddingBottom: 100 + insets.bottom }]}>
       {focused && <StatusBar style="light" />}
@@ -102,69 +203,93 @@ export default function Archive() {
               ref={scroll}
               testID="archive-scroll"
               showsVerticalScrollIndicator={false}
-              snapToInterval={step}
+              scrollEnabled
               decelerationRate="fast"
               scrollEventThrottle={16}
-              contentContainerStyle={{ paddingVertical: Math.max(0, (viewport - step) / 2) }}
-              onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: offset } } }], {
-                useNativeDriver: Platform.OS !== 'web',
-                listener: (e: any) =>
-                  setSelected(
-                    Math.max(
-                      0,
-                      Math.min(items.length - 1, Math.round(e.nativeEvent.contentOffset.y / step)),
-                    ),
-                  ),
-              })}
+              contentContainerStyle={{ paddingVertical: padY }}
+              onScrollBeginDrag={() => {
+                dragging.current = true;
+                pauseTicker(3200);
+              }}
+              onScrollEndDrag={() => {
+                dragging.current = false;
+                pauseTicker(2400);
+              }}
+              onMomentumScrollEnd={(e) => {
+                dragging.current = false;
+                const y = wrapY(e.nativeEvent.contentOffset.y);
+                jumpTo(y, false);
+                pauseTicker(2000);
+              }}
+              onScroll={(e) => {
+                const y = e.nativeEvent.contentOffset.y;
+                offset.setValue(y);
+                yRef.current = y;
+                syncSelection(y);
+              }}
             >
-              {items.map((item, index) => {
+              {rows.map(({ item, key, index, testID }) => {
+                const half = Math.max(step * 1.15, viewport * 0.48);
                 const range = [
-                  index * step - Math.max(step + 1, viewport / 2),
-                  index * step - step,
+                  index * step - half,
+                  index * step - step * 0.55,
                   index * step,
-                  index * step + step,
-                  index * step + Math.max(step + 1, viewport / 2),
+                  index * step + step * 0.55,
+                  index * step + half,
                 ];
                 const interpolate = (outputRange: number[]) =>
                   offset.interpolate({ inputRange: range, outputRange, extrapolate: 'clamp' });
+                const isActive = activeRow === index;
                 return (
-                  <View key={item.id} style={s.row}>
+                  <View key={key} style={s.row}>
                     <Animated.View
-                      testID={`archive-card-${item.id}`}
+                      testID={testID}
                       style={{
-                        opacity: reduce ? 1 : interpolate([0.45, 0.9, 1, 0.9, 0.45]),
+                        zIndex: isActive ? 4 : 1,
+                        opacity: reduce ? 1 : interpolate([0.22, 0.72, 1, 0.72, 0.22]),
                         transform: reduce
                           ? []
                           : [
-                              { perspective: 450 },
+                              { perspective: 980 },
                               {
                                 rotateX: offset.interpolate({
                                   inputRange: range,
-                                  outputRange: ['-48deg', '-9deg', '0deg', '9deg', '48deg'],
+                                  outputRange: ['-72deg', '-28deg', '0deg', '28deg', '72deg'],
                                   extrapolate: 'clamp',
                                 }),
                               },
-                              { scaleX: interpolate([1.65, 1, 1.45, 1, 1.65]) },
-                              { scaleY: interpolate([1.1, 0.96, 1.45, 0.96, 1.1]) },
+                              {
+                                scaleX: interpolate([2.55, 0.95, focusScale, 0.95, 2.55]),
+                              },
+                              {
+                                scaleY: interpolate([0.34, 0.72, focusScale, 0.72, 0.34]),
+                              },
                             ],
                       }}
                     >
                       <ArchiveObject
                         name={item.name}
-                        size={tile}
+                        size={reduce && isActive ? Math.round(tile * 1.55) : tile}
                         reduce={reduce}
                         label={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}, from ${savedSource(item)}`}
                         onPress={() => {
-                          if (selected !== index) focus(index);
+                          pauseTicker(3200);
+                          if (!isActive) focus(index % items.length);
                           else setDetail(item);
                         }}
                       />
                     </Animated.View>
-                    {selected === index && (
+                    {isActive && (
                       <>
                         <View
                           pointerEvents="none"
-                          style={[s.date, { width: Math.min(78, width / 2 - 96) }]}
+                          style={[
+                            s.date,
+                            {
+                              width: sideWidth,
+                              marginRight: labelClearance,
+                            },
+                          ]}
                         >
                           <T
                             variant="mono"
@@ -190,19 +315,25 @@ export default function Archive() {
                         </View>
                         <View
                           pointerEvents="none"
-                          style={[s.label, { width: Math.min(88, width / 2 - 96) }]}
+                          style={[
+                            s.label,
+                            {
+                              width: sideWidth,
+                              marginLeft: labelClearance,
+                            },
+                          ]}
                         >
                           <T
                             variant="title"
                             color={colors.text}
-                            style={{ fontSize: width < 360 ? 14 : 17, lineHeight: 21 }}
+                            style={{ fontSize: width < 360 ? 15 : 19, lineHeight: 23 }}
                           >
                             {item.name}
                           </T>
                           <T
                             variant="small"
                             color={palettes[state.hue].body}
-                            style={{ marginTop: 6, fontSize: 11 }}
+                            style={{ marginTop: 6, fontSize: 12 }}
                           >
                             {money(item.amount)}
                           </T>
@@ -215,15 +346,37 @@ export default function Archive() {
             </Animated.ScrollView>
             {!reduce && (
               <>
-                <LinearGradient
+                <View
                   pointerEvents="none"
-                  colors={[colors.bg, colors.bg + '00']}
-                  style={[s.fade, { top: 0 }]}
+                  style={[
+                    s.lensGlow,
+                    {
+                      top: -Math.max(160, viewport * 0.42),
+                      opacity: 0.55,
+                    },
+                  ]}
+                />
+                <View
+                  pointerEvents="none"
+                  style={[
+                    s.lensGlow,
+                    {
+                      bottom: -Math.max(160, viewport * 0.42),
+                      opacity: 0.55,
+                    },
+                  ]}
                 />
                 <LinearGradient
                   pointerEvents="none"
-                  colors={[colors.bg + '00', colors.bg]}
-                  style={[s.fade, { bottom: 0 }]}
+                  colors={[colors.bg, colors.bg + 'E6', colors.bg + '00']}
+                  locations={[0, 0.4, 1]}
+                  style={[s.fade, { top: 0, height: Math.max(110, viewport * 0.28) }]}
+                />
+                <LinearGradient
+                  pointerEvents="none"
+                  colors={[colors.bg + '00', colors.bg + 'E6', colors.bg]}
+                  locations={[0, 0.6, 1]}
+                  style={[s.fade, { bottom: 0, height: Math.max(110, viewport * 0.28) }]}
                 />
               </>
             )}
@@ -232,9 +385,8 @@ export default function Archive() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="previous saved item"
-              disabled={selected === 0}
               onPress={() => focus(selected - 1)}
-              style={[s.arrow, { opacity: selected === 0 ? 0.25 : 1 }]}
+              style={s.arrow}
             >
               <Icon name="chevron-up" size={15} color={colors.text} />
             </Pressable>
@@ -245,9 +397,8 @@ export default function Archive() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="next saved item"
-              disabled={selected === items.length - 1}
               onPress={() => focus(selected + 1)}
-              style={[s.arrow, { opacity: selected === items.length - 1 ? 0.25 : 1 }]}
+              style={s.arrow}
             >
               <Icon name="chevron-down" size={15} color={colors.text} />
             </Pressable>
@@ -316,8 +467,13 @@ const s = StyleSheet.create({
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   preview: { padding: 18, marginTop: 22 },
-  lens: { flex: 1, overflow: 'hidden', marginTop: 20 },
-  row: { height: step, alignItems: 'center', justifyContent: 'center' },
+  lens: { flex: 1, overflow: 'hidden', marginTop: 8 },
+  row: {
+    height: step,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
+  },
   card: {
     width: tile,
     height: tile,
@@ -327,12 +483,19 @@ const s = StyleSheet.create({
   date: {
     position: 'absolute',
     right: '50%',
-    marginRight: 84,
-    width: 78,
     alignItems: 'flex-end',
+    zIndex: 5,
   },
-  label: { position: 'absolute', left: '50%', marginLeft: 84, width: 88 },
-  fade: { position: 'absolute', left: 0, right: 0, height: 55 },
+  label: { position: 'absolute', left: '50%', zIndex: 5 },
+  fade: { position: 'absolute', left: 0, right: 0 },
+  lensGlow: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: '140%',
+    aspectRatio: 1,
+    borderRadius: 9999,
+    backgroundColor: '#C45A2A18',
+  },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 14 },
   arrow: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   bottom: { alignItems: 'center', padding: 8 },

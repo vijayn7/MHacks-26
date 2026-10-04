@@ -113,8 +113,8 @@ const tiles: Tile[] = [
     interactive: true,
     drift: 1.1,
     style: {
-      top: "24%",
-      left: "6%",
+      top: "-3%",
+      left: "70%",
       width: "22%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",

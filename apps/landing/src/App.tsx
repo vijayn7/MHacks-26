@@ -639,6 +639,7 @@ export function App() {
       age: number;
       wobble: number;
       size: number;
+      lean: number;
     };
 
     type SmokePuff = {
@@ -649,6 +650,7 @@ export function App() {
       age: number;
       maxAge: number;
       size: number;
+      lean: number;
     };
 
     let raf = 0;
@@ -691,6 +693,7 @@ export function App() {
         age: 0,
         wobble: (Math.random() - 0.5) * 1.2,
         size: 5 + Math.random() * 4,
+        lean: (Math.random() - 0.5) * 0.7,
       });
       while (ribbon.length > MAX_POINTS) ribbon.shift();
     };
@@ -705,7 +708,44 @@ export function App() {
         age: 0,
         maxAge: 28 + Math.random() * 18,
         size: 10 + Math.random() * 10,
+        lean: (Math.random() - 0.5) * 1.1,
       });
+    };
+
+    /** Pointed flame tongue rising from (x,y). */
+    const drawFlame = (x: number, y: number, w: number, h: number, lean: number) => {
+      const tipX = x + lean * h * 0.45;
+      const tipY = y - h;
+      ctx.beginPath();
+      ctx.moveTo(x - w * 0.35, y);
+      ctx.quadraticCurveTo(x - w * 0.85, y - h * 0.35, tipX, tipY);
+      ctx.quadraticCurveTo(x + w * 0.85, y - h * 0.35, x + w * 0.35, y);
+      ctx.quadraticCurveTo(x, y + w * 0.2, x - w * 0.35, y);
+      ctx.closePath();
+    };
+
+    /** Soft elongated smoke wisp. */
+    const drawWisp = (x: number, y: number, w: number, h: number, lean: number) => {
+      const midX = x + lean * h * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(x - w * 0.2, y + h * 0.15);
+      ctx.bezierCurveTo(
+        x - w,
+        y - h * 0.1,
+        midX - w * 0.9,
+        y - h * 0.75,
+        midX,
+        y - h,
+      );
+      ctx.bezierCurveTo(
+        midX + w * 0.9,
+        y - h * 0.75,
+        x + w,
+        y - h * 0.1,
+        x + w * 0.2,
+        y + h * 0.15,
+      );
+      ctx.closePath();
     };
 
     const layPath = (x0: number, y0: number, x1: number, y1: number) => {
@@ -747,6 +787,7 @@ export function App() {
         p.age += 1;
         p.y -= 0.35;
         p.x += p.wobble * 0.1;
+        p.lean += p.wobble * 0.02;
         if (p.age === 12) emitSmoke(p.x, p.y);
         if (p.age > MAX_AGE) ribbon.splice(i, 1);
       }
@@ -756,7 +797,8 @@ export function App() {
         s.age += 1;
         s.x += s.vx;
         s.y += s.vy;
-        s.size *= 1.015;
+        s.size *= 1.02;
+        s.lean += s.vx * 0.04;
         if (s.age > s.maxAge) smoke.splice(i, 1);
       }
 
@@ -764,17 +806,18 @@ export function App() {
         ctx.globalCompositeOperation = "source-over";
         for (const s of smoke) {
           const t = s.age / s.maxAge;
-          const a = 0.28 * (1 - t);
-          const radius = s.size * (1 + t);
-          ctx.beginPath();
+          const a = 0.3 * (1 - t);
+          const sw = s.size * (0.7 + t * 0.8);
+          const sh = s.size * (1.4 + t * 1.8);
           ctx.fillStyle = `rgba(230, 226, 220, ${a})`;
-          ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+          drawWisp(s.x, s.y, sw, sh, s.lean);
           ctx.fill();
         }
 
         for (const p of ribbon) {
           const t = p.age / MAX_AGE;
-          const radius = p.size * (1 + t * 0.6);
+          const fw = p.size * (0.7 + t * 0.25);
+          const fh = p.size * (1.8 + t * 1.4);
           let r: number;
           let g: number;
           let b: number;
@@ -783,28 +826,26 @@ export function App() {
             r = 255;
             g = 170 - t * 80;
             b = 40;
-            a = 0.85;
+            a = 0.9;
           } else if (t < 0.7) {
             r = 240;
             g = 80;
             b = 20;
-            a = 0.65;
+            a = 0.7;
           } else {
             r = 180;
             g = 40;
             b = 15;
             a = 0.35 * (1 - (t - 0.7) / 0.3);
           }
-          ctx.beginPath();
           ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          drawFlame(p.x, p.y, fw, fh, p.lean);
           ctx.fill();
         }
 
         if (isLive) {
-          ctx.beginPath();
-          ctx.fillStyle = "rgba(255, 200, 90, 0.75)";
-          ctx.arc(pointerX, pointerY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 210, 100, 0.85)";
+          drawFlame(pointerX, pointerY, 4.5, 11, 0);
           ctx.fill();
         }
       }

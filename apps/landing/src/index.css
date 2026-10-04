@@ -60,6 +60,16 @@ button {
   background:
     radial-gradient(70% 55% at 50% 45%, #2a221c 0%, transparent 62%),
     var(--bg);
+  cursor: none;
+}
+
+.snuff__trail {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .snuff__field {
@@ -89,9 +99,16 @@ button {
     translate3d(
       calc(var(--mx) * (45px - 190px * var(--depth)) * var(--drift)),
       calc(var(--my) * (32px - 140px * var(--depth)) * var(--drift)),
-      calc(-90px + 260px * var(--depth))
+      calc(-160px + 320px * var(--depth))
     )
-    scale(calc(0.9 + 0.14 * var(--depth)));
+    scale(calc(0.84 + 0.2 * var(--depth)));
+}
+
+.tile--void {
+  z-index: 0;
+  opacity: 1;
+  filter: saturate(0.4) brightness(0.16);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.6);
 }
 
 .tile--far {
@@ -319,6 +336,7 @@ button {
     perspective: none;
   }
 
+  .tile--void,
   .tile--far,
   .tile--mid,
   .tile--near,
@@ -351,6 +369,7 @@ button {
     perspective: none;
   }
 
+  .tile--void,
   .tile--far,
   .tile--mid,
   .tile--near,
@@ -361,5 +380,9 @@ button {
 
   .tile__block {
     transition: none;
+  }
+
+  .snuff {
+    cursor: auto;
   }
 }

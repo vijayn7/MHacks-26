@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WatchConnection } from '../components/WatchConnection';
 import { Mascot } from '../components/Mascot';
 import { GlowSlider } from '../components/GlowSlider';
 import { Icon, Input, QuietButton, Sheet, T } from '../components/ui';
@@ -69,34 +68,7 @@ export default function Onboarding() {
         </Pressable>
       </View>
     );
-  if (step === 3)
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.bg,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-        }}
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 28 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="previous step"
-            onPress={() => setStep(2)}
-            style={{ paddingVertical: 16 }}
-          >
-            <Icon name="arrow-left" />
-          </Pressable>
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <WatchConnection />
-          </View>
-          <QuietButton onPress={finish}>
-            {state.wearable.status === 'connected' ? 'start' : 'skip for now'}
-          </QuietButton>
-        </ScrollView>
-      </View>
-    );
+
   return (
     <View
       style={{
@@ -289,7 +261,7 @@ export default function Onboarding() {
               change this anytime.
             </T>
             <View style={{ flex: 1, minHeight: 20 }} />
-            <QuietButton onPress={() => setStep(3)}>continue</QuietButton>
+            <QuietButton onPress={finish}>start</QuietButton>
           </>
         )}
       </ScrollView>

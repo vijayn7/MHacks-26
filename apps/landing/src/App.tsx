@@ -371,8 +371,8 @@ const tiles: Tile[] = [
   },
   {
     id: "i6",
-    src: "/sites/ebay.jpg",
-    alt: "eBay deals",
+    src: "/sites/kalshi.jpg",
+    alt: "Kalshi",
     layer: "near",
     interactive: true,
     drift: 1.1,
@@ -381,7 +381,7 @@ const tiles: Tile[] = [
       right: "10%",
       width: "21%",
       aspectRatio: "16 / 10",
-      ["--focus" as string]: "right center",
+      ["--focus" as string]: "center top",
     },
   },
 ];

@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://api.fontshare.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=neco@400,401,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --core: #fff3d6;
@@ -21,6 +21,7 @@
       --muted: #b7a89c;
       --line: rgba(255, 243, 214, 0.14);
       --sans: "Satoshi", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --display: "Neco", "Iowan Old Style", Georgia, serif;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
@@ -51,10 +52,11 @@
       text-transform: uppercase;
     }
     h1 {
-      font-family: Newsreader, Georgia, serif;
-      font-weight: 500;
+      font-family: var(--display);
+      font-weight: 400;
       font-size: 40px;
       line-height: 1;
+      letter-spacing: -0.03em;
       margin: 8px 0 0;
     }
     header p { margin: 8px 0 0; color: var(--muted); max-width: 36rem; font-size: 14px; line-height: 1.5; }
@@ -106,9 +108,11 @@
     .view.on { display: block; }
     .kicker { font-family: "Roboto Mono", monospace; font-size: 11px; letter-spacing: 0.16em; color: var(--muted); }
     .display {
-      font-family: Newsreader, Georgia, serif;
+      font-family: var(--display);
+      font-weight: 400;
       font-size: 72px;
       line-height: 0.9;
+      letter-spacing: -0.04em;
       margin: 8px 0 4px;
       background: linear-gradient(180deg, var(--core), var(--mid));
       -webkit-background-clip: text;
@@ -161,7 +165,7 @@
     }
     .orb b {
       position: absolute; inset: 0; display: grid; place-items: center;
-      font-family: Newsreader, serif; font-size: 42px; font-weight: 500; color: var(--core);
+      font-family: var(--display); font-size: 42px; font-weight: 400; letter-spacing: -0.03em; color: var(--core);
     }
     @keyframes breathe { 50% { transform: scale(1.06); opacity: 0.75; } }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 14px; }
@@ -215,21 +219,21 @@
         </section>
         <section class="view" id="saved">
           <div class="kicker">Saved</div>
-          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 16px">On ice</h2>
+          <h2 style="font-family:var(--display);font-weight:400;font-size:32px;letter-spacing:-0.03em;margin:8px 0 16px">On ice</h2>
           <div class="card row"><div><strong>Running shoes</strong><span>amazon.com · $149 · ready tomorrow</span></div><span class="pill">Cooling</span></div>
           <div class="card row"><div><strong>Headphones</strong><span>bestbuy.com · left behind</span></div><span class="pill">Abandoned</span></div>
           <p class="sub">Buying never scores. Only a verified drop does. Amounts show up when the page published a price.</p>
         </section>
         <section class="view" id="social">
           <div class="kicker">Social</div>
-          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 8px">Friends</h2>
+          <h2 style="font-family:var(--display);font-weight:400;font-size:32px;letter-spacing:-0.03em;margin:8px 0 8px">Friends</h2>
           <p class="sub">Friends join challenges. A trusted contact only answers a purchase. They are not the same person.</p>
           <div class="card row"><div><strong>Jordan</strong><span>Friend · name and score only</span></div><span class="pill">Friend</span></div>
           <div class="card"><strong>Sleep on it</strong><span>Defer · 2 / 3 · 5 days left</span><div class="bar"><span></span></div></div>
         </section>
         <section class="view" id="you">
           <div class="kicker">You</div>
-          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 12px">Restriction</h2>
+          <h2 style="font-family:var(--display);font-weight:400;font-size:32px;letter-spacing:-0.03em;margin:8px 0 12px">Restriction</h2>
           <div class="chips"><span class="chip">Low</span><span class="chip">Medium</span><span class="chip on">High</span></div>
           <div class="card row"><div><strong>Monitoring</strong><span>Checkout pages you chose. Not every payment.</span></div><span class="pill">On</span></div>
           <div class="card row"><div><strong>Sam</strong><span>Trusted contact · answers requests, no account</span></div><span class="pill">Trusted</span></div>

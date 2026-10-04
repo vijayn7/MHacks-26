@@ -392,6 +392,17 @@ button {
 .urge__btn--yes {
   background: var(--urge-accent);
   color: #1a0c08;
+  justify-content: space-between;
+  gap: 0.55em;
+  padding-inline: 0.95em 0.75em;
+}
+
+.urge__score {
+  font-family: var(--font-body);
+  font-size: 0.92em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgb(26 12 8 / 0.72);
 }
 
 .urge__btn--ghost {

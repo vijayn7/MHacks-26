@@ -172,8 +172,11 @@ export function UrgeOverlay({ site, product, uid, flame, friendReply }: UrgeOver
 
           <div className="urge__actions">
             <div className="urge__row">
-              <button type="button" className="urge__btn urge__btn--yes">
-                yes
+              <button type="button" className="urge__btn urge__btn--yes" aria-label="Yes, snuff this urge for plus 30 score">
+                <span>yes</span>
+                <span className="urge__score" aria-hidden="true">
+                  +30
+                </span>
               </button>
               <button type="button" className="urge__btn urge__btn--ghost">
                 <FriendIcon />

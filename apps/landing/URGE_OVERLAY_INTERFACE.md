@@ -45,7 +45,7 @@ type FlamePalette = {
 
 | UI control | Action id | Closes overlay? | Meaning |
 |------------|-----------|-----------------|---------|
-| **yes** | `snuff` | yes | Drop / snuff the purchase. |
+| **yes** (+30) | `snuff` | yes | Drop / snuff the purchase. Grows score by +30. |
 | **ask a friend** | `ask_friend` | no | Opt-in iMessage check-in. Friend cannot approve/deny. |
 | **save for later** | `save_for_later` | yes | Persist item for later (item details allowed only for this path). |
 | **no, continue purchase** | `continue` | yes | Resume checkout. Demoted visually; still a real outcome. |
@@ -223,7 +223,7 @@ When implementing, prefer matching **landing copy + layout slots** while keeping
 
 ### Landing action labels (exact)
 
-- `yes`
+- `yes` (+30 score cue)
 - `ask a friend`
 - `save for later`
 - `no, continue purchase`

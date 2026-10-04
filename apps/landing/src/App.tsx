@@ -11,11 +11,11 @@ type Tile = {
 };
 
 /**
- * Axis-aligned windows: oversized edge-bleeders + denser mid-field frames.
- * Depth and parallax come from layer classes + cursor-driven perspective.
+ * Most frames sit in the far field at low opacity.
+ * Only a few edge accents stay mid/near so the brand center stays clear.
  */
 const tiles: Tile[] = [
-  // Corner / edge titans
+  // Far atmosphere — large, soft, mostly off-edge
   {
     id: "t1",
     src: "/sites/amazon.jpg",
@@ -27,7 +27,7 @@ const tiles: Tile[] = [
     id: "t2",
     src: "/sites/asos.jpg",
     alt: "ASOS",
-    layer: "near",
+    layer: "far",
     style: { top: "-14%", right: "-16%", width: "44%", aspectRatio: "16 / 10" },
   },
   {
@@ -41,30 +41,28 @@ const tiles: Tile[] = [
     id: "t4",
     src: "/sites/shein.jpg",
     alt: "SHEIN",
-    layer: "near",
+    layer: "far",
     style: { bottom: "-14%", right: "-17%", width: "45%", aspectRatio: "16 / 10" },
   },
-
-  // Side slabs
   {
     id: "t5",
     src: "/sites/nike.jpg",
     alt: "Nike",
-    layer: "mid",
+    layer: "far",
     style: { top: "24%", left: "-12%", width: "34%", aspectRatio: "16 / 10" },
   },
   {
     id: "t6",
     src: "/sites/edikted.jpg",
     alt: "Edikted",
-    layer: "mid",
+    layer: "far",
     style: { top: "28%", right: "-13%", width: "35%", aspectRatio: "16 / 10" },
   },
   {
     id: "t7",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy",
-    layer: "mid",
+    layer: "far",
     style: {
       top: "52%",
       left: "-10%",
@@ -77,7 +75,7 @@ const tiles: Tile[] = [
     id: "t8",
     src: "/sites/homedepot.jpg",
     alt: "Home Depot",
-    layer: "mid",
+    layer: "far",
     style: {
       top: "56%",
       right: "-11%",
@@ -86,13 +84,11 @@ const tiles: Tile[] = [
       ["--focus" as string]: "left top",
     },
   },
-
-  // Top row accents
   {
     id: "t9",
     src: "/sites/etsy.jpg",
     alt: "Etsy",
-    layer: "near",
+    layer: "far",
     style: { top: "-6%", left: "32%", width: "16%", aspectRatio: "16 / 10" },
   },
   {
@@ -106,40 +102,38 @@ const tiles: Tile[] = [
     id: "t11",
     src: "/sites/costco.jpg",
     alt: "Costco",
-    layer: "mid",
+    layer: "far",
     style: { top: "8%", right: "22%", width: "15%", aspectRatio: "16 / 10" },
   },
-
-  // Inner stagger (clear of brand)
   {
     id: "t12",
     src: "/sites/princesspolly.jpg",
     alt: "Princess Polly",
-    layer: "near",
-    style: { top: "18%", left: "18%", width: "13%", aspectRatio: "16 / 10" },
+    layer: "far",
+    style: { top: "18%", left: "14%", width: "13%", aspectRatio: "16 / 10" },
   },
   {
     id: "t13",
     src: "/sites/ebay.jpg",
     alt: "eBay",
     layer: "far",
-    style: { top: "16%", right: "17%", width: "12%", aspectRatio: "16 / 10" },
+    style: { top: "16%", right: "14%", width: "12%", aspectRatio: "16 / 10" },
   },
   {
     id: "t14",
     src: "/sites/zalando.jpg",
     alt: "Zalando",
-    layer: "mid",
-    style: { top: "38%", left: "10%", width: "14%", aspectRatio: "16 / 10" },
+    layer: "far",
+    style: { top: "40%", left: "8%", width: "14%", aspectRatio: "16 / 10" },
   },
   {
     id: "t15",
     src: "/sites/amazon.jpg",
     alt: "Amazon deals",
-    layer: "near",
+    layer: "far",
     style: {
-      top: "36%",
-      right: "9%",
+      top: "38%",
+      right: "7%",
       width: "15%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right center",
@@ -151,8 +145,8 @@ const tiles: Tile[] = [
     alt: "ASOS sale",
     layer: "far",
     style: {
-      top: "48%",
-      left: "22%",
+      top: "50%",
+      left: "20%",
       width: "12%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
@@ -162,22 +156,20 @@ const tiles: Tile[] = [
     id: "t17",
     src: "/sites/nike.jpg",
     alt: "Nike store",
-    layer: "mid",
+    layer: "far",
     style: {
-      top: "46%",
-      right: "20%",
+      top: "48%",
+      right: "18%",
       width: "13%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left center",
     },
   },
-
-  // Bottom row
   {
     id: "t18",
     src: "/sites/shein.jpg",
     alt: "SHEIN browse",
-    layer: "mid",
+    layer: "far",
     style: {
       bottom: "-6%",
       left: "30%",
@@ -190,7 +182,7 @@ const tiles: Tile[] = [
     id: "t19",
     src: "/sites/edikted.jpg",
     alt: "Edikted look",
-    layer: "near",
+    layer: "far",
     style: {
       bottom: "-5%",
       left: "50%",
@@ -212,15 +204,17 @@ const tiles: Tile[] = [
       ["--focus" as string]: "left top",
     },
   },
+
+  // Sparse mid / near accents — only a few, kept to the edges
   {
     id: "t21",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy deals",
-    layer: "near",
+    layer: "mid",
     style: {
-      bottom: "18%",
-      left: "34%",
-      width: "11%",
+      top: "6%",
+      left: "-4%",
+      width: "22%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
@@ -231,11 +225,37 @@ const tiles: Tile[] = [
     alt: "Etsy gifts",
     layer: "mid",
     style: {
-      bottom: "20%",
-      right: "32%",
-      width: "12%",
+      bottom: "8%",
+      right: "-5%",
+      width: "23%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right center",
+    },
+  },
+  {
+    id: "t23",
+    src: "/sites/walmart.jpg",
+    alt: "Walmart edge",
+    layer: "near",
+    style: {
+      top: "58%",
+      left: "-6%",
+      width: "20%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "left top",
+    },
+  },
+  {
+    id: "t24",
+    src: "/sites/costco.jpg",
+    alt: "Costco edge",
+    layer: "near",
+    style: {
+      top: "4%",
+      right: "-6%",
+      width: "21%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "center top",
     },
   },
 ];

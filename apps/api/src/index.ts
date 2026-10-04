@@ -172,13 +172,18 @@ function remember(event: PauseEvent, persist = true) {
   return event;
 }
 
+// rule_id references the legacy rules table; Snuff plan ids live in snuff_plans, so unknown ids store null.
 async function persistEvent(event: PauseEvent) {
   if (!sql) return;
-  await sql`
-    insert into pause_events (id, type, rule_id, at)
-    values (${event.id}, ${event.type}, ${event.ruleId}, ${event.at})
-    on conflict (id) do nothing
-  `;
+  try {
+    await sql`
+      insert into pause_events (id, type, rule_id, at)
+      values (${event.id}, ${event.type}, (select id from rules where id = ${event.ruleId}), ${event.at})
+      on conflict (id) do nothing
+    `;
+  } catch (error) {
+    console.error("[events] persist failed", error instanceof Error ? error.message : "unknown");
+  }
 }
 
 async function persistCheckIn(row: CheckIn) {
@@ -186,7 +191,7 @@ async function persistCheckIn(row: CheckIn) {
   try {
     await sql`
       insert into check_ins (id, rule_id, status, reply)
-      values (${row.id}, ${row.ruleId}, ${row.status}, ${row.reply})
+      values (${row.id}, (select id from rules where id = ${row.ruleId}), ${row.status}, ${row.reply})
       on conflict (id) do update set
         status = excluded.status,
         reply = excluded.reply

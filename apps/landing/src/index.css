@@ -68,7 +68,6 @@ button {
   z-index: 1;
   pointer-events: none;
   overflow: visible;
-  /* Do not rotate the field as one plate — depth comes from per-tile planes */
   transform: none;
   transform-style: preserve-3d;
 }
@@ -85,14 +84,14 @@ button {
   /* Per-tile depth (0 = farthest, 1 = closest) + drift */
   --drift: 1;
   --depth: 0.5;
-  /* Milder Z so perspective doesn't suck edge tiles into the center */
+  /* Shallow Z — deep translateZ foreshortens toward center and kills edge bleed */
   transform:
     translate3d(
-      calc(var(--mx) * (55px - 200px * var(--depth)) * var(--drift)),
-      calc(var(--my) * (40px - 150px * var(--depth)) * var(--drift)),
-      calc(-360px + 520px * var(--depth))
+      calc(var(--mx) * (45px - 190px * var(--depth)) * var(--drift)),
+      calc(var(--my) * (32px - 140px * var(--depth)) * var(--drift)),
+      calc(-90px + 260px * var(--depth))
     )
-    scale(calc(0.86 + 0.2 * var(--depth)));
+    scale(calc(0.9 + 0.14 * var(--depth)));
 }
 
 .tile--far {

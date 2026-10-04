@@ -168,7 +168,6 @@ img {
   left: 50%;
   top: 50%;
   width: var(--w);
-  height: var(--h);
   transform-style: preserve-3d;
   transform:
     translate3d(var(--x), var(--y), var(--z))
@@ -179,6 +178,9 @@ img {
 }
 
 .plane--photo {
+  /* Traditional desktop landscape (~16:10) */
+  aspect-ratio: 16 / 10;
+  height: auto;
   overflow: hidden;
   border-radius: 0.35rem;
   background: #111;
@@ -255,6 +257,6 @@ img {
   }
 
   .plane--photo {
-    width: max(44vw, 11.5rem) !important;
+    width: max(52vw, 14rem) !important;
   }
 }

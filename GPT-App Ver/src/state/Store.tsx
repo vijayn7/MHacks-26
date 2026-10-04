@@ -19,6 +19,7 @@ const Store = createContext<{
     name: string;
     amount: number;
     category?: string;
+    source?: string;
   }) => boolean;
 }>({
   state: initialState(),
@@ -103,6 +104,7 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     name: string;
     amount: number;
     category?: string;
+    source?: string;
   }) => {
     if (!matchesPurchase(state.purchaseRules, purchase.amount, purchase.category)) return false;
     const existing = state.nudges.find((n) => n.id === purchase.id);

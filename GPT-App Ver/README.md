@@ -171,3 +171,6 @@ This uses the repository’s existing single-user demo event log. Production mus
 
 
 Social’s “my friends” heading sits directly above the ranked list. Adjacent 44-point edit and add icon buttons replace the old top edit pill and bottom connect row. Edit toggles to a highlighted checkmark; add opens the existing email/contact-sync sheet.
+
+
+Archive uses a bookmark navigation icon. A muted source label appears below the saved date and in item details. Save source is persisted and retained across revisits; incoming purchases accept an optional `source` (merchant or channel label). Existing Snuff saves fall back to “snuff”; seeded items use “demo collection.” Source text is normalized to lowercase and capped at 80 characters.

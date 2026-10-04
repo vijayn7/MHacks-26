@@ -218,6 +218,7 @@ test('save for later is persistent and idempotent, keeps its date on revisits, a
     name: 'Studio headphones',
     amount: 149,
     savedAt: 1791079200000,
+    source: 'snuff',
   });
   assert.equal(saved.nudges[0].status, 'saved');
   assert.equal(saved.nudges[0].dueAt, null);
@@ -466,4 +467,20 @@ test('extension score is deduplicated, persists, and is not awarded by local pau
     'three',
   ]);
   assert.deepEqual(migrate({ version: 2 }).extensionOptOutIds, []);
+});
+
+test('archive retains the incoming save source through persistence and revisits', () => {
+  let s = reducer(initialState(), {
+    type: 'INCOMING_PURCHASE',
+    id: 'source-item',
+    name: 'lamp',
+    amount: 100,
+    source: 'Chrome · example.com',
+  });
+  s = reducer(s, { type: 'SAVE_FOR_LATER', id: 'source-item' });
+  s = migrate(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.archive[0].source, 'chrome · example.com');
+  s = reducer(s, { type: 'REVISIT_ITEM', id: 'source-item' });
+  s = reducer(s, { type: 'SAVE_FOR_LATER', id: 'source-item' });
+  assert.equal(s.archive[0].source, 'chrome · example.com');
 });

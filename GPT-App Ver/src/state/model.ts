@@ -7,7 +7,7 @@ import {
 import { freshWearable, readWearable, type Wearable, type Moment } from './wearable';
 import { spendingCategories } from '../design/onboarding';
 import { addContacts, type ContactCandidate } from './contacts';
-import { readArchive, type SavedItem } from './archive';
+import { readArchive, savedSource, type SavedItem } from './archive';
 import { readPlan, type BlockPlan } from './blocking';
 import { isFace, type Face } from '../design/faces';
 import type { Hue } from '../design/tokens';
@@ -22,6 +22,7 @@ export type Friend = {
   savings: number;
 };
 export type Nudge = {
+  source?: string;
   id: string;
   name: string;
   amount: number;
@@ -60,7 +61,14 @@ export type Action =
   | { type: 'SAVE_MOMENT'; moment: Moment }
   | { type: 'DELETE_WEARABLE_DATA' }
   | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number; rules?: PurchaseRules }
-  | { type: 'INCOMING_PURCHASE'; id: string; name: string; amount: number; category?: string }
+  | {
+      type: 'INCOMING_PURCHASE';
+      source?: string;
+      id: string;
+      name: string;
+      amount: number;
+      category?: string;
+    }
   | { type: 'SAVE_PLAN'; plan: BlockPlan }
   | { type: 'PLAN_ENABLED'; enabled: boolean }
   | { type: 'PAUSE'; at?: number }
@@ -264,7 +272,14 @@ export function reducer(s: AppState, a: Action): AppState {
             ...s,
             nudges: [
               ...s.nudges,
-              { id: a.id, name: a.name, amount: a.amount, status: 'waiting', dueAt: null },
+              {
+                id: a.id,
+                name: a.name,
+                source: savedSource(a),
+                amount: a.amount,
+                status: 'waiting',
+                dueAt: null,
+              },
             ],
           }
         : s;
@@ -356,7 +371,10 @@ export function reducer(s: AppState, a: Action): AppState {
         ...s,
         archive: s.archive.some((item) => item.id === n.id)
           ? s.archive
-          : [{ id: n.id, name: n.name, amount: n.amount, savedAt: at }, ...s.archive],
+          : [
+              { id: n.id, name: n.name, amount: n.amount, savedAt: at, source: savedSource(n) },
+              ...s.archive,
+            ],
         nudges: s.nudges.map((item) =>
           item.id === n.id ? { ...item, status: 'saved', dueAt: null } : item,
         ),
@@ -373,7 +391,14 @@ export function reducer(s: AppState, a: Action): AppState {
           ? s.nudges.map((v) => (v.id === a.id ? { ...v, status: 'waiting', dueAt: null } : v))
           : [
               ...s.nudges,
-              { id: item.id, name: item.name, amount: item.amount, status: 'waiting', dueAt: null },
+              {
+                id: item.id,
+                name: item.name,
+                source: savedSource(item),
+                amount: item.amount,
+                status: 'waiting',
+                dueAt: null,
+              },
             ],
       };
     }

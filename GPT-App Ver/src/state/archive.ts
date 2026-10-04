@@ -1,4 +1,16 @@
-export type SavedItem = { id: string; name: string; amount: number; savedAt: number };
+export type SavedItem = {
+  id: string;
+  name: string;
+  amount: number;
+  savedAt: number;
+  source?: string;
+};
+export const savedSource = (item: { id: string; source?: string }) =>
+  typeof item.source === 'string' && item.source.trim()
+    ? item.source.trim().slice(0, 80).toLowerCase()
+    : item.id.startsWith('sample-')
+      ? 'demo collection'
+      : 'snuff';
 export function readArchive(raw: unknown): SavedItem[] {
   if (!Array.isArray(raw)) return [];
   const ids = new Set<string>();
@@ -21,7 +33,13 @@ export function readArchive(raw: unknown): SavedItem[] {
       ids.add(v.id);
       return true;
     })
-    .map(({ id, name, amount, savedAt }) => ({ id, name, amount, savedAt }))
+    .map(({ id, name, amount, savedAt, source }) => ({
+      id,
+      name,
+      amount,
+      savedAt,
+      source: savedSource({ id, source }),
+    }))
     .sort((a, b) => b.savedAt - a.savedAt);
 }
 export const savedDate = (at: number) =>
@@ -39,6 +57,7 @@ export function archiveSamples(now = Date.now()): SavedItem[] {
   ].map(([name, amount], i) => ({
     id: `sample-${i}`,
     name: String(name),
+    source: 'demo collection',
     amount: Number(amount),
     savedAt: now - (i + 1) * 86400000,
   }));

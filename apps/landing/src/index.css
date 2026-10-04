@@ -33,6 +33,13 @@ a {
   text-decoration: none;
 }
 
+img {
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .world {
   position: relative;
   width: 100%;
@@ -171,13 +178,21 @@ a {
   backface-visibility: hidden;
 }
 
-.plane--site {
+.plane--photo {
   overflow: hidden;
-  border-radius: 0.45rem;
+  border-radius: 0.35rem;
+  background: #111;
   box-shadow:
-    0 24px 60px rgb(18 25 22 / 0.22),
-    0 2px 0 rgb(255 255 255 / 0.35) inset;
-  background: #fff;
+    0 28px 70px rgb(18 25 22 / 0.28),
+    0 1px 0 rgb(255 255 255 / 0.25) inset;
+}
+
+.plane--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  pointer-events: none;
 }
 
 .plane--hero {
@@ -190,7 +205,7 @@ a {
   padding: 1.5rem;
   background: radial-gradient(
     ellipse 70% 60% at 50% 50%,
-    rgb(247 251 249 / 0.82),
+    rgb(247 251 249 / 0.84),
     rgb(247 251 249 / 0.22) 55%,
     transparent 75%
   );
@@ -217,431 +232,6 @@ a {
   color: var(--ink-soft);
 }
 
-/* Browser chrome + site mock pages */
-.site {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  width: 100%;
-  height: 100%;
-  font-size: clamp(0.55rem, 0.75vw, 0.78rem);
-  color: #111;
-  background: #f4f4f4;
-}
-
-.site__bar {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.5rem;
-  background: #e8e8e8;
-  border-bottom: 1px solid #d2d2d2;
-}
-
-.site__dots {
-  display: flex;
-  gap: 0.22rem;
-}
-
-.site__dots i {
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 999px;
-  background: #c4c4c4;
-}
-
-.site__dots i:nth-child(1) { background: #ff5f57; }
-.site__dots i:nth-child(2) { background: #febc2e; }
-.site__dots i:nth-child(3) { background: #28c840; }
-
-.site__url {
-  flex: 1;
-  min-width: 0;
-  padding: 0.2rem 0.45rem;
-  border-radius: 0.25rem;
-  background: #fff;
-  color: #555;
-  font-family: var(--font-body);
-  font-size: 0.7em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.site__body {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.home {
-  height: 100%;
-  display: grid;
-  gap: 0.4rem;
-  padding: 0.4rem;
-  background: #fff;
-}
-
-.home__nav {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.45rem;
-  border-radius: 0.2rem;
-  background: #f3f3f3;
-}
-
-.home__nav strong {
-  font-family: var(--font-display);
-  font-size: 1.05em;
-  letter-spacing: -0.03em;
-}
-
-.home__nav em {
-  margin-left: auto;
-  font-style: normal;
-  opacity: 0.65;
-  font-size: 0.85em;
-}
-
-.home__nav--dark {
-  background: #131921;
-  color: #fff;
-}
-
-.home__nav--blue {
-  background: #0071dc;
-  color: #fff;
-}
-
-.home__nav--red {
-  background: #cc0000;
-  color: #fff;
-}
-
-.home__nav--ink {
-  background: #0046be;
-  color: #fff;
-}
-
-.home__nav--bare {
-  background: transparent;
-  border-bottom: 1px solid #e5e5e5;
-  border-radius: 0;
-  padding-inline: 0.15rem;
-}
-
-.home__nav--dk {
-  background: #53d337;
-  color: #06240a;
-}
-
-.home__nav--fd {
-  background: #1493ff;
-  color: #fff;
-}
-
-.home__nav--b365 {
-  background: #027b5b;
-  color: #fff;
-}
-
-.home__nav--cz {
-  background: #1a1a1a;
-  color: #f0d78c;
-}
-
-.home__search {
-  flex: 1;
-  height: 0.9rem;
-  border-radius: 0.15rem;
-  background: #fff;
-  opacity: 0.92;
-}
-
-.home__nav--dark .home__search,
-.home__nav--blue .home__search,
-.home__nav--red .home__search,
-.home__nav--ink .home__search {
-  background: #fff;
-}
-
-.home__cart {
-  font-size: 0.85em;
-  opacity: 0.9;
-}
-
-.home__hero {
-  min-height: 28%;
-  border-radius: 0.2rem;
-}
-
-.home__hero--amber {
-  background:
-    linear-gradient(120deg, #232f3e 0 28%, transparent 28%),
-    linear-gradient(160deg, #febd69, #f3a847 50%, #e08900);
-}
-
-.home__hero--tech {
-  background:
-    radial-gradient(circle at 80% 40%, #ffe56a, transparent 35%),
-    linear-gradient(135deg, #0a0a0a, #1c3f8a 55%, #0046be);
-}
-
-.home__banner {
-  min-height: 18%;
-  border-radius: 0.2rem;
-}
-
-.home__banner--yellow {
-  background: linear-gradient(90deg, #ffc220, #ffdf6b);
-}
-
-.home__banner--gold {
-  background: linear-gradient(90deg, #3a2f14, #c6a456 55%, #6d5420);
-}
-
-.home__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-  min-height: 0;
-  flex: 1;
-}
-
-.home__grid span,
-.home__row span,
-.home__live span,
-.home__casino span,
-.home__matches i,
-.home__chips i,
-.home__ticker i {
-  display: block;
-  border-radius: 0.18rem;
-  background: linear-gradient(145deg, #ececec, #d5d5d5);
-  min-height: 2.2rem;
-}
-
-.home__grid--tight {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-.home__grid--sneakers span:nth-child(1) {
-  background: linear-gradient(145deg, #222, #666);
-}
-.home__grid--sneakers span:nth-child(2) {
-  background: linear-gradient(145deg, #d9d9d9, #8a8a8a);
-}
-.home__grid--sneakers span:nth-child(3) {
-  background: linear-gradient(145deg, #1d4ed8, #93c5fd);
-}
-.home__grid--sneakers span:nth-child(4) {
-  background: linear-gradient(145deg, #7f1d1d, #fca5a5);
-}
-
-.home__row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.35rem;
-}
-
-.home__poster {
-  flex: 1;
-  min-height: 55%;
-  display: grid;
-  place-items: end start;
-  padding: 0.7rem;
-  border-radius: 0.2rem;
-  background:
-    radial-gradient(circle at 70% 30%, rgb(255 255 255 / 0.25), transparent 40%),
-    linear-gradient(160deg, #111, #333 45%, #777);
-  color: #fff;
-}
-
-.home__poster p {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.35em;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.home__poster--beauty {
-  background:
-    radial-gradient(circle at 30% 20%, #fff, transparent 40%),
-    linear-gradient(150deg, #111, #2a2a2a 40%, #b08d6a);
-}
-
-.home__circle {
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: 0.2rem auto;
-  border-radius: 999px;
-  border: 0.35rem solid #cc0000;
-}
-
-.home__chips,
-.home__ticker,
-.home__matches {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.3rem;
-}
-
-.home__ticker {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.home__chips i:nth-child(1) { background: #e53238; }
-.home__chips i:nth-child(2) { background: #0064d2; }
-.home__chips i:nth-child(3) { background: #f5af02; }
-.home__chips i:nth-child(4) { background: #86b817; }
-
-.home--draftkings,
-.home--fanduel,
-.home--bet365,
-.home--caesars {
-  background: #0e1512;
-  color: #e8f0ec;
-}
-
-.home__odds {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.home__odds > div {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 0.25rem;
-  align-items: center;
-  padding: 0.3rem;
-  border-radius: 0.18rem;
-  background: rgb(255 255 255 / 0.06);
-}
-
-.home__odds b {
-  font-family: var(--font-display);
-  font-size: 0.95em;
-}
-
-.home__odds span {
-  text-align: center;
-  padding: 0.25rem 0.2rem;
-  border-radius: 0.15rem;
-  background: rgb(255 255 255 / 0.1);
-  font-variant-numeric: tabular-nums;
-}
-
-.home--draftkings .home__odds span {
-  background: #1f3d18;
-  color: #b8f5a0;
-}
-
-.home--fanduel .home__odds span {
-  background: #0b3d6b;
-  color: #9fd0ff;
-}
-
-.home--bet365 .home__matches i {
-  min-height: 1.8rem;
-  background: linear-gradient(145deg, #04966f, #024f3c);
-}
-
-.home__betslip {
-  margin-top: auto;
-  padding: 0.4rem;
-  text-align: center;
-  border-radius: 0.2rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.home--fanduel .home__betslip,
-.home--draftkings .home__betslip {
-  background: #f5c518;
-}
-
-.home--bet365 .home__betslip {
-  background: #ffdf1b;
-  color: #083126;
-}
-
-.home__live {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 0.35rem;
-  min-height: 28%;
-}
-
-.home__live span:first-child {
-  background:
-    radial-gradient(circle at 30% 40%, #ff4d4d, transparent 35%),
-    linear-gradient(145deg, #102033, #1a3d66);
-}
-
-.home__live span:last-child {
-  background: linear-gradient(145deg, #1493ff, #0a4f8f);
-}
-
-.home__casino {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.35rem;
-  min-height: 36%;
-}
-
-.home__casino span:nth-child(1) {
-  background:
-    radial-gradient(circle at 50% 50%, #f0d78c, transparent 45%),
-    #2a2110;
-}
-.home__casino span:nth-child(2) {
-  background:
-    repeating-conic-gradient(#111 0 15deg, #c6a456 0 30deg);
-}
-.home__casino span:nth-child(3) {
-  background: linear-gradient(160deg, #5b0b0b, #1a0505);
-}
-
-.home--amazon .home__grid span:nth-child(1) {
-  background: linear-gradient(145deg, #dfe7ef, #8fa4b8);
-}
-.home--amazon .home__grid span:nth-child(2) {
-  background: linear-gradient(145deg, #f5e6d3, #d2a679);
-}
-.home--amazon .home__grid span:nth-child(3) {
-  background: linear-gradient(145deg, #e4f0e7, #7fa88a);
-}
-.home--amazon .home__grid span:nth-child(4) {
-  background: linear-gradient(145deg, #efe4f5, #a887b8);
-}
-
-.home--walmart .home__row span:nth-child(1) {
-  background: linear-gradient(145deg, #0071dc, #9fd0ff);
-}
-.home--walmart .home__row span:nth-child(2) {
-  background: linear-gradient(145deg, #ffc220, #fff1b0);
-}
-.home--walmart .home__row span:nth-child(3) {
-  background: linear-gradient(145deg, #e8eef5, #9aa8b8);
-}
-
-.home--target .home__grid span {
-  background: linear-gradient(145deg, #ffe5e5, #ff9b9b);
-}
-
-.home--bestbuy .home__row span:nth-child(1) {
-  background: linear-gradient(145deg, #111, #555);
-}
-.home--bestbuy .home__row span:nth-child(2) {
-  background: linear-gradient(145deg, #ffe56a, #c7a800);
-}
-.home--bestbuy .home__row span:nth-child(3) {
-  background: linear-gradient(145deg, #0046be, #8eb6ff);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .rig {
     transition: none;
@@ -664,7 +254,7 @@ a {
     max-width: 12ch;
   }
 
-  .plane--site {
-    width: max(42vw, 11rem) !important;
+  .plane--photo {
+    width: max(44vw, 11.5rem) !important;
   }
 }

@@ -1,3 +1,4 @@
+import { analyze, firstOrderTotalAmount } from "./checkout-analyzer";
 import { DbConnection, tables, type SubscriptionHandle } from "./module_bindings";
 
 const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
@@ -290,20 +291,62 @@ shadow.addEventListener("click", (event) => {
   }
 });
 
+function holdCheckout(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  openCard();
+}
+
+function markedTotal(): number | undefined {
+  const marked = document.querySelector("[data-total]");
+  if (!marked?.hasAttribute("data-total")) return undefined;
+  const amount = Number(marked.getAttribute("data-total"));
+  return Number.isFinite(amount) ? amount : undefined;
+}
+
+function visibleLines(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+// Wool-coat demo: #checkout reads "Checkout" (cart). Pause from [data-total].
+function pauseWoolCoatCheckout(event: MouseEvent) {
+  if (bypass) {
+    bypass = false;
+    return;
+  }
+  const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+  if (!(amount >= rule.minAmount)) return;
+  holdCheckout(event);
+}
+
+// One click is the shopper's action. Pause when that click's text analyzes as checkout.
+function pauseAnalyzedCheckout(event: MouseEvent, target: Element) {
+  const control = target.closest("button, a");
+  if (!(control instanceof HTMLElement)) return;
+  const lines = [
+    ...visibleLines(control.innerText),
+    ...visibleLines(document.body?.innerText ?? ""),
+  ];
+  if (analyze(lines).stage !== "checkout") return;
+  const marked = document.querySelector("[data-total]");
+  const amount = marked?.hasAttribute("data-total") ? markedTotal() : firstOrderTotalAmount(lines);
+  if (amount === undefined || !(amount >= rule.minAmount)) return;
+  holdCheckout(event);
+}
+
 document.addEventListener(
   "click",
   (event) => {
     const target = event.target;
-    if (!(target instanceof Element) || !target.closest("#checkout")) return;
-    if (bypass) {
-      bypass = false;
+    if (!(target instanceof Element)) return;
+    if (target.closest("#checkout")) {
+      pauseWoolCoatCheckout(event);
       return;
     }
-    const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
-    if (!(amount >= rule.minAmount)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    openCard();
+    pauseAnalyzedCheckout(event, target);
   },
   true,
 );

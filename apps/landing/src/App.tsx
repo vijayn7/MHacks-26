@@ -21,14 +21,14 @@ type Tile = {
  * Far/mid darkened; a handful of near tiles stay interactive + full brightness.
  */
 const tiles: Tile[] = [
-  // Far edge atmosphere
+  // Far edge atmosphere — hang well past the viewport
   {
     id: "t1",
     src: "/sites/amazon.jpg",
     alt: "Amazon",
     layer: "far",
     drift: 0.7,
-    style: { top: "-11%", left: "-13%", width: "34%", aspectRatio: "16 / 10" },
+    style: { top: "-18%", left: "-28%", width: "48%", aspectRatio: "16 / 10" },
   },
   {
     id: "t2",
@@ -36,7 +36,7 @@ const tiles: Tile[] = [
     alt: "ASOS",
     layer: "far",
     drift: 1.2,
-    style: { top: "-9%", right: "-14%", width: "36%", aspectRatio: "16 / 10" },
+    style: { top: "-16%", right: "-30%", width: "50%", aspectRatio: "16 / 10" },
   },
   {
     id: "t3",
@@ -44,7 +44,7 @@ const tiles: Tile[] = [
     alt: "Polymarket",
     layer: "far",
     drift: 0.85,
-    style: { bottom: "-13%", left: "-12%", width: "38%", aspectRatio: "16 / 10" },
+    style: { bottom: "-20%", left: "-26%", width: "52%", aspectRatio: "16 / 10" },
   },
   {
     id: "t4",
@@ -52,7 +52,7 @@ const tiles: Tile[] = [
     alt: "SHEIN",
     layer: "far",
     drift: 1.15,
-    style: { bottom: "-11%", right: "-15%", width: "37%", aspectRatio: "16 / 10" },
+    style: { bottom: "-18%", right: "-28%", width: "50%", aspectRatio: "16 / 10" },
   },
   {
     id: "t5",
@@ -61,9 +61,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.95,
     style: {
-      top: "18%",
-      left: "-12%",
-      width: "28%",
+      top: "20%",
+      left: "-32%",
+      width: "42%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -75,9 +75,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.05,
     style: {
-      top: "48%",
-      right: "-13%",
-      width: "29%",
+      top: "46%",
+      right: "-34%",
+      width: "44%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
     },
@@ -89,9 +89,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.8,
     style: {
-      top: "58%",
-      left: "-9%",
-      width: "26%",
+      top: "62%",
+      left: "-30%",
+      width: "40%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -103,22 +103,22 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.25,
     style: {
-      top: "12%",
-      right: "-10%",
-      width: "27%",
+      top: "8%",
+      right: "-32%",
+      width: "42%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left center",
     },
   },
 
-  // Deep edge realm — large frames hanging past every edge
+  // Deep edge realm — oversized frames clearly past every edge
   {
     id: "e1",
     src: "/sites/walmart.jpg",
     alt: "Walmart edge",
     layer: "far",
     drift: 0.6,
-    style: { top: "-18%", left: "8%", width: "32%", aspectRatio: "16 / 10" },
+    style: { top: "-26%", left: "4%", width: "40%", aspectRatio: "16 / 10" },
   },
   {
     id: "e2",
@@ -126,7 +126,7 @@ const tiles: Tile[] = [
     alt: "Costco edge",
     layer: "far",
     drift: 1.3,
-    style: { top: "-16%", right: "6%", width: "30%", aspectRatio: "16 / 10" },
+    style: { top: "-24%", right: "2%", width: "38%", aspectRatio: "16 / 10" },
   },
   {
     id: "e3",
@@ -134,7 +134,7 @@ const tiles: Tile[] = [
     alt: "Etsy edge",
     layer: "far",
     drift: 0.75,
-    style: { bottom: "-18%", left: "10%", width: "33%", aspectRatio: "16 / 10" },
+    style: { bottom: "-28%", left: "6%", width: "42%", aspectRatio: "16 / 10" },
   },
   {
     id: "e4",
@@ -142,7 +142,7 @@ const tiles: Tile[] = [
     alt: "Zalando edge",
     layer: "far",
     drift: 1.1,
-    style: { bottom: "-17%", right: "8%", width: "31%", aspectRatio: "16 / 10" },
+    style: { bottom: "-26%", right: "4%", width: "40%", aspectRatio: "16 / 10" },
   },
   {
     id: "e5",
@@ -151,9 +151,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.9,
     style: {
-      top: "32%",
-      left: "-18%",
-      width: "32%",
+      top: "34%",
+      left: "-36%",
+      width: "46%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right center",
     },
@@ -165,9 +165,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.15,
     style: {
-      top: "28%",
-      right: "-19%",
-      width: "33%",
+      top: "30%",
+      right: "-38%",
+      width: "48%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left center",
     },
@@ -179,9 +179,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.55,
     style: {
-      top: "-20%",
-      left: "-16%",
-      width: "40%",
+      top: "-28%",
+      left: "-34%",
+      width: "54%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -193,9 +193,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.35,
     style: {
-      top: "-19%",
-      right: "-17%",
-      width: "41%",
+      top: "-27%",
+      right: "-36%",
+      width: "55%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
     },
@@ -207,9 +207,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.7,
     style: {
-      bottom: "-20%",
-      left: "-17%",
-      width: "42%",
+      bottom: "-30%",
+      left: "-34%",
+      width: "56%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -221,9 +221,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.2,
     style: {
-      bottom: "-19%",
-      right: "-18%",
-      width: "40%",
+      bottom: "-28%",
+      right: "-35%",
+      width: "54%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -235,9 +235,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.85,
     style: {
-      top: "0%",
-      left: "-20%",
-      width: "30%",
+      top: "-4%",
+      left: "-38%",
+      width: "44%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -249,9 +249,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.05,
     style: {
-      top: "62%",
-      right: "-20%",
-      width: "31%",
+      top: "58%",
+      right: "-40%",
+      width: "46%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -263,9 +263,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.95,
     style: {
-      top: "-22%",
-      left: "36%",
-      width: "28%",
+      top: "-32%",
+      left: "28%",
+      width: "38%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -277,9 +277,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.25,
     style: {
-      bottom: "-22%",
-      left: "38%",
-      width: "29%",
+      bottom: "-32%",
+      left: "30%",
+      width: "40%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -291,9 +291,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.65,
     style: {
-      top: "70%",
-      left: "-15%",
-      width: "28%",
+      top: "68%",
+      left: "-36%",
+      width: "42%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -305,9 +305,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.4,
     style: {
-      top: "-6%",
-      right: "-16%",
-      width: "29%",
+      top: "-8%",
+      right: "-36%",
+      width: "44%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -319,9 +319,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.8,
     style: {
-      bottom: "-8%",
-      left: "-8%",
-      width: "24%",
+      bottom: "-14%",
+      left: "-28%",
+      width: "38%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
@@ -333,9 +333,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.1,
     style: {
-      top: "38%",
-      right: "-22%",
-      width: "34%",
+      top: "40%",
+      right: "-42%",
+      width: "48%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -347,9 +347,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 0.75,
     style: {
-      bottom: "-24%",
-      right: "30%",
-      width: "26%",
+      bottom: "-34%",
+      right: "22%",
+      width: "36%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
     },
@@ -361,9 +361,9 @@ const tiles: Tile[] = [
     layer: "far",
     drift: 1.15,
     style: {
-      top: "-24%",
-      left: "52%",
-      width: "27%",
+      top: "-34%",
+      left: "48%",
+      width: "36%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left center",
     },
@@ -907,9 +907,9 @@ const tiles: Tile[] = [
 /** Spread each layer across a unique Z band so tiles don't share one plane. */
 function withStaggeredDepth(list: Tile[]): Tile[] {
   const bands: Record<Layer, [number, number]> = {
-    far: [0.02, 0.4],
-    mid: [0.42, 0.7],
-    near: [0.76, 0.97],
+    far: [0.12, 0.42],
+    mid: [0.45, 0.7],
+    near: [0.78, 0.97],
   };
 
   const byLayer: Record<Layer, Tile[]> = { far: [], mid: [], near: [] };

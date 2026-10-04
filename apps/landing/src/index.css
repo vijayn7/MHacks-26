@@ -55,7 +55,7 @@ button {
   width: 100%;
   height: 100svh;
   overflow: hidden;
-  perspective: 900px;
+  perspective: 1400px;
   perspective-origin: var(--pox) var(--poy);
   background:
     radial-gradient(70% 55% at 50% 45%, #2a221c 0%, transparent 62%),
@@ -85,14 +85,14 @@ button {
   /* Per-tile depth (0 = farthest, 1 = closest) + drift */
   --drift: 1;
   --depth: 0.5;
-  /* Continuous multiplane motion from depth */
+  /* Milder Z so perspective doesn't suck edge tiles into the center */
   transform:
     translate3d(
-      calc(var(--mx) * (70px - 230px * var(--depth)) * var(--drift)),
-      calc(var(--my) * (50px - 170px * var(--depth)) * var(--drift)),
-      calc(-680px + 880px * var(--depth))
+      calc(var(--mx) * (55px - 200px * var(--depth)) * var(--drift)),
+      calc(var(--my) * (40px - 150px * var(--depth)) * var(--drift)),
+      calc(-360px + 520px * var(--depth))
     )
-    scale(calc(0.7 + 0.38 * var(--depth)));
+    scale(calc(0.86 + 0.2 * var(--depth)));
 }
 
 .tile--far {

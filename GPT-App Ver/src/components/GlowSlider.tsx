@@ -13,6 +13,7 @@ export function GlowSlider({
   onChange,
   glow = false,
   tint = palettes.Violet.body,
+  coreTint = tint,
   startTint = tint,
   endTint = tint,
 }: {
@@ -21,6 +22,7 @@ export function GlowSlider({
   onChange: (value: number) => void;
   glow?: boolean;
   tint?: string;
+  coreTint?: string;
   startTint?: string;
   endTint?: string;
 }) {
@@ -93,15 +95,15 @@ export function GlowSlider({
         >
           <Svg width={light.size} height={light.size} viewBox="0 0 62 62">
             <Defs>
-              <RadialGradient id={id}>
+              <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
                 <Stop offset="0" stopColor={colors.text} stopOpacity="1" />
-                <Stop offset=".2" stopColor={palettes.Ember.core} stopOpacity=".92" />
+                <Stop offset=".2" stopColor={coreTint} stopOpacity=".92" />
                 <Stop offset=".48" stopColor={tint} stopOpacity=".48" />
                 <Stop offset="1" stopColor={tint} stopOpacity="0" />
               </RadialGradient>
             </Defs>
             <Circle cx="31" cy="31" r="31" fill={`url(#${id})`} />
-            <Circle cx="31" cy="31" r="2.5" fill={palettes.Ember.core} />
+            <Circle cx="31" cy="31" r="2.5" fill={coreTint} />
           </Svg>
         </View>
       )}

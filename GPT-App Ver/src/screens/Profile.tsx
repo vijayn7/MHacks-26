@@ -1,3 +1,5 @@
+import { blendPalette } from '../design/blend';
+import { useCompanion } from '../state/Companion';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -15,6 +17,9 @@ import { disableNudges, enableNudges } from '../services/notifications';
 export default function Profile() {
   const { state, dispatch, storageError } = useStore();
   const p = palettes[state.hue];
+  const { level } = useCompanion();
+  const flame =
+    level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
   const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
@@ -200,7 +205,8 @@ export default function Profile() {
             value={state.burnRate}
             onChange={(value) => dispatch({ type: 'BURN_RATE', value })}
             glow
-            tint={p.core}
+            tint={flame.mid}
+            coreTint={flame.core}
           />
           <T variant="small" style={{ fontSize: 10 }}>
             higher = firmer reminders

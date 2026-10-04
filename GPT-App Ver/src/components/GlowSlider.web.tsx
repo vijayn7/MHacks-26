@@ -10,6 +10,7 @@ export function GlowSlider({
   onChange,
   glow = false,
   tint = palettes.Violet.body,
+  coreTint = tint,
   startTint = tint,
   endTint = tint,
 }: {
@@ -18,6 +19,7 @@ export function GlowSlider({
   onChange: (value: number) => void;
   glow?: boolean;
   tint?: string;
+  coreTint?: string;
   startTint?: string;
   endTint?: string;
 }) {
@@ -80,7 +82,7 @@ export function GlowSlider({
             height: light.size,
             opacity: light.opacity,
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${colors.text} 0%, ${palettes.Ember.core}EB 14%, ${tint}70 34%, ${tint}00 70%)`,
+            background: `radial-gradient(circle, ${colors.text} 0%, ${coreTint}EB 14%, ${tint}70 34%, ${tint}00 70%)`,
           }}
         />
       )}

@@ -11,8 +11,8 @@ type Tile = {
 };
 
 /**
- * Most frames sit in the far field at low opacity.
- * Only a few edge accents stay mid/near so the brand center stays clear.
+ * Most frames sit in the far/mid field — full opacity, darkened.
+ * A few near-edge accents stay at normal brightness so the center stays clear.
  */
 const tiles: Tile[] = [
   // Far atmosphere — large, soft, mostly off-edge
@@ -205,7 +205,7 @@ const tiles: Tile[] = [
     },
   },
 
-  // Soft mid accents only — still low opacity, extreme edges
+  // Soft mid accents — darkened, extreme edges
   {
     id: "t21",
     src: "/sites/bestbuy.jpg",
@@ -232,15 +232,17 @@ const tiles: Tile[] = [
       ["--focus" as string]: "right center",
     },
   },
+
+  // Front accents — normal brightness, kept to the edges
   {
     id: "t23",
     src: "/sites/walmart.jpg",
     alt: "Walmart edge",
-    layer: "far",
+    layer: "near",
     style: {
       top: "58%",
-      left: "-8%",
-      width: "22%",
+      left: "-6%",
+      width: "20%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
@@ -249,11 +251,11 @@ const tiles: Tile[] = [
     id: "t24",
     src: "/sites/costco.jpg",
     alt: "Costco edge",
-    layer: "far",
+    layer: "near",
     style: {
       top: "2%",
-      right: "-8%",
-      width: "23%",
+      right: "-6%",
+      width: "21%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },

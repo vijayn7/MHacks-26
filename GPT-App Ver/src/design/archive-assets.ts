@@ -2,12 +2,12 @@
 import type { ImageSourcePropType } from 'react-native';
 
 export const archivePlaceholders = {
-  'table light': require('../../assets/archive/archive-table-light.jpg'),
-  'film camera': require('../../assets/archive/archive-film-camera.jpg'),
-  'studio headphones': require('../../assets/archive/archive-studio-headphones.jpg'),
-  'everyday tote': require('../../assets/archive/archive-everyday-tote.jpg'),
-  'desk speaker': require('../../assets/archive/archive-desk-speaker.jpg'),
-  'weekend watch': require('../../assets/archive/archive-weekend-watch.jpg'),
+  'table light': require('../../assets/archive/archive-table-light.png'),
+  'film camera': require('../../assets/archive/archive-film-camera.png'),
+  'studio headphones': require('../../assets/archive/archive-studio-headphones.png'),
+  'everyday tote': require('../../assets/archive/archive-everyday-tote.png'),
+  'desk speaker': require('../../assets/archive/archive-desk-speaker.png'),
+  'weekend watch': require('../../assets/archive/archive-weekend-watch.png'),
 } as const satisfies Record<string, ImageSourcePropType>;
 
 export function archivePlaceholderFor(name: string): ImageSourcePropType | null {

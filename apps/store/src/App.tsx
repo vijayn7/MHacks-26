@@ -55,7 +55,6 @@ export function App() {
   const [order, setOrder] = useState<PlacedOrder | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [shot, setShot] = useState(0);
   const [added, setAdded] = useState(false);
   const sending = useRef(false);
 
@@ -166,45 +165,30 @@ export function App() {
         </nav>
       </header>
 
-      <nav className="crumbs" aria-label="Breadcrumb">
-        {crumbs.map((crumb, index) => (
-          <span key={crumb}>
-            {index > 0 ? <span className="sep">›</span> : null}
-            <button type="button">{crumb}</button>
-          </span>
-        ))}
-      </nav>
+      {order ? null : (
+        <nav className="crumbs" aria-label="Breadcrumb">
+          {crumbs.map((crumb, index) => (
+            <span key={crumb}>
+              {index > 0 ? <span className="sep">›</span> : null}
+              <button type="button">{crumb}</button>
+            </span>
+          ))}
+        </nav>
+      )}
 
       {order ? (
-        <section className="done">
-          <h1>Order placed.</h1>
-          <p className="blurb">{order.name}</p>
-          <p className="result">
-            Nessie purchase <span className="mono">{order.purchaseId}</span>
-          </p>
-          <p className="result">Account balance ${money(order.balance)}</p>
-          <p className="blurb">This demo does not charge a real card.</p>
-        </section>
+        <OrderPlaced order={order} />
       ) : (
         <main className="dp">
           <div className="gallery">
             <div className="thumbs" role="listbox" aria-label="Product images">
-              {["Front", "Nutrition", "Scoop"].map((label, index) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={shot === index ? "thumb selected" : "thumb"}
-                  aria-label={label}
-                  aria-selected={shot === index}
-                  onClick={() => setShot(index)}
-                >
-                  <Shot index={index} />
-                </button>
-              ))}
+              <button type="button" className="thumb selected" aria-label="Front" aria-selected>
+                <img src="/whey.jpg" alt="" />
+              </button>
             </div>
             <div className="stage">
-              <div className="stage-art" role="img" aria-label={title}>
-                <Shot index={shot} />
+              <div className="stage-art">
+                <img src="/whey.jpg" alt={title} />
               </div>
               <p className="zoom-note">Roll over image to zoom in</p>
               <p className="pack-note">Packaging may vary</p>
@@ -549,111 +533,88 @@ function MenuIcon() {
   );
 }
 
-function Shot({ index }: { index: number }) {
-  if (index === 1) return <NutritionCard />;
-  if (index === 2) return <ScoopArt />;
-  return <Tub />;
-}
+const trackSteps = ["Order placed", "Shipped", "Out for delivery", "Delivered"];
 
-function Tub() {
+function OrderPlaced({ order }: { order: PlacedOrder }) {
   return (
-    <svg viewBox="0 0 360 480" role="img" aria-label="Optimum Nutrition Gold Standard whey tub, Delicious Strawberry, 5 lb">
-      <ellipse cx="180" cy="452" rx="92" ry="12" fill="#ececec" />
-      <ellipse cx="180" cy="70" rx="104" ry="24" fill="#3c3c3c" />
-      <path d="M76 70v16c0 14 46 26 104 26s104-12 104-26V70" fill="#141414" />
-      <ellipse cx="180" cy="70" rx="78" ry="16" fill="#0c0c0c" />
-      <path
-        d="M86 96c-2 90 4 210 14 300 4 28 28 48 80 48s76-20 80-48c10-90 16-210 14-300"
-        fill="#161616"
-      />
-      <ellipse cx="180" cy="98" rx="94" ry="18" fill="#2a2a2a" />
-      <path d="M102 120h10c2 80 4 190 2 250h-8c0-70-2-170-4-250z" fill="#2e2e2e" opacity="0.85" />
-      <rect x="116" y="150" width="128" height="250" rx="6" fill="#101010" stroke="#d4b36a" strokeWidth="3" />
-      <text x="180" y="176" textAnchor="middle" fill="#f2e2bc" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="13" fontWeight="700" letterSpacing="2.4">
-        OPTIMUM
-      </text>
-      <text x="180" y="190" textAnchor="middle" fill="#ffffff" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="8" letterSpacing="3">
-        NUTRITION
-      </text>
-      <rect x="128" y="202" width="104" height="26" fill="#d4b36a" />
-      <text x="180" y="220" textAnchor="middle" fill="#1a1a1a" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="11" fontWeight="700" letterSpacing="0.4">
-        GOLD STANDARD
-      </text>
-      <text x="180" y="250" textAnchor="middle" fill="#ffffff" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="18" fontWeight="700">
-        100% WHEY
-      </text>
-      <text x="180" y="266" textAnchor="middle" fill="#f2e2bc" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="9" letterSpacing="1.5">
-        PROTEIN POWDER
-      </text>
-      <g transform="translate(148 278)">
-        <ellipse cx="18" cy="28" rx="16" ry="18" fill="#e23a4a" />
-        <ellipse cx="40" cy="24" rx="15" ry="16" fill="#c81d36" />
-        <ellipse cx="30" cy="40" rx="14" ry="14" fill="#f05a62" />
-        <path d="M28 12c-2-12 10-16 12-6 8-8 16 0 8 8 8 2 6 12-2 10-2 8-14 6-14-2-6-2-8-10-4-10z" fill="#3e8c3a" />
-        <circle cx="14" cy="26" r="1.4" fill="#fff6" />
-        <circle cx="36" cy="22" r="1.2" fill="#fff6" />
-      </g>
-      <rect x="128" y="336" width="104" height="24" fill="#e23a4a" />
-      <text x="180" y="352" textAnchor="middle" fill="#ffffff" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="8" fontWeight="700" letterSpacing="0.3">
-        DELICIOUS STRAWBERRY
-      </text>
-      <text x="180" y="378" textAnchor="middle" fill="#f2e2bc" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14" fontWeight="700">
-        5 LB
-      </text>
-      <text x="180" y="392" textAnchor="middle" fill="#ffffff" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="8">
-        24g PROTEIN
-      </text>
-    </svg>
-  );
-}
-
-function NutritionCard() {
-  return (
-    <svg viewBox="0 0 360 480" role="img" aria-label="Nutrition highlights for Gold Standard whey">
-      <rect x="70" y="70" width="220" height="340" rx="8" fill="#fff" stroke="#111" strokeWidth="3" />
-      <text x="180" y="110" textAnchor="middle" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="20" fontWeight="700">
-        Nutrition Facts
-      </text>
-      <path d="M88 122h184" stroke="#111" strokeWidth="6" />
-      <text x="92" y="156" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14">
-        Serving size
-      </text>
-      <text x="268" y="156" textAnchor="end" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14" fontWeight="700">
-        1 scoop
-      </text>
-      <path d="M88 168h184" stroke="#111" strokeWidth="2" />
-      <text x="92" y="210" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="28" fontWeight="700">
-        24g
-      </text>
-      <text x="92" y="232" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14">
-        Protein
-      </text>
-      <path d="M88 250h184" stroke="#111" strokeWidth="2" />
-      <text x="92" y="286" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="22" fontWeight="700">
-        5.5g
-      </text>
-      <text x="92" y="308" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14">
-        BCAAs
-      </text>
-      <path d="M88 324h184" stroke="#111" strokeWidth="2" />
-      <text x="92" y="360" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14">
-        Gluten free
-      </text>
-      <text x="92" y="384" fill="#111" fontFamily="Liberation Sans, Arial, sans-serif" fontSize="14">
-        Delicious Strawberry
-      </text>
-    </svg>
-  );
-}
-
-function ScoopArt() {
-  return (
-    <svg viewBox="0 0 360 480" role="img" aria-label="Strawberry whey powder in a glass">
-      <path d="M118 150h124l-14 230a16 16 0 0 1-16 12h-64a16 16 0 0 1-16-12z" fill="#f7f7f7" stroke="#d5d9d9" strokeWidth="3" />
-      <path d="M130 250h104l-8 118a10 10 0 0 1-10 8h-68a10 10 0 0 1-10-8z" fill="#f3a3b0" />
-      <ellipse cx="180" cy="250" rx="52" ry="14" fill="#e23a4a" />
-      <ellipse cx="168" cy="236" rx="22" ry="10" fill="#f6c3cb" />
-      <path d="M150 120c8 20 8 36 0 48M180 108c6 22 6 40 0 58M208 122c-6 18-6 34 0 46" fill="none" stroke="#c81d36" strokeWidth="4" strokeLinecap="round" />
-    </svg>
+    <section className="thanks-page">
+      <div className="thanks">
+      <div className="thanks-main">
+        <div className="thanks-hero">
+          <svg className="check" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="24" fill="#067D62" />
+            <path
+              d="M14 25.2 21 32l13-16"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="3.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <div>
+            <h1>Order placed, thanks!</h1>
+            <p>Confirmation will be sent to your email.</p>
+          </div>
+        </div>
+        <div className="thanks-card">
+          <ol className="tracker">
+            {trackSteps.map((step, index) => (
+              <li key={step} className={index === 0 ? "is-done" : undefined}>
+                <span>{step}</span>
+                {index === 0 ? <small>October 3</small> : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="thanks-card pkg">
+          <h2>
+            Arriving <span>Thursday, October 8</span>
+          </h2>
+          <div className="pkg-row">
+            <img src="/whey.jpg" alt="" />
+            <div>
+              <p className="pkg-title">{order.name}</p>
+              <p className="pkg-meta">Sold by Amazon.com</p>
+              <p className="pkg-meta">Qty: 1</p>
+              <p className="pkg-price">${money(product.price)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside className="thanks-side">
+        <div className="thanks-card">
+          <h2>Shipping address</h2>
+          <p>Demo Shopper</p>
+          <p>1600 Pennsylvania Ave NW</p>
+          <p>Washington, DC 20500</p>
+          <p>United States</p>
+        </div>
+        <div className="thanks-card">
+          <h2>Payment method</h2>
+          <p>Nessie checking account</p>
+          <dl className="totals">
+            <div>
+              <dt>Items</dt>
+              <dd>${money(product.price)}</dd>
+            </div>
+            <div>
+              <dt>Shipping & handling</dt>
+              <dd>$0.00</dd>
+            </div>
+            <div className="grand">
+              <dt>Order total</dt>
+              <dd>${money(product.price)}</dd>
+            </div>
+          </dl>
+          <p className="pkg-meta">
+            Order # <span className="mono">{order.purchaseId}</span>
+          </p>
+          <p className="pkg-meta">Account balance ${money(order.balance)}</p>
+          <p className="pay-note">This demo does not charge a real card.</p>
+        </div>
+      </aside>
+      </div>
+    </section>
   );
 }

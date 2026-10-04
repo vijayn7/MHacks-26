@@ -76,6 +76,14 @@ Burn rate currently saves a preference and displays gentle / balanced / mindful;
 
 The burn-rate handle expands from a small dim light to a broad bright glow as its value increases, using the same response curve on native and web. The color blend has one gradient track with a neutral thumb; its endpoint swatches open the color picker.
 
+## Goals and blocking preview
+
+Scroll beneath the Home chart to set a savings goal and configure a five-step plan: goal / websites and purchase limits / schedule / response / review. Rules support custom domains and subdomains, a minimum purchase amount, selected days, overnight local-time windows, gentle nudges or timed pauses, and optional early continuation with a reason. A goal measures savings added after it was created. Editing preserves its starting balance.
+
+The saved plan can be edited, paused, and tested in an in-app checkout preview. Preview decisions use the actual saved rule evaluator; a timed pause counts down, and early continuation follows the chosen settings. No checkout, notification, message, or financial event is created by the preview. Browser-extension / operating-system enforcement outside Snuff is not connected; the UI explicitly identifies this boundary.
+
+Flame crowns continuously interpolate between organic SVG silhouettes, keeping the eyes and rounded base anchored. Motion slows with the flame’s status and continues while resting; it stops when the screen is inactive, the app is backgrounded, or reduced motion is enabled.
+
 ## Designer handoff
 
 See the [portable Snuff design system](../design-system/snuff/README.md) for reusable tokens, fonts, assets, and interaction notes.

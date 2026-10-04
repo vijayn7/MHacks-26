@@ -1,3 +1,10 @@
+import {
+  domainName,
+  freshPlan,
+  planErrors,
+  previewDecision,
+  scheduledNow,
+} from '../src/state/blocking';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { dayKey, initialState, migrate, reducer } from '../src/state/model';
@@ -121,4 +128,52 @@ test('profile preferences migrate safely and stay separate from progress', () =>
   assert.equal(reducer(next, { type: 'BURN_RATE', value: -12 }).burnRate, 0);
   assert.equal(migrate({ ...next, blend: 190, burnRate: 'bad', friends: [] }).blend, 100);
   assert.equal(migrate({ ...next, friends: [] }).trustedFriendId, null);
+});
+
+test('goal rules survive reload without changing savings and reject malformed plans', () => {
+  const base = initialState();
+  const plan = { ...freshPlan(base.savings), title: 'a weekend away' };
+  const saved = reducer(base, { type: 'SAVE_PLAN', plan });
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(saved))).plan, plan);
+  assert.equal(saved.savings, base.savings);
+  assert.equal(saved.pauses, base.pauses);
+  assert.equal(reducer(saved, { type: 'SAVE_PLAN', plan: { ...plan, target: NaN } }), saved);
+  assert.equal(migrate({ ...saved, plan: { title: 'broken' } }).plan, null);
+  assert.equal(reducer(saved, { type: 'PLAN_ENABLED', enabled: false }).plan?.enabled, false);
+  assert.equal(domainName('https://www.amazon.com/cart?q=hello'), 'amazon.com');
+  assert.equal(domainName('not a site'), null);
+  assert.equal(domainName('https://person:password@amazon.com'), null);
+});
+
+test('block matching honors domains, subdomains, thresholds, schedules, and the enabled switch', () => {
+  const plan = { ...freshPlan(284), title: 'travel' };
+  assert.equal(previewDecision(plan, 'www.amazon.com', 40).matched, true);
+  assert.equal(previewDecision(plan, 'checkout.amazon.com', 40).matched, true);
+  assert.equal(previewDecision(plan, 'notamazon.com', 100).matched, false);
+  assert.equal(previewDecision(plan, 'amazon.com.evil.com', 100).matched, false);
+  assert.equal(previewDecision(plan, 'amazon.com', 39.99).matched, false);
+  assert.equal(previewDecision({ ...plan, enabled: false }, 'amazon.com', 100).matched, false);
+  assert.ok(planErrors({ ...plan, domains: [] })[1]);
+  assert.ok(planErrors({ ...plan, schedule: 'scheduled', days: [] })[2]);
+  assert.ok(planErrors({ ...plan, cooldownMinutes: 0 })[3]);
+});
+
+test('overnight quiet hours belong to their start day and end exactly on time', () => {
+  const p = {
+    ...freshPlan(284),
+    title: 'travel',
+    schedule: 'scheduled' as const,
+    days: [1],
+    start: '21:00',
+    end: '08:00',
+  };
+  assert.equal(scheduledNow(p, +new Date(2026, 9, 5, 20, 59)), false);
+  assert.equal(scheduledNow(p, +new Date(2026, 9, 5, 21, 0)), true);
+  assert.equal(scheduledNow(p, +new Date(2026, 9, 6, 7, 59)), true);
+  assert.equal(scheduledNow(p, +new Date(2026, 9, 6, 8, 0)), false);
+  assert.equal(scheduledNow(p, +new Date(2026, 9, 6, 21, 0)), false);
+  assert.equal(
+    scheduledNow({ ...p, start: '09:00', end: '17:00' }, +new Date(2026, 9, 5, 12)),
+    true,
+  );
 });

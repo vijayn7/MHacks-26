@@ -1,3 +1,4 @@
+import { readPlan, type BlockPlan } from './blocking';
 import type { Hue } from '../design/tokens';
 
 export type Friend = { id: string; name: string; email: string; hue: Hue; savings: number };
@@ -10,6 +11,7 @@ export type Nudge = {
 };
 export type AppState = {
   version: 2;
+  plan: BlockPlan | null;
   name: string;
   hue: Hue;
   blendHue: Hue;
@@ -24,6 +26,8 @@ export type AppState = {
   nudges: Nudge[];
 };
 export type Action =
+  | { type: 'SAVE_PLAN'; plan: BlockPlan }
+  | { type: 'PLAN_ENABLED'; enabled: boolean }
   | { type: 'PAUSE'; at?: number }
   | { type: 'NAME'; name: string }
   | { type: 'HUE'; hue: Hue }
@@ -42,6 +46,7 @@ export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e
 export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
+    plan: null,
     name: 'Alex',
     hue: 'Ember',
     blendHue: 'Violet',
@@ -76,6 +81,7 @@ export function migrate(raw: unknown): AppState {
     return {
       ...base,
       ...old,
+      plan: readPlan(old.plan),
       name: typeof old.name === 'string' ? old.name : base.name,
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
         ? old.hue
@@ -153,6 +159,12 @@ export function migrate(raw: unknown): AppState {
 }
 export function reducer(s: AppState, a: Action): AppState {
   switch (a.type) {
+    case 'SAVE_PLAN': {
+      const plan = readPlan(a.plan);
+      return plan ? { ...s, plan } : s;
+    }
+    case 'PLAN_ENABLED':
+      return s.plan ? { ...s, plan: { ...s.plan, enabled: a.enabled } } : s;
     case 'PAUSE':
       return { ...s, pauses: s.pauses + 1 };
     case 'NAME':

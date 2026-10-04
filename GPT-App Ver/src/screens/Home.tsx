@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../state/Store';
 import { money } from '../state/model';
@@ -7,12 +7,15 @@ import { palettes } from '../design/tokens';
 import { Canvas, T } from '../components/ui';
 import { useCompanion } from '../state/Companion';
 import { Mascot } from '../components/Mascot';
+import { GoalFlow } from '../components/GoalFlow';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavingsChart } from '../components/Chart';
 
 export default function Home() {
   const { state, dispatch } = useStore();
   const { width, height } = useWindowDimensions();
   const p = palettes[state.hue];
+  const insets = useSafeAreaInsets();
   const { level } = useCompanion();
   const pause = useCallback(() => {
     dispatch({ type: 'PAUSE' });
@@ -39,43 +42,55 @@ export default function Home() {
   );
   return (
     <Canvas>
-      <View style={{ flex: 1, paddingHorizontal: 28, paddingTop: 8 }}>
-        <View style={{ flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-          <View testID="snuff-flame" style={{ alignItems: 'center' }}>
-            <Mascot hue={state.hue} size={size} onLongPress={pause} />
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View
+          style={{
+            height: Math.max(450, height - 100 - insets.top - insets.bottom),
+            paddingHorizontal: 28,
+            paddingTop: 8,
+          }}
+        >
+          <View style={{ flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
+            <View testID="snuff-flame" style={{ alignItems: 'center' }}>
+              <Mascot hue={state.hue} size={size} onLongPress={pause} />
+            </View>
+            <T
+              variant="small"
+              style={{ position: 'absolute', bottom: 6, fontSize: 11 }}
+              color={p.body + (level === 'Out' ? 'B0' : '70')}
+            >
+              {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame · hold to pause'}
+            </T>
           </View>
-          <T
-            variant="small"
-            style={{ position: 'absolute', bottom: 6, fontSize: 11 }}
-            color={p.body + (level === 'Out' ? 'B0' : '70')}
-          >
-            {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame · hold to pause'}
+          <View style={{ alignItems: 'center', gap: 4, marginTop: 16, marginBottom: 22 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+                You’ve saved
+              </T>
+              {pill(money(state.savings))}
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+                by pausing
+              </T>
+              {pill(String(state.pauses))}
+              <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+                times
+              </T>
+            </View>
+            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
+              this week.
+            </T>
+          </View>
+          <View style={{ marginHorizontal: 8, marginBottom: 10 }}>
+            <SavingsChart />
+          </View>
+          <T variant="small" style={{ textAlign: 'center', fontSize: 10, paddingBottom: 10 }}>
+            a little intention ↓
           </T>
         </View>
-        <View style={{ alignItems: 'center', gap: 4, marginTop: 16, marginBottom: 22 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-              You’ve saved
-            </T>
-            {pill(money(state.savings))}
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-              by pausing
-            </T>
-            {pill(String(state.pauses))}
-            <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-              times
-            </T>
-          </View>
-          <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-            this week.
-          </T>
-        </View>
-        <View style={{ marginHorizontal: 8, marginBottom: 10 }}>
-          <SavingsChart />
-        </View>
-      </View>
+        <GoalFlow />
+      </ScrollView>
     </Canvas>
   );
 }

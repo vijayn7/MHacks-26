@@ -77,8 +77,16 @@ export function Sheet({
   visible,
   onClose,
   title,
+  contentKey,
+  expanded = false,
   children,
-}: React.PropsWithChildren<{ visible: boolean; onClose: () => void; title?: string }>) {
+}: React.PropsWithChildren<{
+  visible: boolean;
+  onClose: () => void;
+  title?: string;
+  contentKey?: number | string;
+  expanded?: boolean;
+}>) {
   const insets = useSafeAreaInsets();
   return (
     <Modal
@@ -97,11 +105,18 @@ export function Sheet({
         />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ width: '100%', maxWidth: 480, maxHeight: '86%' }}
+          style={{
+            width: '100%',
+            maxWidth: 480,
+            maxHeight: '86%',
+            height: expanded ? '86%' : undefined,
+          }}
         >
           <LinearGradient
             colors={['#24150F', '#130A07', '#0B0302']}
             style={{
+              flex: expanded ? 1 : undefined,
+              flexShrink: 1,
               borderTopLeftRadius: 32,
               borderTopRightRadius: 32,
               borderWidth: 1,
@@ -138,7 +153,12 @@ export function Sheet({
                 <Icon name="x" size={18} />
               </Pressable>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              key={contentKey}
+              style={{ flexShrink: 1, minHeight: 0 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {children}
             </ScrollView>
           </LinearGradient>

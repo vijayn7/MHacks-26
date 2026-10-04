@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { forwardRef, useEffect, useId, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import Svg, {
   Circle,
@@ -17,12 +17,19 @@ import { useStore } from '../state/Store';
 import { blendPalette } from '../design/blend';
 import { Flame } from './Flame';
 import { usePetting } from '../hooks/usePetting';
+import { flamePoses } from '../design/flame-motion';
 import type { FlameLevel } from '../state/Companion';
 
 // Keep Snuff's original outline and face. Light dissolves toward the tips,
 // while feathered gradient strokes create soft trails on both native and web.
-const silhouette =
-  'M 59 179 C 42 158 42 131 48 111 C 61 139 76 133 84 108 C 94 79 103 46 114 22 C 119 59 116 87 137 102 C 151 113 163 103 161 83 C 188 95 202 116 202 149 C 202 188 176 215 131 216 C 96 218 73 201 59 179 Z';
+// Animated injects a native-only collapsable prop; SVG DOM nodes must not receive it.
+const MotionPath = forwardRef<Path, React.ComponentProps<typeof Path> & { collapsable?: boolean }>(
+  ({ collapsable, ...props }, ref) => (
+    <Path ref={ref} {...props} {...(Platform.OS === 'web' ? {} : { collapsable })} />
+  ),
+);
+MotionPath.displayName = 'MotionPath';
+const AnimatedPath = Animated.createAnimatedComponent(MotionPath);
 const trails = [
   { d: 'M 115 155 C 99 128 127 107 116 83 C 107 61 134 40 127 12', width: 33 },
   { d: 'M 81 166 C 54 139 76 122 67 104 C 57 88 77 73 73 54', width: 24 },
@@ -64,6 +71,25 @@ export function Mascot({
     : companionId === 'you'
       ? blendPalette(hue, state.blendHue, state.blend)
       : palettes[hue];
+  const [flicker] = useState(() => new Animated.Value(0));
+  const silhouette = flicker.interpolate({
+    inputRange: [0, 0.34, 0.7, 1],
+    outputRange: flamePoses,
+  });
+  useEffect(() => {
+    if (!animate || !pet.awake) return;
+    const motion = Animated.loop(
+      Animated.timing(flicker, {
+        toValue: 1,
+        duration: calm ? 6500 : low ? 4900 : 3600,
+        easing: Easing.linear,
+        useNativeDriver: false,
+        isInteraction: false,
+      }),
+    );
+    motion.start();
+    return () => motion.stop();
+  }, [animate, pet.awake, calm, low, flicker]);
   const [breath] = useState(() => new Animated.Value(0));
   const [drift] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -406,9 +432,9 @@ export function Mascot({
             </Defs>
             <Ellipse cx="125" cy="181" rx="91" ry="75" fill={url('bloom')} />
             <G transform="translate(10 30) scale(.92)">
-              <Path d={silhouette} fill={url('body')} filter={url('edge')} opacity={0.55} />
-              <Path d={silhouette} fill={url('body')} />
-              <Path d={silhouette} fill={url('core')} />
+              <AnimatedPath d={silhouette} fill={url('body')} filter={url('edge')} opacity={0.55} />
+              <AnimatedPath testID="flame-crown" d={silhouette} fill={url('body')} />
+              <AnimatedPath d={silhouette} fill={url('core')} />
             </G>
           </Svg>
           <Animated.View
@@ -471,7 +497,7 @@ export function Mascot({
               </G>
             </Svg>
           </Animated.View>
-          {!calm && size >= 64 && (
+          {size >= 64 && (
             <Animated.View
               style={{
                 ...StyleSheet.absoluteFill,

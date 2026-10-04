@@ -45,3 +45,11 @@ The latest profile reference is `previews/snuff-profile-minimal.png`. Keep the c
 The burn-rate glow grows from 28 to 96 logical pixels and increases from 30% to full opacity as the slider moves right. Both platform implementations share `src/design/slider.ts`. Color blending uses `src/design/blend.ts`; native and web controls live in `src/components/GlowSlider.tsx` and `.web.tsx`. The user’s color mix remains shared across screens.
 
 Profile preferences persist locally. Burn rate and trusted-friend selection are prototype preferences; backend restriction enforcement and messaging are not connected.
+
+## Continuous burning and goal setup
+
+The companion’s crown now morphs continuously between organic outlines while its base and eyes stay anchored. `src/design/flame-motion.ts` defines matching SVG keyframes, and `src/components/Mascot.tsx` adjusts their speed to bright / low / resting states. Reduced-motion settings, backgrounding, and inactive screens stop the loops. Existing petting behavior is preserved.
+
+Home scrolls below the weekly graph into a quiet goal component (`previews/snuff-home-goal.png`). `src/components/GoalFlow.tsx` presents five steps in bottom sheets: goal, websites and purchase limits, schedule, response, review. A setup reference is in `previews/snuff-goal-block-setup.png`. Keep typography, chips, fields, and actions aligned with the existing tokens. Saved plans and rules are handled by `src/state/blocking.ts` and `src/state/model.ts`.
+
+Rules are testable in an in-app checkout preview, including actual local countdowns and optional early-continuation reasons. External blocking is not connected. Preview activity never creates real purchases, savings, or messages.

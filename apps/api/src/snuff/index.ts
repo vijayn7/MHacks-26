@@ -4,9 +4,8 @@ import { profile } from "./profile";
 import { social } from "./social";
 import { pauses } from "./pauses";
 import { plan } from "./plan";
-import { wearable } from "./wearable";
 
-export const slices: Slice[] = [profile, social, pauses, plan, wearable];
+export const slices: Slice[] = [profile, social, pauses, plan];
 export const userId = "demo";
 
 type Send = (res: ServerResponse, status: number, body?: unknown) => void;

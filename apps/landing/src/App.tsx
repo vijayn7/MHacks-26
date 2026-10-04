@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-type Layer = "far" | "mid" | "near";
+type Layer = "void" | "far" | "mid" | "near";
 
 type Tile = {
   id: string;
@@ -18,7 +18,7 @@ type Tile = {
 
 /**
  * Dense organic scatter — roughly balanced, intentionally irregular.
- * Far/mid darkened; a handful of near tiles stay interactive + full brightness.
+ * Void sits behind everything (near-black). Extra mid-field windows live in void.
  */
 const tiles: Tile[] = [
   // Far atmosphere — same count as before, hung just past the edges
@@ -111,12 +111,12 @@ const tiles: Tile[] = [
     },
   },
 
-  // Mid scatter — irregular sizes/gaps around the brand
+  // Mid scatter — thin readable ring; most former mid + extras live in void
   {
     id: "c1",
     src: "/sites/walmart.jpg",
     alt: "Walmart",
-    layer: "mid",
+    layer: "void",
     drift: 0.9,
     style: { top: "1%", left: "34%", width: "15%", aspectRatio: "16 / 10" },
   },
@@ -124,7 +124,7 @@ const tiles: Tile[] = [
     id: "c2",
     src: "/sites/costco.jpg",
     alt: "Costco",
-    layer: "mid",
+    layer: "void",
     drift: 1.2,
     style: { top: "4%", right: "30%", width: "13%", aspectRatio: "16 / 10" },
   },
@@ -204,7 +204,7 @@ const tiles: Tile[] = [
     id: "c9",
     src: "/sites/homedepot.jpg",
     alt: "Home Depot mid",
-    layer: "mid",
+    layer: "void",
     drift: 1.15,
     style: {
       bottom: "1%",
@@ -232,7 +232,7 @@ const tiles: Tile[] = [
     id: "c11",
     src: "/sites/nike.jpg",
     alt: "Nike mid",
-    layer: "mid",
+    layer: "void",
     drift: 1.25,
     style: {
       top: "34%",
@@ -274,7 +274,7 @@ const tiles: Tile[] = [
     id: "c14",
     src: "/sites/walmart.jpg",
     alt: "Walmart low",
-    layer: "mid",
+    layer: "void",
     drift: 0.8,
     style: {
       top: "58%",
@@ -316,7 +316,7 @@ const tiles: Tile[] = [
     id: "c18",
     src: "/sites/zalando.jpg",
     alt: "Zalando high",
-    layer: "mid",
+    layer: "void",
     drift: 0.7,
     style: {
       top: "-4%",
@@ -372,7 +372,7 @@ const tiles: Tile[] = [
     id: "c26",
     src: "/sites/homedepot.jpg",
     alt: "Home Depot high",
-    layer: "mid",
+    layer: "void",
     drift: 1.05,
     style: {
       top: "12%",
@@ -400,7 +400,7 @@ const tiles: Tile[] = [
     id: "c28",
     src: "/sites/princesspolly.jpg",
     alt: "Polly low",
-    layer: "mid",
+    layer: "void",
     drift: 1.2,
     style: {
       bottom: "14%",
@@ -414,7 +414,7 @@ const tiles: Tile[] = [
     id: "c30",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy high",
-    layer: "mid",
+    layer: "void",
     drift: 1.1,
     style: {
       top: "-1%",
@@ -428,7 +428,7 @@ const tiles: Tile[] = [
     id: "c32",
     src: "/sites/zalando.jpg",
     alt: "Zalando low",
-    layer: "mid",
+    layer: "void",
     drift: 1.25,
     style: {
       bottom: "-3%",
@@ -451,6 +451,120 @@ const tiles: Tile[] = [
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
+  },
+
+  // Extra mid-field windows — shoved to the VERY back (void)
+  {
+    id: "v1",
+    src: "/sites/amazon.jpg",
+    alt: "Amazon void",
+    layer: "void",
+    drift: 0.95,
+    style: { top: "28%", left: "40%", width: "14%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v2",
+    src: "/sites/nike.jpg",
+    alt: "Nike void",
+    layer: "void",
+    drift: 1.1,
+    style: { top: "38%", right: "40%", width: "13%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v3",
+    src: "/sites/etsy.jpg",
+    alt: "Etsy void",
+    layer: "void",
+    drift: 0.8,
+    style: { top: "8%", left: "40%", width: "12%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v4",
+    src: "/sites/shein.jpg",
+    alt: "SHEIN void",
+    layer: "void",
+    drift: 1.3,
+    style: { top: "52%", left: "32%", width: "12%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v5",
+    src: "/sites/walmart.jpg",
+    alt: "Walmart void",
+    layer: "void",
+    drift: 0.7,
+    style: { top: "50%", right: "34%", width: "13%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v6",
+    src: "/sites/bestbuy.jpg",
+    alt: "Best Buy void",
+    layer: "void",
+    drift: 1.05,
+    style: { top: "30%", left: "30%", width: "11%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v7",
+    src: "/sites/edikted.jpg",
+    alt: "Edikted void",
+    layer: "void",
+    drift: 1.2,
+    style: { top: "24%", right: "28%", width: "12%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v8",
+    src: "/sites/homedepot.jpg",
+    alt: "Home Depot void",
+    layer: "void",
+    drift: 0.85,
+    style: { bottom: "18%", left: "30%", width: "12%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v9",
+    src: "/sites/asos.jpg",
+    alt: "ASOS void",
+    layer: "void",
+    drift: 1.15,
+    style: { bottom: "20%", right: "30%", width: "13%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v10",
+    src: "/sites/ebay.jpg",
+    alt: "eBay void",
+    layer: "void",
+    drift: 0.9,
+    style: { top: "42%", left: "46%", width: "11%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v11",
+    src: "/sites/costco.jpg",
+    alt: "Costco void",
+    layer: "void",
+    drift: 1.25,
+    style: { top: "14%", left: "16%", width: "11%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v12",
+    src: "/sites/princesspolly.jpg",
+    alt: "Polly void",
+    layer: "void",
+    drift: 0.75,
+    style: { top: "16%", right: "16%", width: "11%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v13",
+    src: "/sites/zalando.jpg",
+    alt: "Zalando void",
+    layer: "void",
+    drift: 1.0,
+    style: { top: "62%", left: "40%", width: "12%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "v14",
+    src: "/sites/polymarket.jpg",
+    alt: "Polymarket void",
+    layer: "void",
+    drift: 1.35,
+    style: { top: "6%", left: "28%", width: "10%", aspectRatio: "16 / 10" },
   },
 
   // Interactive front windows — organic ring, slightly larger
@@ -537,12 +651,13 @@ const tiles: Tile[] = [
 /** Spread each layer across a unique Z band so tiles don't share one plane. */
 function withStaggeredDepth(list: Tile[]): Tile[] {
   const bands: Record<Layer, [number, number]> = {
-    far: [0.12, 0.42],
+    void: [0.0, 0.1],
+    far: [0.16, 0.4],
     mid: [0.45, 0.7],
     near: [0.78, 0.97],
   };
 
-  const byLayer: Record<Layer, Tile[]> = { far: [], mid: [], near: [] };
+  const byLayer: Record<Layer, Tile[]> = { void: [], far: [], mid: [], near: [] };
   for (const tile of list) byLayer[tile.layer].push(tile);
 
   const depthOf = new Map<string, number>();
@@ -620,11 +735,28 @@ function PausePopup({ site }: { site: string }) {
 
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
+  const trailRef = useRef<HTMLCanvasElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const canvas = trailRef.current;
+    if (!root || !canvas) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    type Ember = {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      maxLife: number;
+      size: number;
+      spin: number;
+    };
 
     let raf = 0;
     let targetX = 0;
@@ -632,6 +764,44 @@ export function App() {
     let curX = 0;
     let curY = 0;
     let active = true;
+    let pointerX = -9999;
+    let pointerY = -9999;
+    let lastX = -9999;
+    let lastY = -9999;
+    let moving = false;
+    let lastMove = 0;
+    const embers: Ember[] = [];
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = root.clientWidth;
+      const h = root.clientHeight;
+      canvas.width = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+
+    const spawn = (x: number, y: number, speed: number) => {
+      const count = Math.min(5, 1 + Math.floor(speed / 8));
+      for (let i = 0; i < count; i++) {
+        if (embers.length > 90) embers.shift();
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
+        const burst = 0.4 + Math.random() * 1.6 + speed * 0.02;
+        embers.push({
+          x: x + (Math.random() - 0.5) * 6,
+          y: y + (Math.random() - 0.5) * 6,
+          vx: Math.cos(angle) * burst * 0.55 + (Math.random() - 0.5) * 0.6,
+          vy: Math.sin(angle) * burst - 0.4 - Math.random() * 0.8,
+          life: 0,
+          maxLife: 28 + Math.random() * 36,
+          size: 2.2 + Math.random() * 3.4,
+          spin: (Math.random() - 0.5) * 0.18,
+        });
+      }
+    };
 
     const tick = () => {
       if (!active) return;
@@ -641,6 +811,79 @@ export function App() {
       root.style.setProperty("--my", curY.toFixed(4));
       root.style.setProperty("--pox", `${50 + curX * 42}%`);
       root.style.setProperty("--poy", `${50 + curY * 42}%`);
+
+      const w = root.clientWidth;
+      const h = root.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      if (!reduceMotion && moving && Date.now() - lastMove < 80) {
+        // Soft fire core under the cursor tip
+        const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 14);
+        core.addColorStop(0, "rgba(255, 236, 170, 0.95)");
+        core.addColorStop(0.35, "rgba(255, 140, 48, 0.7)");
+        core.addColorStop(0.7, "rgba(196, 54, 24, 0.28)");
+        core.addColorStop(1, "rgba(40, 20, 10, 0)");
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(pointerX, pointerY, 14, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let i = embers.length - 1; i >= 0; i--) {
+        const e = embers[i];
+        e.life += 1;
+        e.x += e.vx;
+        e.y += e.vy;
+        e.vx += e.spin * 0.15;
+        e.vy -= 0.035;
+        e.vx *= 0.985;
+        e.size *= 1.012;
+
+        const t = e.life / e.maxLife;
+        if (t >= 1) {
+          embers.splice(i, 1);
+          continue;
+        }
+
+        // Fire (hot) → smoke (cool gray) over lifetime
+        let r: number;
+        let g: number;
+        let b: number;
+        let a: number;
+        if (t < 0.28) {
+          const u = t / 0.28;
+          r = 255;
+          g = 230 - u * 90;
+          b = 140 - u * 100;
+          a = 0.95 - u * 0.15;
+        } else if (t < 0.55) {
+          const u = (t - 0.28) / 0.27;
+          r = 255 - u * 90;
+          g = 140 - u * 90;
+          b = 40 + u * 40;
+          a = 0.8 - u * 0.25;
+        } else {
+          const u = (t - 0.55) / 0.45;
+          r = 165 - u * 55;
+          g = 150 - u * 40;
+          b = 140 - u * 25;
+          a = 0.45 * (1 - u);
+        }
+
+        const radius = e.size * (0.7 + t * 1.6);
+        const glow = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, radius);
+        glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
+        glow.addColorStop(0.45, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.45})`);
+        glow.addColorStop(1, `rgba(${r | 0}, ${g | 0}, ${b | 0}, 0)`);
+        ctx.globalCompositeOperation = t < 0.5 ? "lighter" : "source-over";
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+
+      if (Date.now() - lastMove > 120) moving = false;
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -650,26 +893,44 @@ export function App() {
       if (rect.width === 0 || rect.height === 0) return;
       targetX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       targetY = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+
+      pointerX = event.clientX - rect.left;
+      pointerY = event.clientY - rect.top;
+      const dx = pointerX - lastX;
+      const dy = pointerY - lastY;
+      const speed = Math.hypot(dx, dy);
+      lastX = pointerX;
+      lastY = pointerY;
+      lastMove = Date.now();
+      moving = true;
+
+      if (!reduceMotion && speed > 0.4) spawn(pointerX, pointerY, speed);
     };
 
     const onLeave = () => {
       targetX = 0;
       targetY = 0;
+      moving = false;
+      pointerX = -9999;
+      pointerY = -9999;
     };
 
     root.addEventListener("pointermove", onMove);
     root.addEventListener("pointerleave", onLeave);
+    window.addEventListener("resize", resize);
 
     return () => {
       active = false;
       cancelAnimationFrame(raf);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
   return (
     <main className="snuff" ref={rootRef}>
+      <canvas className="snuff__trail" ref={trailRef} aria-hidden="true" />
       <div className="snuff__field">
         {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);

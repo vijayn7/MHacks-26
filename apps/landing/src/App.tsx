@@ -461,7 +461,7 @@ function PausePopup({ site }: { site: string }) {
         <p className="tile__block-headline">You’re about to make an impulse purchase.</p>
 
         <div className="tile__block-choices">
-          <div className="tile__choice tile__choice--lead">
+          <div className="tile__choice tile__choice--lead" role="button">
             <span className="tile__choice-score">+30</span>
             <span className="tile__choice-title">
               Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
@@ -470,13 +470,13 @@ function PausePopup({ site }: { site: string }) {
           </div>
 
           <div className="tile__choice-pair">
-            <div className="tile__choice">
+            <div className="tile__choice" role="button">
               <span className="tile__choice-title">
                 Ask Maya <span className="tile__choice-hint">(Texts a trusted friend)</span>
               </span>
               <span className="tile__choice-sub">They’ll know best.</span>
             </div>
-            <div className="tile__choice">
+            <div className="tile__choice" role="button">
               <span className="tile__choice-title">
                 Save for later <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
               </span>
@@ -485,7 +485,7 @@ function PausePopup({ site }: { site: string }) {
           </div>
         </div>
 
-        <div className="tile__block-continue">
+        <div className="tile__block-continue" role="button">
           <span className="tile__block-continue-label">Continue</span>
           <span className="tile__choice-sub">Are you sure?</span>
         </div>

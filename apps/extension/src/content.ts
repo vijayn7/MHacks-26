@@ -1,8 +1,13 @@
 import { shouldPause } from "./checkout-analyzer";
 import { DbConnection, tables, type SubscriptionHandle } from "./module_bindings";
 
-const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
-let rule = { id: fallback.id, minAmount: fallback.minAmount, pauseMinutes: fallback.pauseMinutes };
+const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15, enabled: true };
+let rule = {
+  id: fallback.id,
+  minAmount: fallback.minAmount,
+  pauseMinutes: fallback.pauseMinutes,
+  enabled: fallback.enabled,
+};
 
 function pauseCopy() {
   return `Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.`;
@@ -96,11 +101,22 @@ async function loadRule() {
   try {
     const res = await fetch("http://localhost:8787/rules/active");
     if (!res.ok) return;
-    const data = (await res.json()) as { id?: unknown; minAmount?: unknown; pauseMinutes?: unknown };
+    const data = (await res.json()) as {
+      id?: unknown;
+      minAmount?: unknown;
+      pauseMinutes?: unknown;
+      enabled?: unknown;
+    };
     if (typeof data.id !== "string" || data.id.length === 0) return;
     if (typeof data.minAmount !== "number" || !Number.isFinite(data.minAmount)) return;
     if (typeof data.pauseMinutes !== "number" || !Number.isFinite(data.pauseMinutes)) return;
-    rule = { id: data.id, minAmount: data.minAmount, pauseMinutes: data.pauseMinutes };
+    rule = {
+      id: data.id,
+      minAmount: data.minAmount,
+      pauseMinutes: data.pauseMinutes,
+      // Missing enabled keeps the old always-on behavior; only an explicit false skips pauses.
+      enabled: data.enabled !== false,
+    };
     copyEl.textContent = pauseCopy();
   } catch {
     // Keep the hardcoded seed when the API or database is unavailable.
@@ -310,6 +326,7 @@ function visibleLines(text: string): string[] {
 }
 
 function isBuyPage(): boolean {
+  if (!rule.enabled) return false;
   return shouldPause(visibleLines(document.body?.innerText ?? ""), markedTotal(), rule.minAmount);
 }
 

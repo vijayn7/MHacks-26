@@ -39,6 +39,8 @@ export function domainName(input: string): string | null {
     const url = new URL(input.includes('://') ? input.trim() : 'https://' + input.trim());
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
     const domain = url.hostname.toLowerCase().replace(/^www\./, '');
+    // Demo storefront is http://localhost:5173; treat localhost as a valid domain.
+    if (domain === 'localhost') return domain;
     return /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain) ? domain : null;
   } catch {
     return null;

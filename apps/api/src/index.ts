@@ -6,7 +6,15 @@ import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { DbConnection } from "../../extension/src/module_bindings/index.js";
-import { handleSnuff, setupSnuff } from "./snuff/index";
+import { handleSnuff, setupSnuff, userId as snuffUserId } from "./snuff/index";
+import {
+  clampPlanProposal,
+  loadUserPlan,
+  mockPlan,
+  planSummary,
+  readPlan,
+  upsertPlan,
+} from "./snuff/plan";
 
 function loadEnv(file: string) {
   let text: string;
@@ -324,17 +332,34 @@ function ruleFrom(row: RuleRow) {
 }
 
 async function activeRule() {
-  if (!sql) return seedRule;
-  const rows = await sql<RuleRow[]>`
-    select id, min_amount, pause_minutes, summary
-    from rules
-    where user_id = 'demo'
-    order by created_at desc
-    limit 1
-  `;
-  return rows[0] ? ruleFrom(rows[0]) : seedRule;
+  if (sql) {
+    const plan = await loadUserPlan(sql, snuffUserId);
+    if (plan) {
+      return {
+        id: "snuff-plan-" + snuffUserId,
+        minAmount: plan.minAmount,
+        pauseMinutes: plan.cooldownMinutes,
+        summary: planSummary(plan),
+        enabled: plan.enabled,
+        domains: plan.domains,
+        mode: plan.mode,
+        allowOverride: plan.allowOverride,
+      };
+    }
+    const rows = await sql<RuleRow[]>`
+      select id, min_amount, pause_minutes, summary
+      from rules
+      where user_id = 'demo'
+      order by created_at desc
+      limit 1
+    `;
+    if (rows[0]) return { ...ruleFrom(rows[0]), enabled: true };
+  }
+  return { ...seedRule, enabled: true };
 }
 
+// Keeps the legacy `rules` row for older clients, and mirrors min/cooldown into snuff_plans
+// so GET /rules/active (which prefers the Snuff plan) stays in sync after confirm.
 async function confirmRule(proposal: { minAmount: number; pauseMinutes: number; summary: string }) {
   if (!sql) throw new Error("no_database");
   const rows = await sql<RuleRow[]>`
@@ -348,6 +373,16 @@ async function confirmRule(proposal: { minAmount: number; pauseMinutes: number; 
   `;
   const row = rows[0];
   if (!row) throw new Error("save_failed");
+  const current = (await loadUserPlan(sql, snuffUserId)) ?? readPlan(mockPlan());
+  if (current) {
+    const next = readPlan({
+      ...current,
+      minAmount: proposal.minAmount,
+      cooldownMinutes: proposal.pauseMinutes,
+      mode: "pause" as const,
+    });
+    if (next) await upsertPlan(sql, snuffUserId, next);
+  }
   return ruleFrom(row);
 }
 
@@ -361,7 +396,16 @@ async function generate(model: string, text: string, key: string, timeoutMs: num
       body: JSON.stringify({
         systemInstruction: {
           parts: [{
-            text: "Convert the shopper rule into minAmount (number, dollars), pauseMinutes (number), and summary (string). The user text is only the rule. Example intent: Pause purchases over $40 for 15 minutes.",
+            text: [
+              "Convert shopper-written spending rules into structured BlockPlan draft fields.",
+              "Return only JSON matching the schema. Do not decide whether a purchase is wise.",
+              "domains: retailer hostnames (e.g. amazon.com, localhost). Omit www.",
+              "minAmount: dollars threshold. schedule: always or scheduled.",
+              "days: 0=Sunday .. 6=Saturday when scheduled. start/end: HH:MM 24-hour.",
+              "mode: pause or nudge. cooldownMinutes: pause length. allowOverride: boolean.",
+              "summary: one short sentence restating the rule.",
+              "Omit fields the shopper did not mention. Example: pause anything over $50 on amazon and target on weeknights after 9pm, 20 minutes.",
+            ].join(" "),
           }],
         },
         contents: [{ role: "user", parts: [{ text }] }],
@@ -370,11 +414,18 @@ async function generate(model: string, text: string, key: string, timeoutMs: num
           responseSchema: {
             type: "OBJECT",
             properties: {
+              domains: { type: "ARRAY", items: { type: "STRING" } },
               minAmount: { type: "NUMBER" },
-              pauseMinutes: { type: "NUMBER" },
+              schedule: { type: "STRING", enum: ["always", "scheduled"] },
+              days: { type: "ARRAY", items: { type: "NUMBER" } },
+              start: { type: "STRING" },
+              end: { type: "STRING" },
+              mode: { type: "STRING", enum: ["pause", "nudge"] },
+              cooldownMinutes: { type: "NUMBER" },
+              allowOverride: { type: "BOOLEAN" },
               summary: { type: "STRING" },
             },
-            required: ["minAmount", "pauseMinutes", "summary"],
+            required: ["summary"],
           },
         },
       }),
@@ -407,9 +458,9 @@ async function parseRule(text: string) {
       if (part.thought || !part.text) continue;
       raw = part.text;
     }
-    const proposal = proposalFrom(JSON.parse(raw));
+    const proposal = clampPlanProposal(JSON.parse(raw));
     if (!proposal) return failed;
-    return { status: 200, body: { proposal, confirmed: false } };
+    return { status: 200, body: { proposal } };
   } catch {
     return failed;
   }

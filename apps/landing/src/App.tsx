@@ -666,10 +666,10 @@ export function App() {
     let idleAccum = 0;
     const ribbon: RibbonPoint[] = [];
     const smoke: SmokePuff[] = [];
-    const MAX_POINTS = 180;
+    const MAX_POINTS = 120;
     const MAX_SMOKE = 160;
-    const MAX_AGE = 55;
-    const STEP = 2.8;
+    const MAX_AGE = 50;
+    const STEP = 5.5;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -685,29 +685,29 @@ export function App() {
 
     const pushPoint = (x: number, y: number, nx = 0, ny = -1) => {
       // Lateral spread so the flame has body, not a thin laser
-      const spread = (Math.random() - 0.5) * 28;
+      const side = (Math.random() - 0.5) * 42;
       ribbon.push({
-        x: x + nx * spread + (Math.random() - 0.5) * 10,
-        y: y + ny * spread + (Math.random() - 0.5) * 8,
+        x: x + nx * side + (Math.random() - 0.5) * 14,
+        y: y + ny * side + (Math.random() - 0.5) * 12,
         age: 0,
-        wobble: (Math.random() - 0.5) * 3.6,
-        spread: 16 + Math.random() * 26,
+        wobble: (Math.random() - 0.5) * 4.5,
+        spread: 22 + Math.random() * 34,
       });
       while (ribbon.length > MAX_POINTS) ribbon.shift();
     };
 
     const emitSmoke = (x: number, y: number, strength = 1) => {
-      const n = 1 + Math.floor(Math.random() * 2 * strength);
+      const n = 2 + Math.floor(Math.random() * 3 * strength);
       for (let k = 0; k < n; k++) {
         if (smoke.length >= MAX_SMOKE) smoke.shift();
         smoke.push({
-          x: x + (Math.random() - 0.5) * 22,
-          y: y + (Math.random() - 0.5) * 12,
-          vx: (Math.random() - 0.5) * 1.4,
-          vy: -1.0 - Math.random() * 1.6 * strength,
+          x: x + (Math.random() - 0.5) * 28,
+          y: y + (Math.random() - 0.5) * 16,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: -1.2 - Math.random() * 1.8 * strength,
           age: 0,
-          maxAge: 70 + Math.random() * 55,
-          size: 28 + Math.random() * 40,
+          maxAge: 80 + Math.random() * 60,
+          size: 36 + Math.random() * 48,
         });
       }
     };
@@ -731,15 +731,14 @@ export function App() {
       for (let i = 1; i <= steps; i++) {
         const t = i / steps;
         pushPoint(x0 + dx * t, y0 + dy * t, nx, ny);
-        // Extra side ember for volume
-        if (i % 2 === 0) {
-          pushPoint(
-            x0 + dx * t + nx * (6 + Math.random() * 10) * (Math.random() < 0.5 ? -1 : 1),
-            y0 + dy * t + ny * (6 + Math.random() * 10) * (Math.random() < 0.5 ? -1 : 1),
-            nx,
-            ny,
-          );
-        }
+        // Extra side embers for flame volume
+        pushPoint(
+          x0 + dx * t + nx * (10 + Math.random() * 16) * (Math.random() < 0.5 ? -1 : 1),
+          y0 + dy * t + ny * (10 + Math.random() * 16) * (Math.random() < 0.5 ? -1 : 1),
+          nx,
+          ny,
+        );
+        if (i % 3 === 0) emitSmoke(x0 + dx * t, y0 + dy * t - 4, 0.8);
       }
     };
 
@@ -831,36 +830,39 @@ export function App() {
       }
 
       if (!reduceMotion) {
-        // Smoke first (behind flame), soft gray haze — kept visible on dark bg
+        // Smoke — bright ash haze so it reads on the dark page
         ctx.globalCompositeOperation = "source-over";
         for (const s of smoke) {
           const t = s.age / s.maxAge;
           const fade = 1 - t;
-          const a = 0.55 * fade;
-          const gray = 190 - t * 30;
-          const radius = s.size * (1 + t * 2);
+          const a = 0.72 * fade;
+          const radius = s.size * (1.1 + t * 2.2);
+          // Warm near birth → cool gray as it rises
+          const r = Math.round(210 - t * 40);
+          const g = Math.round(200 - t * 25);
+          const b = Math.round(190 - t * 10);
           const puff = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
-          puff.addColorStop(0, `rgba(${gray}, ${gray - 8}, ${gray - 14}, ${a})`);
-          puff.addColorStop(0.35, `rgba(${gray - 40}, ${gray - 42}, ${gray - 48}, ${a * 0.55})`);
-          puff.addColorStop(1, `rgba(70, 68, 64, 0)`);
+          puff.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
+          puff.addColorStop(0.35, `rgba(${r - 30}, ${g - 28}, ${b - 20}, ${a * 0.45})`);
+          puff.addColorStop(1, `rgba(120, 118, 115, 0)`);
           ctx.fillStyle = puff;
           ctx.beginPath();
           ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        // Wide irregular fire body — deeper orange/red, less white
+        // Jagged fire clumps (not a continuous neon stroke)
         ctx.globalCompositeOperation = "lighter";
         for (const p of ribbon) {
           const t = p.age / MAX_AGE;
           const { r, g, b, a } = fireColor(t);
-          const radius = p.spread * (1.2 + t * 1.3);
+          const radius = p.spread * (1.05 + t * 1.1);
 
           const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
           glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
-          glow.addColorStop(0.28, `rgba(${r | 0}, ${(g * 0.55) | 0}, ${(b * 0.25) | 0}, ${a * 0.65})`);
-          glow.addColorStop(0.6, `rgba(210, 40, 8, ${a * 0.3})`);
-          glow.addColorStop(1, "rgba(40, 8, 0, 0)");
+          glow.addColorStop(0.25, `rgba(${r | 0}, ${(g * 0.5) | 0}, ${(b * 0.2) | 0}, ${a * 0.7})`);
+          glow.addColorStop(0.55, `rgba(200, 35, 5, ${a * 0.35})`);
+          glow.addColorStop(1, "rgba(30, 5, 0, 0)");
           ctx.fillStyle = glow;
           ctx.beginPath();
           ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);

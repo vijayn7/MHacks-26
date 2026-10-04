@@ -26,6 +26,7 @@ export function SavingsChart() {
   const { level } = useCompanion();
   const p = level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
   const now = useNow(60000);
+  const [touching, setTouching] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const data = useMemo(() => {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -60,7 +61,7 @@ export function SavingsChart() {
   );
   return (
     <View testID="savings-chart" style={{ height: 166 }}>
-      <Svg width="100%" height={140} viewBox="0 0 318 140">
+      <Svg width="100%" height={140} viewBox="0 0 318 140" style={{ overflow: 'visible' }}>
         <Defs>
           <LinearGradient id={barsId} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={p.body} stopOpacity=".32" />
@@ -94,16 +95,28 @@ export function SavingsChart() {
         ))}
         <Line x1="0" x2="318" y1="137" y2="137" stroke={p.body} strokeOpacity=".08" />
         <Path d={line} fill="none" stroke={p.body} strokeOpacity=".8" strokeWidth="1.5" />
-        {[...new Set([1, 3, 5, ...(selected === null ? [] : [selected])])].map((i) => (
+        {[
+          ...new Set([
+            1,
+            3,
+            5,
+            ...(selected === null ? [] : [selected]),
+            ...(touching === null ? [] : [touching]),
+          ]),
+        ].map((i) => (
           <G key={i}>
+            {touching === i && (
+              <>
+                <Circle cx={points[i].x} cy={points[i].y} r={45} fill={`url(#${orbId})`} />
+                <Circle cx={points[i].x} cy={points[i].y} r={6} fill={p.mid} />
+              </>
+            )}
             <Circle
               cx={points[i].x}
               cy={points[i].y}
-              r={selected === i ? 19 : 15}
-              fill={`url(#${orbId})`}
+              r={2.5}
+              fill={touching === i ? p.core : '#FFFFFF'}
             />
-            <Circle cx={points[i].x} cy={points[i].y} r={4.5} fill={p.body} opacity={0.65} />
-            <Circle cx={points[i].x} cy={points[i].y} r={2.5} fill={p.core} />
           </G>
         ))}
       </Svg>
@@ -125,6 +138,9 @@ export function SavingsChart() {
               ' savings'
             }
             key={i}
+            onPressIn={() => setTouching(i)}
+            onPressOut={() => setTouching(null)}
+            onBlur={() => setTouching(null)}
             onPress={() => setSelected(i)}
             style={{ flex: 1 }}
           />

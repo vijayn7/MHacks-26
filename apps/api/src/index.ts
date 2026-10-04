@@ -444,6 +444,166 @@ async function parseRule(text: string) {
   }
 }
 
+const nessieBase = "https://api.nessieisreal.com";
+type NessieIds = { accountId: string; merchantId: string };
+let nessieIds: NessieIds | null = null;
+
+function nessieKey() {
+  return process.env.NESSIE_API_KEY?.trim() ?? "";
+}
+
+function nessieUrl(path: string) {
+  const url = new URL(path, nessieBase);
+  url.searchParams.set("key", nessieKey());
+  return url;
+}
+
+async function nessie(path: string, init?: { method?: string; body?: unknown }) {
+  const res = await fetch(nessieUrl(path), {
+    method: init?.method ?? "GET",
+    headers: init?.body === undefined ? undefined : { "content-type": "application/json" },
+    body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+  });
+  const text = await res.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+  }
+  return { ok: res.ok, status: res.status, data };
+}
+
+function createdId(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const id = (data as { objectCreated?: { _id?: unknown } }).objectCreated?._id;
+  return typeof id === "string" && id.length > 0 ? id : null;
+}
+
+function rows(data: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(data)) return [];
+  return data.filter((row): row is Record<string, unknown> => !!row && typeof row === "object");
+}
+
+function purchaseInput(body: unknown): { name: string; amount: number } | null {
+  if (!body || typeof body !== "object") return null;
+  const { name, amount } = body as Record<string, unknown>;
+  if (typeof name !== "string" || name.trim().length === 0 || name.length > 180) return null;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) return null;
+  return { name, amount };
+}
+
+async function ensureNessie(): Promise<NessieIds> {
+  if (nessieIds) return nessieIds;
+  const accountOverride = process.env.NESSIE_ACCOUNT_ID?.trim() ?? "";
+  const merchantOverride = process.env.NESSIE_MERCHANT_ID?.trim() ?? "";
+  let accountId = accountOverride;
+  if (!accountId) {
+    const customers = await nessie("/customers");
+    if (!customers.ok) throw new Error("customers");
+    let customerId = "";
+    for (const row of rows(customers.data)) {
+      if (row.first_name === "Demo" && row.last_name === "Shopper" && typeof row._id === "string") {
+        customerId = row._id;
+        break;
+      }
+    }
+    if (!customerId) {
+      const created = await nessie("/customers", {
+        method: "POST",
+        body: {
+          first_name: "Demo",
+          last_name: "Shopper",
+          address: {
+            street_number: "1600",
+            street_name: "Pennsylvania Ave NW",
+            city: "Washington",
+            state: "DC",
+            zip: "20500",
+          },
+        },
+      });
+      customerId = createdId(created.data) ?? "";
+      if (!customerId) throw new Error("customer");
+    }
+    const accounts = await nessie(`/customers/${customerId}/accounts`);
+    if (!accounts.ok) throw new Error("accounts");
+    for (const row of rows(accounts.data)) {
+      if (row.type === "Checking" && row.nickname === "SecondThought Demo" && typeof row._id === "string") {
+        accountId = row._id;
+        break;
+      }
+    }
+    if (!accountId) {
+      const created = await nessie(`/customers/${customerId}/accounts`, {
+        method: "POST",
+        body: { type: "Checking", nickname: "SecondThought Demo", rewards: 0, balance: 500 },
+      });
+      accountId = createdId(created.data) ?? "";
+      if (!accountId) throw new Error("account");
+    }
+  }
+  let merchantId = merchantOverride;
+  if (!merchantId) {
+    const merchants = await nessie("/merchants");
+    if (!merchants.ok) throw new Error("merchants");
+    for (const row of rows(merchants.data)) {
+      if (row.name === "Optimum Nutrition" && typeof row._id === "string") {
+        merchantId = row._id;
+        break;
+      }
+    }
+    if (!merchantId) {
+      // Nessie rejects category as an array and expects a string.
+      const created = await nessie("/merchants", {
+        method: "POST",
+        body: {
+          name: "Optimum Nutrition",
+          category: "Health",
+          address: {
+            street_number: "3500",
+            street_name: "Lacey Rd",
+            city: "Downers Grove",
+            state: "IL",
+            zip: "60515",
+          },
+          geocode: { lat: 41.808, lng: -88.011 },
+        },
+      });
+      merchantId = createdId(created.data) ?? "";
+      if (!merchantId) throw new Error("merchant");
+    }
+  }
+  nessieIds = { accountId, merchantId };
+  return nessieIds;
+}
+
+async function recordPurchase(name: string, amount: number) {
+  const { accountId, merchantId } = await ensureNessie();
+  const created = await nessie(`/accounts/${accountId}/purchases`, {
+    method: "POST",
+    body: {
+      merchant_id: merchantId,
+      medium: "balance",
+      purchase_date: new Date().toISOString().slice(0, 10),
+      amount,
+      status: "pending",
+      description: name,
+    },
+  });
+  const purchaseId = createdId(created.data);
+  if (!created.ok || !purchaseId) throw new Error("purchase_failed");
+  const account = await nessie(`/accounts/${accountId}`);
+  const balance =
+    account.data && typeof account.data === "object"
+      ? (account.data as { balance?: unknown }).balance
+      : undefined;
+  if (!account.ok || typeof balance !== "number" || !Number.isFinite(balance)) throw new Error("purchase_failed");
+  return { purchaseId, balance, amount, name };
+}
+
 await ensureDb();
 startSpacetime();
 
@@ -669,6 +829,32 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       values (${id}, 'demo', ${typeof ruleId === "string" ? ruleId : null}, ${name}, ${amount})
       on conflict (id) do nothing`;
     send(res, 200, { id, ruleId: typeof ruleId === "string" ? ruleId : null, name, amount });
+    return;
+  }
+  if (req.method === "POST" && path === "/purchase") {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    const input = purchaseInput(body);
+    if (!input) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!nessieKey()) {
+      send(res, 503, { error: "missing_key" });
+      return;
+    }
+    try {
+      send(res, 200, await recordPurchase(input.name, input.amount));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "purchase_failed";
+      console.error("[nessie]", message.split(nessieKey()).join("[redacted]").slice(0, 300));
+      send(res, 502, { error: "purchase_failed" });
+    }
     return;
   }
   send(res, 404);

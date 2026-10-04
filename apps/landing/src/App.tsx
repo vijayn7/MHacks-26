@@ -543,20 +543,20 @@ function FlameCursor() {
         <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" />
         <path d={FLAME_SILHOUETTE} fill="url(#cursor-core)" />
       </g>
-      {/* awake eyes — same absolute coords as app Mascot (outside body transform) */}
+      {/* awake eyes — slightly larger than app so they read at cursor scale */}
       <ellipse
         cx="111.2"
         cy="165.24"
-        rx="4.14"
-        ry="6.9"
+        rx="5.6"
+        ry="9.2"
         fill="#3A0F02"
         transform="rotate(22 111.2 165.24)"
       />
       <ellipse
         cx="145.24"
         cy="163.4"
-        rx="4.14"
-        ry="6.9"
+        rx="5.6"
+        ry="9.2"
         fill="#3A0F02"
         transform="rotate(22 145.24 163.4)"
       />

@@ -112,12 +112,12 @@ button {
   top: 0;
   left: 0;
   z-index: 13;
-  width: 3.15rem;
-  height: 3.55rem;
+  width: 3.6rem;
+  height: 4.05rem;
   opacity: 0;
   pointer-events: none;
   will-change: transform, opacity;
-  filter: drop-shadow(0 0 12px rgb(245 165 36 / 0.5));
+  filter: drop-shadow(0 0 14px rgb(245 165 36 / 0.55));
   transition: opacity 120ms ease;
 }
 

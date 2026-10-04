@@ -9,6 +9,8 @@ type Tile = {
   layer: Layer;
   /** Fully on-screen front windows that reveal the pause popup on hover */
   interactive?: boolean;
+  /** Parallax intensity within the layer (default 1) */
+  drift?: number;
   style: CSSProperties;
 };
 
@@ -23,6 +25,7 @@ const tiles: Tile[] = [
     src: "/sites/amazon.jpg",
     alt: "Amazon",
     layer: "far",
+    drift: 0.7,
     style: { top: "-12%", left: "-14%", width: "42%", aspectRatio: "16 / 10" },
   },
   {
@@ -30,6 +33,7 @@ const tiles: Tile[] = [
     src: "/sites/asos.jpg",
     alt: "ASOS",
     layer: "far",
+    drift: 1.15,
     style: { top: "-14%", right: "-16%", width: "44%", aspectRatio: "16 / 10" },
   },
   {
@@ -37,6 +41,7 @@ const tiles: Tile[] = [
     src: "/sites/polymarket.jpg",
     alt: "Polymarket",
     layer: "far",
+    drift: 0.85,
     style: { bottom: "-16%", left: "-15%", width: "46%", aspectRatio: "16 / 10" },
   },
   {
@@ -44,6 +49,7 @@ const tiles: Tile[] = [
     src: "/sites/shein.jpg",
     alt: "SHEIN",
     layer: "far",
+    drift: 1.25,
     style: { bottom: "-14%", right: "-17%", width: "45%", aspectRatio: "16 / 10" },
   },
   {
@@ -51,6 +57,7 @@ const tiles: Tile[] = [
     src: "/sites/nike.jpg",
     alt: "Nike",
     layer: "far",
+    drift: 0.95,
     style: { top: "22%", left: "-14%", width: "36%", aspectRatio: "16 / 10" },
   },
   {
@@ -58,6 +65,7 @@ const tiles: Tile[] = [
     src: "/sites/edikted.jpg",
     alt: "Edikted",
     layer: "far",
+    drift: 1.1,
     style: { top: "26%", right: "-15%", width: "37%", aspectRatio: "16 / 10" },
   },
   {
@@ -65,6 +73,7 @@ const tiles: Tile[] = [
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy",
     layer: "far",
+    drift: 0.75,
     style: {
       top: "54%",
       left: "-12%",
@@ -78,6 +87,7 @@ const tiles: Tile[] = [
     src: "/sites/homedepot.jpg",
     alt: "Home Depot",
     layer: "far",
+    drift: 1.2,
     style: {
       top: "58%",
       right: "-12%",
@@ -87,37 +97,41 @@ const tiles: Tile[] = [
     },
   },
 
-  // Mid field behind / around the brand — fills the empty ring
+  // Sparse mid accents around the brand — staggered gaps, not packed
   {
     id: "c1",
     src: "/sites/walmart.jpg",
     alt: "Walmart",
     layer: "mid",
-    style: { top: "18%", left: "28%", width: "18%", aspectRatio: "16 / 10" },
+    drift: 0.8,
+    style: { top: "14%", left: "26%", width: "15%", aspectRatio: "16 / 10" },
   },
   {
     id: "c2",
     src: "/sites/costco.jpg",
     alt: "Costco",
     layer: "mid",
-    style: { top: "16%", right: "26%", width: "19%", aspectRatio: "16 / 10" },
+    drift: 1.2,
+    style: { top: "22%", right: "24%", width: "17%", aspectRatio: "16 / 10" },
   },
   {
     id: "c3",
     src: "/sites/zalando.jpg",
     alt: "Zalando",
-    layer: "mid",
-    style: { top: "34%", left: "22%", width: "16%", aspectRatio: "16 / 10" },
+    layer: "far",
+    drift: 0.9,
+    style: { top: "38%", left: "30%", width: "13%", aspectRatio: "16 / 10" },
   },
   {
     id: "c4",
     src: "/sites/asos.jpg",
     alt: "ASOS sale",
     layer: "mid",
+    drift: 1.15,
     style: {
-      top: "32%",
-      right: "20%",
-      width: "17%",
+      top: "44%",
+      right: "28%",
+      width: "15%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
@@ -126,11 +140,12 @@ const tiles: Tile[] = [
     id: "c5",
     src: "/sites/shein.jpg",
     alt: "SHEIN browse",
-    layer: "mid",
+    layer: "far",
+    drift: 0.7,
     style: {
-      top: "48%",
-      left: "30%",
-      width: "16%",
+      top: "8%",
+      left: "44%",
+      width: "12%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -140,9 +155,10 @@ const tiles: Tile[] = [
     src: "/sites/edikted.jpg",
     alt: "Edikted look",
     layer: "mid",
+    drift: 1.3,
     style: {
-      top: "50%",
-      right: "28%",
+      bottom: "16%",
+      left: "38%",
       width: "16%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right top",
@@ -153,45 +169,21 @@ const tiles: Tile[] = [
     src: "/sites/etsy.jpg",
     alt: "Etsy",
     layer: "far",
-    style: { top: "8%", left: "38%", width: "15%", aspectRatio: "16 / 10" },
+    drift: 1.05,
+    style: { top: "52%", left: "22%", width: "14%", aspectRatio: "16 / 10" },
   },
   {
     id: "c8",
     src: "/sites/polymarket.jpg",
     alt: "Polymarket markets",
-    layer: "far",
-    style: {
-      bottom: "14%",
-      left: "36%",
-      width: "17%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
-    id: "c9",
-    src: "/sites/homedepot.jpg",
-    alt: "Home Depot near",
     layer: "mid",
+    drift: 0.85,
     style: {
-      top: "28%",
-      left: "40%",
-      width: "14%",
+      top: "30%",
+      right: "34%",
+      width: "12%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
-    },
-  },
-  {
-    id: "c10",
-    src: "/sites/bestbuy.jpg",
-    alt: "Best Buy mid",
-    layer: "far",
-    style: {
-      top: "44%",
-      left: "42%",
-      width: "13%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center center",
     },
   },
 
@@ -202,6 +194,7 @@ const tiles: Tile[] = [
     alt: "Princess Polly",
     layer: "near",
     interactive: true,
+    drift: 0.85,
     style: { top: "8%", left: "3%", width: "24%", aspectRatio: "16 / 10" },
   },
   {
@@ -210,6 +203,7 @@ const tiles: Tile[] = [
     alt: "eBay",
     layer: "near",
     interactive: true,
+    drift: 1.15,
     style: { top: "7%", right: "3%", width: "24%", aspectRatio: "16 / 10" },
   },
   {
@@ -218,6 +212,7 @@ const tiles: Tile[] = [
     alt: "Nike store",
     layer: "near",
     interactive: true,
+    drift: 1.0,
     style: {
       top: "36%",
       left: "2%",
@@ -232,6 +227,7 @@ const tiles: Tile[] = [
     alt: "Amazon deals",
     layer: "near",
     interactive: true,
+    drift: 1.2,
     style: {
       top: "38%",
       right: "2%",
@@ -246,6 +242,7 @@ const tiles: Tile[] = [
     alt: "Best Buy deals",
     layer: "near",
     interactive: true,
+    drift: 0.9,
     style: {
       bottom: "5%",
       left: "14%",
@@ -260,6 +257,7 @@ const tiles: Tile[] = [
     alt: "Etsy gifts",
     layer: "near",
     interactive: true,
+    drift: 1.1,
     style: {
       bottom: "5%",
       right: "12%",
@@ -339,12 +337,12 @@ export function App() {
 
     const tick = () => {
       if (!active) return;
-      curX += (targetX - curX) * 0.09;
-      curY += (targetY - curY) * 0.09;
+      curX += (targetX - curX) * 0.07;
+      curY += (targetY - curY) * 0.07;
       root.style.setProperty("--mx", curX.toFixed(4));
       root.style.setProperty("--my", curY.toFixed(4));
-      root.style.setProperty("--pox", `${50 + curX * 32}%`);
-      root.style.setProperty("--poy", `${50 + curY * 32}%`);
+      root.style.setProperty("--pox", `${50 + curX * 42}%`);
+      root.style.setProperty("--poy", `${50 + curY * 42}%`);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -390,7 +388,12 @@ export function App() {
               ]
                 .filter(Boolean)
                 .join(" ")}
-              style={tile.style}
+              style={
+                {
+                  ...tile.style,
+                  ["--drift" as string]: String(tile.drift ?? 1),
+                } as CSSProperties
+              }
               aria-hidden={interactive ? undefined : true}
               onPointerEnter={interactive ? () => setActiveId(tile.id) : undefined}
               onPointerLeave={

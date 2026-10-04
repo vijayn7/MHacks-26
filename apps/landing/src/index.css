@@ -55,6 +55,8 @@ button {
   width: 100%;
   height: 100svh;
   overflow: hidden;
+  perspective: 1100px;
+  perspective-origin: var(--pox) var(--poy);
   background:
     radial-gradient(70% 55% at 50% 45%, #2a221c 0%, transparent 62%),
     var(--bg);
@@ -66,13 +68,9 @@ button {
   z-index: 1;
   pointer-events: none;
   overflow: visible;
-  perspective: 1600px;
-  perspective-origin: var(--pox) var(--poy);
+  /* Do not rotate the field as one plate — depth comes from per-tile planes */
+  transform: none;
   transform-style: preserve-3d;
-  transform:
-    rotateX(calc(var(--my) * -10deg))
-    rotateY(calc(var(--mx) * 14deg));
-  will-change: transform, perspective-origin;
 }
 
 .tile {
@@ -84,6 +82,8 @@ button {
   transform-origin: center center;
   transform-style: preserve-3d;
   will-change: transform;
+  /* Per-tile drift multiplier for uneven planes within a layer */
+  --drift: 1;
 }
 
 .tile--far {
@@ -91,27 +91,29 @@ button {
   opacity: 1;
   filter: saturate(0.75) brightness(0.38);
   box-shadow: 0 10px 28px rgb(0 0 0 / 0.45);
+  /* Far plane drifts with the cursor (slow), deep in Z */
   transform:
     translate3d(
-      calc(var(--mx) * -12px),
-      calc(var(--my) * -8px),
-      -200px
+      calc(var(--mx) * 56px * var(--drift)),
+      calc(var(--my) * 40px * var(--drift)),
+      -520px
     )
-    scale(0.88);
+    scale(0.78);
 }
 
 .tile--mid {
   z-index: 2;
   opacity: 1;
-  filter: saturate(0.88) brightness(0.52);
+  filter: saturate(0.9) brightness(0.58);
   box-shadow: 0 16px 36px rgb(0 0 0 / 0.48);
+  /* Mid plane barely tracks, sits between far and near */
   transform:
     translate3d(
-      calc(var(--mx) * -28px),
-      calc(var(--my) * -20px),
-      -60px
+      calc(var(--mx) * -18px * var(--drift)),
+      calc(var(--my) * -12px * var(--drift)),
+      -180px
     )
-    scale(0.96);
+    scale(0.92);
 }
 
 .tile--near {
@@ -121,13 +123,14 @@ button {
   box-shadow:
     0 26px 56px rgb(0 0 0 / 0.55),
     0 0 0 1px rgb(255 255 255 / 0.05);
+  /* Near plane counter-moves hard — closest to camera */
   transform:
     translate3d(
-      calc(var(--mx) * -48px),
-      calc(var(--my) * -36px),
-      40px
+      calc(var(--mx) * -120px * var(--drift)),
+      calc(var(--my) * -88px * var(--drift)),
+      90px
     )
-    scale(1.02);
+    scale(1.04);
 }
 
 .tile--interactive {
@@ -135,14 +138,13 @@ button {
   pointer-events: auto;
   cursor: pointer;
   filter: none;
-  /* Keep fully on-screen: milder parallax, no scale-up */
   transform:
     translate3d(
-      calc(var(--mx) * -22px),
-      calc(var(--my) * -16px),
-      48px
+      calc(var(--mx) * -150px * var(--drift)),
+      calc(var(--my) * -110px * var(--drift)),
+      170px
     )
-    scale(1);
+    scale(1.02);
 }
 
 .tile--interactive:focus-within,
@@ -248,11 +250,11 @@ button {
   pointer-events: none;
   /* Tight vignette so mid windows read behind the brand */
   background: radial-gradient(
-    ellipse 36% 28% at 50% 48%,
-    rgb(26 20 16 / 0.97) 0%,
-    rgb(26 20 16 / 0.78) 40%,
-    rgb(26 20 16 / 0.28) 68%,
-    transparent 82%
+    ellipse 30% 22% at 50% 48%,
+    rgb(26 20 16 / 0.96) 0%,
+    rgb(26 20 16 / 0.7) 38%,
+    rgb(26 20 16 / 0.2) 62%,
+    transparent 78%
   );
 }
 
@@ -336,8 +338,8 @@ button {
     width: 56% !important;
   }
 
-  .snuff__field {
-    transform: none;
+  .snuff {
+    perspective: none;
   }
 
   .tile--far,
@@ -367,8 +369,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .snuff__field {
-    transform: none;
+  .snuff {
+    perspective: none;
   }
 
   .tile--far,

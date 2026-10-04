@@ -17,7 +17,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.snuff.mobile"
+      "package": "com.snuff.mobile",
+      "blockedPermissions": ["android.permission.WRITE_CONTACTS"]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -42,6 +43,12 @@
           "color": "#FFD66B",
           "defaultChannel": "quiet",
           "icon": "./assets/notification-icon.png"
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Snuff to show your contacts so you can choose friends to add. Only selected contacts are saved on this device."
         }
       ]
     ],

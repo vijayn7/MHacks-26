@@ -238,3 +238,104 @@ test('save for later is persistent and idempotent, keeps its date on revisits, a
   assert.deepEqual(migrate({ ...before, archive: [{ id: 'broken' }] }).archive, []);
   assert.deepEqual(migrate({ ...before, archive: undefined }).archive, []);
 });
+
+test('selected contacts support phone-only friends, normalize duplicates, and preserve existing progress', async () => {
+  const { normalizeContact } = await import('../src/state/contacts');
+  const before = initialState();
+  const contact = normalizeContact({
+    id: 'fixture-1',
+    fullName: 'Casey Park',
+    phones: [{ number: '+1 (555) 010-1234' }],
+  })!;
+  const duplicate = normalizeContact({
+    id: 'fixture-2',
+    fullName: 'Casey',
+    phones: [{ number: '+15550101234' }],
+  })!;
+  const existing = normalizeContact({
+    id: 'fixture-3',
+    fullName: 'Sam',
+    emails: [{ address: 'SAM@EXAMPLE.COM' }],
+  })!;
+  const next = reducer(before, {
+    type: 'CONNECT_CONTACTS',
+    contacts: [contact, duplicate, existing],
+  });
+  assert.equal(next.friends.length, before.friends.length + 1);
+  assert.equal(next.friends.at(-1)?.name, 'Casey Park');
+  assert.equal(next.friends.at(-1)?.email, '');
+  assert.equal(next.friends.at(-1)?.phone, '+1 (555) 010-1234');
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(next))).friends, next.friends);
+  assert.equal(next.savings, before.savings);
+  assert.equal(
+    reducer(next, { type: 'CONNECT_CONTACTS', contacts: [contact] }).friends.length,
+    next.friends.length,
+  );
+  assert.equal(normalizeContact({ id: 'empty', fullName: 'No details' }), null);
+});
+
+test('system contacts do not read data when denied and accept iOS limited access', async () => {
+  const { readSystemContacts } = await import('../src/services/contacts-access');
+  let reads = 0,
+    requests = 0;
+  const reader = {
+    getPermission: async () => ({ granted: false, canAskAgain: false }),
+    requestPermission: async () => {
+      requests++;
+      return { granted: false, canAskAgain: false };
+    },
+    getPage: async () => {
+      reads++;
+      return [{ id: 'fixture', fullName: 'Casey', emails: [{ address: 'casey@example.com' }] }];
+    },
+  };
+  assert.deepEqual(await readSystemContacts(reader), { status: 'denied', canAskAgain: false });
+  assert.equal(reads, 0);
+  assert.equal(requests, 0);
+  const limited = await readSystemContacts({
+    ...reader,
+    getPermission: async () => ({
+      granted: false,
+      canAskAgain: false,
+      accessPrivileges: 'limited' as const,
+    }),
+  });
+  assert.equal(limited.status, 'ready');
+  assert.equal(reads, 1);
+  assert.equal(requests, 0);
+  const allowed = await readSystemContacts({
+    ...reader,
+    getPermission: async () => ({ granted: false, canAskAgain: true }),
+    requestPermission: async () => {
+      requests++;
+      return { granted: true, canAskAgain: true };
+    },
+  });
+  assert.equal(allowed.status, 'ready');
+  assert.equal(requests, 1);
+});
+
+test('contacts page through large address books and cancel without further reads', async () => {
+  const { readSystemContacts } = await import('../src/services/contacts-access');
+  const offsets: number[] = [];
+  const controller = new AbortController();
+  const reader = {
+    getPermission: async () => ({ granted: true, canAskAgain: true }),
+    requestPermission: async () => ({ granted: true, canAskAgain: true }),
+    getPage: async (offset: number) => {
+      offsets.push(offset);
+      return Array.from({ length: offset === 0 ? 200 : 3 }, (_, i) => ({
+        id: String(offset + i),
+        fullName: `person ${offset + i}`,
+        phones: [{ number: '+15550101234' }],
+      }));
+    },
+  };
+  const result = await readSystemContacts(reader);
+  assert.deepEqual(offsets, [0, 200]);
+  assert.equal(result.status === 'ready' && result.contacts.length, 203);
+  controller.abort();
+  offsets.length = 0;
+  await readSystemContacts(reader, controller.signal);
+  assert.deepEqual(offsets, []);
+});

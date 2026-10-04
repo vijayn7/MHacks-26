@@ -6,6 +6,7 @@ import { useStore } from '../state/Store';
 import { money, validEmail } from '../state/model';
 import { colors, palettes, Hue } from '../design/tokens';
 import { Canvas, Icon, Input, QuietButton, Sheet, T, tap } from '../components/ui';
+import { ContactSync } from '../components/ContactSync';
 import { Mascot } from '../components/Mascot';
 
 export default function Social() {
@@ -13,6 +14,7 @@ export default function Social() {
   const { height } = useWindowDimensions();
   const compact = height < 700;
   const [sheet, setSheet] = useState<'leaders' | 'connect' | null>(null);
+  const [contactsMode, setContactsMode] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [added, setAdded] = useState(false);
@@ -163,6 +165,7 @@ export default function Social() {
           accessibilityLabel="connect with a friend"
           onPress={() => {
             tap();
+            setContactsMode(false);
             setAdded(false);
             setError('');
             setEmail('');
@@ -219,16 +222,46 @@ export default function Social() {
         </Sheet>
         <Sheet
           visible={sheet === 'connect'}
-          title={added ? 'Good company.' : 'Connect with a friend.'}
+          title={
+            contactsMode ? 'your contacts.' : added ? 'Good company.' : 'Connect with a friend.'
+          }
+          expanded={contactsMode}
+          contentKey={contactsMode ? 'contacts' : 'email'}
           onClose={() => setSheet(null)}
         >
-          {added ? (
+          {contactsMode && sheet === 'connect' ? (
+            <ContactSync onBack={() => setContactsMode(false)} />
+          ) : added ? (
             <>
               <T>{email.trim()} is in your circle.</T>
               <QuietButton onPress={() => setSheet(null)}>Done</QuietButton>
             </>
           ) : (
             <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="sync contacts"
+                onPress={() => {
+                  tap();
+                  setContactsMode(true);
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 14,
+                  paddingVertical: 16,
+                  marginBottom: 18,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                }}
+              >
+                <Icon name="users" color={p.body} size={22} />
+                <View style={{ flex: 1 }}>
+                  <T>sync contacts</T>
+                  <T variant="small">choose from your phone</T>
+                </View>
+                <Icon name="chevron-right" size={17} />
+              </Pressable>
               <Input
                 email
                 label="Friend’s email"

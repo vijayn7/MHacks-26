@@ -1,9 +1,18 @@
+import { addContacts, type ContactCandidate } from './contacts';
 import { readArchive, type SavedItem } from './archive';
 import { readPlan, type BlockPlan } from './blocking';
 import { isFace, type Face } from '../design/faces';
 import type { Hue } from '../design/tokens';
 
-export type Friend = { id: string; name: string; email: string; hue: Hue; savings: number };
+export type Friend = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  contactId?: string;
+  hue: Hue;
+  savings: number;
+};
 export type Nudge = {
   id: string;
   name: string;
@@ -41,6 +50,7 @@ export type Action =
   | { type: 'BURN_RATE'; value: number }
   | { type: 'TRUSTED_FRIEND'; id: string | null }
   | { type: 'NOTIFICATIONS'; enabled: boolean }
+  | { type: 'CONNECT_CONTACTS'; contacts: ContactCandidate[] }
   | { type: 'CONNECT'; email: string }
   | { type: 'SAVE_FOR_LATER'; id: string; at?: number }
   | { type: 'REVISIT_ITEM'; id: string }
@@ -197,6 +207,8 @@ export function reducer(s: AppState, a: Action): AppState {
         : s;
     case 'NOTIFICATIONS':
       return { ...s, notificationsEnabled: a.enabled };
+    case 'CONNECT_CONTACTS':
+      return { ...s, friends: addContacts(s.friends, a.contacts) };
     case 'CONNECT': {
       const email = a.email.trim().toLowerCase();
       if (!validEmail(email) || s.friends.some((f) => f.email.toLowerCase() === email)) return s;

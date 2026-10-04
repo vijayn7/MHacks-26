@@ -110,6 +110,14 @@ The Archive recreates the composition and scrolling behavior of [Colton Tollett�
 
 Empty archives offer an explicitly labeled sample collection for viewing the effect; sample items never populate saved history. Reuse `src/screens/Archive.tsx`, `src/components/ItemArtwork.tsx`, and `src/state/archive.ts`. The original saved date includes the year and is displayed in the device’s local time zone. Real purchase ingestion, product photos, merchant URLs, and checkout integrations are not connected in this prototype.
 
+## System contacts
+
+Social → connect with a friend now offers “sync contacts” alongside email. On iOS / Android it requests system access only when selected, loads the permitted names / emails / phone numbers in pages, and presents a searchable multi-select list. Limited iOS access is respected; denied access offers retry / Settings / email. Only selected contacts are persisted locally. Phone-only contacts work; repeated selections and matching email / normalized phone entries are deduplicated. No invitations, uploads, account discovery, or background synchronization occur. Refresh performs an on-demand reread.
+
+`expo-contacts` ~57.0.6 uses the SDK 57 class-based `Contact.getAllDetails` API. `src/services/contacts.native.ts` connects to the OS; `contacts-access.ts` handles permissions and pagination. The browser service reports that system contacts require the mobile app and keeps email usable. `ContactSync.tsx` discards the temporary list when closed; `src/state/contacts.ts` validates and deduplicates selected records.
+
+The config plugin supplies the iOS usage description, and Android blocks WRITE_CONTACTS while retaining READ_CONTACTS. A new native development / release build is required for this dependency and permission configuration; refreshing an existing binary is insufficient. Typecheck, lint, permission / pagination / cancellation / duplicate unit tests, browser fallback tests, and cross-platform exports were verified. Actual OS permission dialogs and device address-book access still need iOS / Android device testing.
+
 ## Designer handoff
 
 See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.

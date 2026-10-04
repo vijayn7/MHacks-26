@@ -790,21 +790,21 @@ export function App() {
       if (!reduceMotion) {
         ctx.globalCompositeOperation = "source-over";
 
-        // Diffuse smoke — soft gray haze, no hard edges
+        // Diffuse smoke — soft gray haze, stretched and faint
         for (const s of smoke) {
           const t = s.age / s.maxAge;
           const fade = 1 - t;
-          const rx = s.size * (1.1 + t * 1.6);
-          const ry = s.size * (1.6 + t * 2.2);
-          const a = 0.22 * fade;
+          const rx = s.size * (1.4 + t * 2.0);
+          const ry = s.size * (2.0 + t * 2.8);
+          const a = 0.18 * fade;
           softEllipse(s.x, s.y, rx, ry, s.lean, [
-            [0, `rgba(210, 206, 200, ${a})`],
-            [0.45, `rgba(170, 166, 160, ${a * 0.4})`],
-            [1, "rgba(120, 118, 114, 0)"],
+            [0, `rgba(200, 196, 190, ${a})`],
+            [0.5, `rgba(160, 156, 150, ${a * 0.35})`],
+            [1, "rgba(110, 108, 104, 0)"],
           ]);
         }
 
-        // Soft continuous ember ribbon (muted, layered)
+        // Soft continuous flame body — primary look (not discrete beads)
         if (ribbon.length > 1) {
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
@@ -815,50 +815,48 @@ export function App() {
             const curr = ribbon[i];
             ctx.quadraticCurveTo(prev.x, prev.y, (prev.x + curr.x) * 0.5, (prev.y + curr.y) * 0.5);
           }
-          ctx.strokeStyle = "rgba(180, 55, 18, 0.28)";
-          ctx.lineWidth = 7;
+          ctx.strokeStyle = "rgba(120, 28, 8, 0.35)";
+          ctx.lineWidth = 14;
           ctx.stroke();
-          ctx.strokeStyle = "rgba(255, 140, 45, 0.22)";
+          ctx.strokeStyle = "rgba(200, 70, 18, 0.4)";
+          ctx.lineWidth = 8;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 150, 50, 0.35)";
           ctx.lineWidth = 3.5;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 220, 140, 0.28)";
+          ctx.lineWidth = 1.4;
           ctx.stroke();
         }
 
-        // Flame kernels — soft vertical glows, not hard cartoon tongues
-        for (const p of ribbon) {
+        // Sparse rising heat — very elongated, not round beads
+        for (let i = 0; i < ribbon.length; i += 2) {
+          const p = ribbon[i];
           const t = p.age / MAX_AGE;
           const fade = 1 - t;
-          const rx = p.size * (0.9 + t * 0.35);
-          const ry = p.size * (1.7 + t * 1.5);
+          const rx = p.size * 0.45;
+          const ry = p.size * (2.4 + t * 2.2);
 
-          // Outer cool envelope
-          softEllipse(p.x, p.y - ry * 0.15, rx * 1.35, ry * 1.15, p.lean, [
-            [0, `rgba(160, 40, 10, ${0.18 * fade})`],
-            [0.55, `rgba(120, 25, 8, ${0.08 * fade})`],
+          softEllipse(p.x, p.y - ry * 0.35, rx * 1.8, ry, p.lean, [
+            [0, `rgba(180, 45, 12, ${0.16 * fade})`],
+            [0.5, `rgba(140, 30, 8, ${0.07 * fade})`],
             [1, "rgba(40, 8, 0, 0)"],
           ]);
 
-          // Mid flame
-          softEllipse(p.x, p.y - ry * 0.25, rx * 0.85, ry * 0.95, p.lean, [
-            [0, `rgba(255, 120, 30, ${0.45 * fade})`],
-            [0.5, `rgba(220, 60, 15, ${0.2 * fade})`],
-            [1, "rgba(80, 15, 0, 0)"],
-          ]);
-
-          // Hot core (only while young)
-          if (t < 0.55) {
-            softEllipse(p.x, p.y - ry * 0.3, rx * 0.35, ry * 0.55, p.lean * 0.6, [
-              [0, `rgba(255, 230, 160, ${0.55 * (1 - t / 0.55)})`],
-              [0.55, `rgba(255, 170, 60, ${0.2 * (1 - t / 0.55)})`],
-              [1, "rgba(255, 100, 20, 0)"],
+          if (t < 0.5) {
+            softEllipse(p.x, p.y - ry * 0.4, rx * 0.55, ry * 0.7, p.lean * 0.5, [
+              [0, `rgba(255, 200, 110, ${0.35 * (1 - t / 0.5)})`],
+              [0.6, `rgba(255, 120, 35, ${0.12 * (1 - t / 0.5)})`],
+              [1, "rgba(200, 60, 10, 0)"],
             ]);
           }
         }
 
         if (isLive) {
-          softEllipse(pointerX, pointerY - 4, 4, 9, 0, [
-            [0, "rgba(255, 236, 180, 0.7)"],
-            [0.4, "rgba(255, 150, 40, 0.35)"],
-            [1, "rgba(180, 40, 10, 0)"],
+          softEllipse(pointerX, pointerY - 5, 3, 10, 0, [
+            [0, "rgba(255, 236, 180, 0.65)"],
+            [0.45, "rgba(255, 140, 35, 0.28)"],
+            [1, "rgba(160, 35, 8, 0)"],
           ]);
         }
       }

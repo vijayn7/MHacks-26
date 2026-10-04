@@ -11,8 +11,9 @@ A native SwiftUI prototype for voluntary, local screen awareness before a purcha
 - Shared App Group session status, heartbeat, stop requests, and fixed shopping labels. No raw text, screenshot, audio, amount, card number, or address is written to the shared snapshot.
 - Suppression of Pact's own screen while it is visible. This app cannot reliably identify every foreground third-party app.
 - Sample product, checkout, and receipt images rendered on-device and processed by the **same actual Vision reader**. Sample results are separate from live-session counters.
+- A shopping interrupt. Shortcuts can open Pact when a chosen shopping app opens. The pause card offers drop, save for later, continue, and ask my friend. Drop, save, and continue start a 15-minute quiet period so returning to the store does not immediately open Pact again. Ask my friend opens Messages with a generic note. The card does not know the item or the price.
 
-This milestone recognizes possible checkout screens. It does **not** shield apps, prevent payment, infer impulsivity, move money, contact friends, or use a remote AI service.
+This milestone recognizes possible checkout screens and can interrupt when a shopping app opens. It does **not** shield apps, prevent payment, infer impulsivity, move money, or use a remote AI service. The interrupt is a Shortcut you create. It is not a Screen Time shield, and the shopper can switch back to the store without choosing.
 
 ## Open and run
 
@@ -33,6 +34,24 @@ Select an iPhone simulator and run. Open **See what Pact can recognize** to exer
 7. Stop from the iPhone recording indicator, Control Center, or **Stop monitoring** in Pact. The in-app stop command is asynchronous. ReplayKit may present the message “You stopped Pact monitoring” because its extension-side termination API takes an error/reason object. If the extension is unresponsive, use the system recording control.
 
 The extension receives full-display frames while the session is enabled, not just shopping apps. App-level allowlisting is not implemented. Audio buffers, if delivered by iOS, are immediately discarded. Some apps or protected screens will not yield usable content.
+
+## Shopping interrupt
+
+Pact registers the URL `pact://pause` and two Shortcuts actions:
+
+- **Should Interrupt** stays in the background and returns true when the 15-minute quiet period is over.
+- **Open Pause** brings Pact forward and shows the pause card. During a quiet period it explains that this is not a new pause.
+
+On the iPhone, open the Monitor tab and follow **Shopping interrupt**, or set it up directly in Shortcuts:
+
+1. Automation → plus → App. Pick the shopping app, choose Is Opened, and turn off Ask Before Running.
+2. Add Pact's **Should Interrupt** action.
+3. Add **If**, and run it when Should Interrupt is true.
+4. Inside If, add Pact's **Open Pause** action. Leave Otherwise empty.
+
+Repeat for each shopping app. **Preview the pause** on the Monitor tab opens the same card without a shortcut. A preview choice also starts the quiet period. **End quiet period** clears it.
+
+Ask my friend uses an optional phone number stored only on the device. With no number, Messages opens so the shopper can pick a recipient. The note never includes an item name or a price.
 
 ## Architecture
 

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
+import { NativeApprovals, NativeApprovalError, MemoryNativeRepository, authorizedNative, nativeRequest, type NativeRepository, type NativeRow, type Delivery } from "./native-approvals.js";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { DbConnection } from "../../extension/src/module_bindings/index.js";
@@ -45,6 +46,7 @@ if (!spacetimeOn) {
 }
 const projectId = process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.SPECTRUM_PROJECT_SECRET;
+const nativeToken = process.env.PACT_IOS_TOKEN?.trim() ?? "";
 const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
 const askAgain = "Reply YES to approve the purchase or NO to reject it.";
 const approvedAck = "Approved. The checkout can go through.";
@@ -77,7 +79,7 @@ const eventsById = new Map<string, PauseEvent>();
 const checkIns = new Map<string, CheckIn>();
 const outbound = new Set<string>([askAgain, approvedAck, rejectedAck]);
 let waitingId: string | null = null;
-let deliver: ((text: string) => Promise<void>) | null = null;
+let deliver: ((text: string) => Promise<Delivery>) | null = null;
 let spacetimeConn: DbConnection | null = null;
 
 function startSpacetime() {
@@ -139,14 +141,38 @@ function checkInMessage(product: string, amount: number) {
 
 function decisionOf(text: string): Decision | null {
   const normalized = text.trim().toLowerCase().replace(/[.!]+$/g, "");
-  if (/^(yes|y|approve|approved)\b/.test(normalized)) return "approved";
-  if (/^(no|n|reject|rejected)\b/.test(normalized)) return "rejected";
+  if (/^(yes|y|approve|approved)$/.test(normalized)) return "approved";
+  if (/^(no|n|reject|rejected)$/.test(normalized)) return "rejected";
   return null;
 }
 
 const sql = process.env.DATABASE_URL
   ? postgres(process.env.DATABASE_URL, { onnotice: () => {} })
   : null;
+
+// Kept separate from legacy browser rows so its YES/NO matching cannot resolve
+// a native pause. Neon persists receipts and terminal decisions across restarts.
+const nativeRepository: NativeRepository = sql ? {
+  async get(id) {
+    const rows = await sql<{ payload: NativeRow }[]>`select payload from native_check_ins where id = ${id}`;
+    return rows[0]?.payload;
+  },
+  async byCode(code) {
+    const rows = await sql<{ payload: NativeRow }[]>`select payload from native_check_ins where code = ${code}`;
+    return rows[0]?.payload;
+  },
+  async insert(row) {
+    const rows = await sql`insert into native_check_ins (id, code, payload)
+      values (${row.id}, ${row.code}, ${sql.json(row)}) on conflict (id) do nothing returning id`;
+    return rows.length === 1;
+  },
+  async update(row, previous) {
+    const rows = await sql`update native_check_ins set payload = ${sql.json(row)}
+      where id = ${row.id} and payload->>'status' = ${previous} returning id`;
+    return rows.length === 1;
+  },
+} : new MemoryNativeRepository();
+const nativeApprovals = new NativeApprovals(nativeRepository, e164(friendHandle));
 
 function remember(event: PauseEvent, persist = true) {
   const existing = eventsById.get(event.id);
@@ -232,6 +258,9 @@ async function ensureDb() {
       status text not null,
       reply text
     )`;
+  await sql`create table if not exists native_check_ins (
+    id text primary key, code text not null unique, payload jsonb not null
+  )`;
   await sql`alter table saved_items add column if not exists name text`;
   await sql`alter table saved_items add column if not exists amount numeric`;
   await sql`
@@ -267,6 +296,7 @@ async function ensureDb() {
 
 function send(res: ServerResponse, status: number, body?: unknown) {
   const headers: Record<string, string> = {
+    "cache-control": "no-store",
     "access-control-allow-origin": origin,
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-headers": "Content-Type",
@@ -433,7 +463,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
   if (req.method === "GET" && path === "/health") {
-    send(res, 200, { ok: true });
+    send(res, 200, { ok: true, nativeApprovalVersion: 1 });
+    return;
+  }
+  if (req.method === "GET" && path === "/native/health") {
+    if (!authorizedNative(req.headers.authorization, nativeToken)) { send(res, 401, { error: "unauthorized" }); return; }
+    send(res, 200, { ok: true, nativeApprovalVersion: 1, messagingReady: deliver !== null, durableStorage: sql !== null });
     return;
   }
   if (req.method === "GET" && path === "/events") {
@@ -504,6 +539,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return;
   }
   if (req.method === "GET" && path === "/check-in") {
+    if (url.searchParams.get("source") === "ios") {
+      if (!authorizedNative(req.headers.authorization, nativeToken)) { send(res, 401, { error: "unauthorized" }); return; }
+      try { send(res, 200, await nativeApprovals.status(url.searchParams.get("id") ?? "")); }
+      catch (error) { if (error instanceof NativeApprovalError) send(res, error.httpStatus, { error: error.code }); else throw error; }
+      return;
+    }
     const row = checkIns.get(url.searchParams.get("id") ?? "");
     if (!row) {
       send(res, 404, { error: "missing" });
@@ -521,6 +562,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       return;
     }
     const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+    if (record.source === "ios") {
+      if (!authorizedNative(req.headers.authorization, nativeToken)) { send(res, 401, { error: "unauthorized" }); return; }
+      try { send(res, 200, await nativeApprovals.submit(nativeRequest(body), deliver)); }
+      catch (error) { if (error instanceof NativeApprovalError) send(res, error.httpStatus, { error: error.code }); else throw error; }
+      return;
+    }
     const id = record.id;
     const ruleId = record.ruleId;
     const product = record.product;
@@ -646,7 +693,9 @@ if (projectId && projectSecret && friendHandle) {
       spacePromise ??= im.space.create(handle);
       const space = await spacePromise;
       outbound.add(text);
-      await space.send(text);
+      const sent = await space.send(text);
+      if (!sent) throw new Error("missing_message_receipt");
+      return { spaceId: space.id, messageId: sent.id };
     } catch (error) {
       spacePromise = null;
       allowed = false;
@@ -666,6 +715,21 @@ if (projectId && projectSecret && friendHandle) {
     if (message.content.type !== "text") continue;
     const text = message.content.text?.trim() ?? "";
     if (!text || outbound.has(text)) continue;
+    // Only the configured friend in a DM can resolve either demo flow.
+    if (!message.sender || e164(message.sender.id) !== handle || (!("type" in message.space) || message.space.type !== "dm")) continue;
+    const nativeCommand = /^(CONFIRM|YES|NO|DECLINE) [A-F0-9]{16}$/i.test(text);
+    if (nativeCommand) {
+      try {
+        const decision = await nativeApprovals.receive({ text, sender: e164(message.sender.id),
+          spaceId: message.space.id, id: message.id, timestamp: message.timestamp.getTime() });
+        if (decision) {
+          const ack = decision.status === "approved" ? "Pact confirmed. Your friend can resume the selected app." : "Pact declined. The checkout pause stays in place.";
+          outbound.add(ack);
+          await message.reply(ack);
+        }
+      } catch { console.error("[native-check-in] reply processing failed; no unpersisted approval is released"); }
+      continue;
+    }
     const row = waitingId ? checkIns.get(waitingId) : undefined;
     if (!row || row.status !== "sent") continue;
     const decision = decisionOf(text);

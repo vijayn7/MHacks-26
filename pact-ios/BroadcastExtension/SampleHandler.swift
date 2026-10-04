@@ -1,18 +1,23 @@
 import ReplayKit
 import ImageIO
 
-final class SampleHandler: RPBroadcastSampleHandler {
+// Mutable capture/session state is confined to workQueue; frame admission uses
+// frameGate. Network tasks return to workQueue before changing task state.
+final class SampleHandler: RPBroadcastSampleHandler, @unchecked Sendable {
     // One serial queue and at most one retained frame prevent an OCR backlog.
     private let workQueue = DispatchQueue(label: "dev.pact.capture", qos: .utility)
     private let frameGate = NSLock()
     private var frameInFlight = false
     private var lastAcceptedFrame: TimeInterval = -.infinity
     private var store: SessionStore?
+    private var interventions: InterventionStore?
     private var snapshot = MonitoringSnapshot()
     private var stabilizer = CheckoutStabilizer()
     private var heartbeat: DispatchSourceTimer?
     private var ended = false
     private var consecutiveErrors = 0
+    private var approvalSyncTask: Task<Void, Never>?
+    private var lastApprovalCheck = Date.distantPast
 
     override func broadcastStarted(withSetupInfo setupInfo: [String: NSObject]?) {
         workQueue.async { [self] in
@@ -22,6 +27,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
                 stabilizer.reset()
                 consecutiveErrors = 0
                 store = try SessionStore()
+                if let store { interventions = try InterventionStore(directory: store.directory) }
                 snapshot = MonitoringSnapshot(state: .starting)
                 try store?.save(snapshot)
                 let timer = DispatchSource.makeTimerSource(queue: workQueue)
@@ -34,7 +40,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
     }
 
     override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
-        // Audio buffers are deliberately discarded. Nothing is uploaded.
+        // Audio buffers are discarded. Screen content is never uploaded.
         guard sampleBufferType == .video else { return }
         frameGate.lock()
         let now = ProcessInfo.processInfo.systemUptime
@@ -62,6 +68,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
                     snapshot.analysis = ScreenAnalysis(stage: .ownApp, signals: [], readableLineCount: 0)
                     snapshot.lastAnalysisAt = timestamp
                     stabilizer.reset()
+                    observeIntervention(snapshot.analysis, confirmed: false, at: timestamp)
                     persist()
                     return
                 }
@@ -77,7 +84,9 @@ final class SampleHandler: RPBroadcastSampleHandler {
                         snapshot.recentShoppingAt = timestamp
                     }
                     snapshot.analyzedFrames += 1
-                    if stabilizer.observe(analysis.stage, at: timestamp) { snapshot.checkoutCandidates += 1 }
+                    let confirmed = stabilizer.observe(analysis.stage, at: timestamp)
+                    if confirmed { snapshot.checkoutCandidates += 1 }
+                    observeIntervention(analysis, confirmed: confirmed, at: timestamp)
                     consecutiveErrors = 0
                     persist()
                 } catch {
@@ -119,6 +128,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
             ended = true
             heartbeat?.cancel()
             snapshot.finish()
+            releaseCheckoutBlock()
             try? store?.save(snapshot)
         }
     }
@@ -129,6 +139,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
             ended = true
             heartbeat?.cancel()
             snapshot.finish()
+            releaseCheckoutBlock()
             try? store?.save(snapshot)
             // ReplayKit's system picker has no host-side controller. The sample
             // handler's supported termination API presents this reason to iOS.
@@ -152,7 +163,21 @@ final class SampleHandler: RPBroadcastSampleHandler {
             snapshot.recentShoppingAnalysis = .empty
             snapshot.recentShoppingAt = nil
         }
+        syncApprovalIfNeeded()
         persist()
+    }
+
+    private func syncApprovalIfNeeded() {
+        guard approvalSyncTask == nil, let interventions,
+              Date().timeIntervalSince(lastApprovalCheck) >= 5 else { return }
+        let transport = ApprovalBackend.makeTransport()
+        guard transport.isConfigured else { return }
+        lastApprovalCheck = Date()
+        approvalSyncTask = Task { [weak self] in
+            do { try await ApprovalBackend.sync(interventions, transport: transport) }
+            catch { /* Leave the block in place. The host can show/retry errors. */ }
+            self?.workQueue.async { [weak self] in self?.approvalSyncTask = nil }
+        }
     }
 
     private func persist() {
@@ -161,10 +186,32 @@ final class SampleHandler: RPBroadcastSampleHandler {
         catch { fail("Pact could not update its local session. Monitoring has stopped.") }
     }
 
+    private func observeIntervention(_ analysis: ScreenAnalysis, confirmed: Bool, at timestamp: Date) {
+        guard let interventions else { return }
+        do {
+            let pause = try interventions.update {
+                $0.observe(stage: analysis.stage, confirmedCandidate: confirmed, signals: analysis.signals,
+                           sessionID: snapshot.sessionID, candidateNumber: snapshot.checkoutCandidates, at: timestamp)
+            }
+            if pause != nil { try CheckoutBlocker.reconcile(interventions) }
+            snapshot.interventionMessage = nil
+        } catch {
+            snapshot.interventionMessage = "The checkout block could not be applied. Open Pact to check Screen Time access."
+        }
+    }
+
+    private func releaseCheckoutBlock() {
+        approvalSyncTask?.cancel()
+        approvalSyncTask = nil
+        if let interventions { try? CheckoutBlocker.release(interventions) }
+        CheckoutBlocker.settings.clearAllSettings()
+    }
+
     private func fail(_ message: String) {
         guard !ended else { return }
         ended = true
         heartbeat?.cancel()
+        releaseCheckoutBlock()
         snapshot.state = .failed
         snapshot.analysis = .empty
         snapshot.recentShoppingAnalysis = .empty

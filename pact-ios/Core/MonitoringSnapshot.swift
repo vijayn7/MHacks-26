@@ -17,6 +17,7 @@ struct MonitoringSnapshot: Codable, Equatable, Sendable {
     var recentShoppingAnalysis: ScreenAnalysis = .empty
     var recentShoppingAt: Date?
     var message: String?
+    var interventionMessage: String?
 
     func forDisplay(at now: Date) -> MonitoringSnapshot {
         var copy = self

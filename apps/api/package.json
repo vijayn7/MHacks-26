@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --packages=external && node --env-file=../../.env dist/index.js",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit",
+    "test": "esbuild src/native-approvals.test.ts --bundle --platform=node --format=esm --outfile=dist/native-approvals.test.js && node --test dist/native-approvals.test.js"
   },
   "dependencies": {
     "postgres": "^3.4.9",

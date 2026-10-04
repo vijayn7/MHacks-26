@@ -76,6 +76,8 @@ final class MonitorModel: ObservableObject {
         do {
             guard let store else { return }
             try store.requestStop(sessionID: snapshot.sessionID)
+            if let pauses = try? CheckoutBlocker.sharedStore() { try? CheckoutBlocker.release(pauses) }
+            CheckoutBlocker.settings.clearAllSettings()
             stopPending = true
         } catch { setupError = "Couldn't send the stop request. Use the iPhone screen-recording indicator to stop." }
     }

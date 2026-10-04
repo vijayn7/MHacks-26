@@ -433,9 +433,10 @@ function AppleIcon() {
 function WindowsIcon() {
   return (
     <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
+      {/* Flat Windows 11 mark — axis-aligned 2×2 panes */}
       <path
         fill="currentColor"
-        d="M3 5.2 10.6 4.1v7.1H3V5.2zm0 13.6 7.6 1.1v-7.2H3v6.1zM11.5 4 21 2.6v8.6h-9.5V4zm0 17.4L21 20.1v-8.7h-9.5v10z"
+        d="M3 3h8.2v8.2H3V3zm9.8 0H21v8.2h-8.2V3zM3 12.8h8.2V21H3v-8.2zm9.8 0H21V21h-8.2v-8.2z"
       />
     </svg>
   );

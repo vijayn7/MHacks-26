@@ -21,8 +21,10 @@ import { ArchiveObject } from '../components/ArchiveObject';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
-const step = 140,
-  tile = 112;
+/** Colton lens-scroll approximation: tall center focus, fisheye bend at edges. */
+const step = 200;
+const tile = 128;
+const focusScale = 2.72;
 export default function Archive() {
   const { state, dispatch, openNudge } = useStore();
   const insets = useSafeAreaInsets();
@@ -39,6 +41,8 @@ export default function Archive() {
   const [reduce, setReduce] = useState(false);
   const scroll = useRef<ScrollView>(null);
   const [offset] = useState(() => new Animated.Value(0));
+  const labelClearance = Math.min(118, Math.max(72, (tile * focusScale) / 2 + 18));
+  const sideWidth = Math.max(64, Math.min(96, width / 2 - labelClearance - 8));
   useEffect(() => {
     let active = true;
     AccessibilityInfo.isReduceMotionEnabled().then((v) => {
@@ -118,12 +122,13 @@ export default function Archive() {
               })}
             >
               {items.map((item, index) => {
+                const half = Math.max(step * 1.15, viewport * 0.48);
                 const range = [
-                  index * step - Math.max(step + 1, viewport / 2),
-                  index * step - step,
+                  index * step - half,
+                  index * step - step * 0.55,
                   index * step,
-                  index * step + step,
-                  index * step + Math.max(step + 1, viewport / 2),
+                  index * step + step * 0.55,
+                  index * step + half,
                 ];
                 const interpolate = (outputRange: number[]) =>
                   offset.interpolate({ inputRange: range, outputRange, extrapolate: 'clamp' });
@@ -132,26 +137,32 @@ export default function Archive() {
                     <Animated.View
                       testID={`archive-card-${item.id}`}
                       style={{
-                        opacity: reduce ? 1 : interpolate([0.45, 0.9, 1, 0.9, 0.45]),
+                        zIndex: selected === index ? 4 : 1,
+                        opacity: reduce ? 1 : interpolate([0.22, 0.72, 1, 0.72, 0.22]),
                         transform: reduce
                           ? []
                           : [
-                              { perspective: 450 },
+                              { perspective: 980 },
                               {
                                 rotateX: offset.interpolate({
                                   inputRange: range,
-                                  outputRange: ['-48deg', '-9deg', '0deg', '9deg', '48deg'],
+                                  outputRange: ['-72deg', '-28deg', '0deg', '28deg', '72deg'],
                                   extrapolate: 'clamp',
                                 }),
                               },
-                              { scaleX: interpolate([1.65, 1, 1.45, 1, 1.65]) },
-                              { scaleY: interpolate([1.1, 0.96, 1.45, 0.96, 1.1]) },
+                              // Fisheye: edges stretch wide + squash tall; center is much larger + flat.
+                              {
+                                scaleX: interpolate([2.55, 0.95, focusScale, 0.95, 2.55]),
+                              },
+                              {
+                                scaleY: interpolate([0.34, 0.72, focusScale, 0.72, 0.34]),
+                              },
                             ],
                       }}
                     >
                       <ArchiveObject
                         name={item.name}
-                        size={tile}
+                        size={reduce && selected === index ? Math.round(tile * 1.55) : tile}
                         reduce={reduce}
                         label={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}, from ${savedSource(item)}`}
                         onPress={() => {
@@ -164,7 +175,13 @@ export default function Archive() {
                       <>
                         <View
                           pointerEvents="none"
-                          style={[s.date, { width: Math.min(78, width / 2 - 96) }]}
+                          style={[
+                            s.date,
+                            {
+                              width: sideWidth,
+                              marginRight: labelClearance,
+                            },
+                          ]}
                         >
                           <T
                             variant="mono"
@@ -190,19 +207,25 @@ export default function Archive() {
                         </View>
                         <View
                           pointerEvents="none"
-                          style={[s.label, { width: Math.min(88, width / 2 - 96) }]}
+                          style={[
+                            s.label,
+                            {
+                              width: sideWidth,
+                              marginLeft: labelClearance,
+                            },
+                          ]}
                         >
                           <T
                             variant="title"
                             color={colors.text}
-                            style={{ fontSize: width < 360 ? 14 : 17, lineHeight: 21 }}
+                            style={{ fontSize: width < 360 ? 15 : 19, lineHeight: 23 }}
                           >
                             {item.name}
                           </T>
                           <T
                             variant="small"
                             color={palettes[state.hue].body}
-                            style={{ marginTop: 6, fontSize: 11 }}
+                            style={{ marginTop: 6, fontSize: 12 }}
                           >
                             {money(item.amount)}
                           </T>
@@ -215,15 +238,38 @@ export default function Archive() {
             </Animated.ScrollView>
             {!reduce && (
               <>
-                <LinearGradient
+                {/* Soft circular lens falloff at the extremes — not a mid-frame halo. */}
+                <View
                   pointerEvents="none"
-                  colors={[colors.bg, colors.bg + '00']}
-                  style={[s.fade, { top: 0 }]}
+                  style={[
+                    s.lensGlow,
+                    {
+                      top: -Math.max(160, viewport * 0.42),
+                      opacity: 0.55,
+                    },
+                  ]}
+                />
+                <View
+                  pointerEvents="none"
+                  style={[
+                    s.lensGlow,
+                    {
+                      bottom: -Math.max(160, viewport * 0.42),
+                      opacity: 0.55,
+                    },
+                  ]}
                 />
                 <LinearGradient
                   pointerEvents="none"
-                  colors={[colors.bg + '00', colors.bg]}
-                  style={[s.fade, { bottom: 0 }]}
+                  colors={[colors.bg, colors.bg + 'E6', colors.bg + '00']}
+                  locations={[0, 0.4, 1]}
+                  style={[s.fade, { top: 0, height: Math.max(110, viewport * 0.28) }]}
+                />
+                <LinearGradient
+                  pointerEvents="none"
+                  colors={[colors.bg + '00', colors.bg + 'E6', colors.bg]}
+                  locations={[0, 0.6, 1]}
+                  style={[s.fade, { bottom: 0, height: Math.max(110, viewport * 0.28) }]}
                 />
               </>
             )}
@@ -316,8 +362,13 @@ const s = StyleSheet.create({
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   preview: { padding: 18, marginTop: 22 },
-  lens: { flex: 1, overflow: 'hidden', marginTop: 20 },
-  row: { height: step, alignItems: 'center', justifyContent: 'center' },
+  lens: { flex: 1, overflow: 'hidden', marginTop: 8 },
+  row: {
+    height: step,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
+  },
   card: {
     width: tile,
     height: tile,
@@ -327,12 +378,19 @@ const s = StyleSheet.create({
   date: {
     position: 'absolute',
     right: '50%',
-    marginRight: 84,
-    width: 78,
     alignItems: 'flex-end',
+    zIndex: 5,
   },
-  label: { position: 'absolute', left: '50%', marginLeft: 84, width: 88 },
-  fade: { position: 'absolute', left: 0, right: 0, height: 55 },
+  label: { position: 'absolute', left: '50%', zIndex: 5 },
+  fade: { position: 'absolute', left: 0, right: 0 },
+  lensGlow: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: '140%',
+    aspectRatio: 1,
+    borderRadius: 9999,
+    backgroundColor: '#C45A2A18',
+  },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 14 },
   arrow: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   bottom: { alignItems: 'center', padding: 8 },

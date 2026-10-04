@@ -404,8 +404,8 @@ button {
   .snuff__center {
     background: radial-gradient(
       ellipse 78% 46% at 50% 48%,
-      rgb(26 20 16 / 0.94) 0%,
-      rgb(26 20 16 / 0.7) 55%,
+      rgb(0 0 0 / 0.94) 0%,
+      rgb(0 0 0 / 0.7) 55%,
       transparent 80%
     );
   }

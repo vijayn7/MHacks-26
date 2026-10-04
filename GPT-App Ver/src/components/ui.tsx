@@ -1,3 +1,4 @@
+import { SoftPressable } from './SoftPressable';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -176,7 +177,7 @@ export function QuietButton({
   const { state } = useStore();
   const p = palettes[state.hue];
   return (
-    <Pressable
+    <SoftPressable
       accessibilityRole="button"
       accessibilityLabel={typeof children === 'string' ? children.toLowerCase() : undefined}
       disabled={disabled}
@@ -202,7 +203,7 @@ export function QuietButton({
           </T>
         </LinearGradient>
       )}
-    </Pressable>
+    </SoftPressable>
   );
 }
 export function Input({

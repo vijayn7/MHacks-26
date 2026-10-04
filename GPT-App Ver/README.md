@@ -202,3 +202,16 @@ The fourth page offers light ($150, gentle), balanced ($75, balanced), and stron
 Settings → refine preferences opens the conversation with the current threshold. Local parsing recognizes a dollar threshold and gentler/firmer reminder requests, while the existing category suggestions carry forward. Changes remain drafts until reviewed in the restriction cards and saved. Cancel returns to Profile without saving; saving preferences returns there too. Personal free-text replies remain local and ephemeral; live AI is not connected.
 
 Settings → purchase demo and the “save & try purchase demo” action open `/purchase-demo`. Users change a sample item’s amount/category, then simulate checkout using the existing deterministic matcher and `receivePurchase`. A nonmatching purchase continues without an overlay; matching purchases open the actual Nudge overlay with watch context and all decision actions. Results show after dismissal, repeat simulations use distinct IDs, and changing the sample clears the previous result. No external purchase occurs. Choices update local sample savings/archive; Chrome score is unaffected. Saves carry “purchase demo” as their source.
+
+
+Onboarding transitions fade out over 120 ms and ease the next screen in over 300 ms. `SoftPressable` adds a palette-colored glow on press, fading away over 320 ms; onboarding choices and shared QuietButtons use it. Reduced motion makes both immediate. Animations stop on unmount, and duplicate step actions are guarded during fade-out.
+
+
+## Chat-only preference confirmation
+
+The separate three-level restriction screen is removed from onboarding and preference editing. The conversation collects a reason, a per-purchase amount, and reminder tone, then shows a confirmation message with the exact amount, categories, either/both semantics, and what the overlay does. Inline reply controls let users revise amount/tone/categories and matching logic without leaving chat. Preferences save only on “confirm & continue” or “confirm & try purchase demo.” Skip leads to review, never silently saves.
+
+Replies use a 750 ms simulated typing state with three softly pulsing dots; inputs are unavailable while a reply is pending. Pending callbacks are cleared on unmount, chat follows new messages, and reduced motion leaves dots static. This is scripted local response pacing, not remote AI processing. Free-text chat remains ephemeral and is not uploaded.
+
+
+Home now places the 54-point Snuff score immediately below the flame, above the slightly smaller savings statement. The adjacent info icon opens the score explanation and sync status in a sheet; explanatory captions are removed from Home. Profile removes the Apple Watch settings entry and sheet. Existing watch data/overlay support is preserved; its feed remains simulated.

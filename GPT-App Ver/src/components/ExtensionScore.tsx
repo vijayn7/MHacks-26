@@ -3,11 +3,13 @@ import { AppState, View } from 'react-native';
 import { useIsFocused } from 'expo-router';
 import { useStore } from '../state/Store';
 import { palettes } from '../design/tokens';
-import { T } from './ui';
+import { T, Icon, Sheet } from './ui';
+import { SoftPressable } from './SoftPressable';
 
 export function ExtensionScore() {
   const { state, dispatch } = useStore();
   const focused = useIsFocused();
+  const [info, setInfo] = useState(false);
   const [status, setStatus] = useState<'loading' | 'connected' | 'offline'>('loading');
   useEffect(() => {
     if (!focused || !state.onboardingComplete) return;
@@ -57,25 +59,38 @@ export function ExtensionScore() {
     };
   }, [focused, state.onboardingComplete, dispatch]);
   return (
-    <View testID="extension-score" style={{ alignItems: 'center', paddingVertical: 10, gap: 2 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-        <T
-          variant="title"
-          color={palettes[state.hue].body}
-          style={{ fontSize: 30, lineHeight: 36 }}
-        >
-          {state.extensionOptOutIds.length * 10}
-        </T>
-        <T variant="small">snuff score</T>
-      </View>
-      <T variant="small" style={{ fontSize: 10 }}>
-        +10 for each purchase you opt out of in chrome
+    <View
+      testID="extension-score"
+      style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+    >
+      <T variant="title" color={palettes[state.hue].body} style={{ fontSize: 54, lineHeight: 62 }}>
+        {state.extensionOptOutIds.length * 10}
       </T>
-      {status !== 'connected' && (
-        <T variant="small" style={{ fontSize: 10 }}>
-          {status === 'loading' ? 'syncing with chrome…' : 'extension offline · score saved'}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 34 }}>
+        <T variant="small">snuff score</T>
+        <SoftPressable
+          accessibilityRole="button"
+          accessibilityLabel="about snuff score"
+          onPress={() => setInfo(true)}
+          style={{ width: 44, height: 36, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Icon name="info" size={14} color={palettes[state.hue].body} />
+        </SoftPressable>
+      </View>
+      <Sheet visible={info} title="your snuff score." onClose={() => setInfo(false)}>
+        <T>10 points for each purchase you choose to drop in the chrome extension.</T>
+        <T variant="small" style={{ marginTop: 14 }}>
+          each checkout counts once. saving for later, continuing, and in-app demos don’t earn
+          points.
         </T>
-      )}
+        <T variant="small" style={{ marginTop: 14 }}>
+          {status === 'connected'
+            ? 'synced with chrome. your score refreshes while home is open.'
+            : status === 'loading'
+              ? 'syncing with chrome…'
+              : 'extension offline. showing your last saved score.'}
+        </T>
+      </Sheet>
     </View>
   );
 }

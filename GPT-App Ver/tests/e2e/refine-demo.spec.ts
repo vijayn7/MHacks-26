@@ -8,7 +8,7 @@ test('settings refines drafts and simulates matching and nonmatching purchases',
   await page.getByRole('textbox', { name: 'last name', exact: true }).fill('Chen');
   await page.getByRole('button', { name: 'continue as guest' }).click();
   await page.getByRole('button', { name: 'skip', exact: true }).click();
-  await page.getByRole('button', { name: 'start', exact: true }).click();
+  await page.getByRole('button', { name: 'confirm & continue', exact: true }).click();
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.getByRole('button', { name: 'open settings' }).click();
   await page.getByRole('button', { name: 'refine preferences' }).click();
@@ -19,9 +19,10 @@ test('settings refines drafts and simulates matching and nonmatching purchases',
     await page.evaluate(
       () => JSON.parse(localStorage.getItem('snuff.mobile.v2')!).purchaseRules.minAmount,
     ),
-  ).toBe(75);
-  await page.getByRole('button', { name: 'see suggested levels' }).click();
-  await page.getByRole('button', { name: 'save & try purchase demo' }).click();
+  ).toBe(50);
+  await page.getByRole('button', { name: '$200', exact: true }).click();
+  await page.getByRole('button', { name: 'balanced', exact: true }).click();
+  await page.getByRole('button', { name: 'confirm & try purchase demo' }).click();
   await expect(page.getByText('a practice purchase.', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'demo purchase amount' })).toHaveValue('200');
   await page.getByRole('textbox', { name: 'demo purchase amount' }).fill('20');

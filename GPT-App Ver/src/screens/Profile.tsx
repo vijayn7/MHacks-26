@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { GlowSlider } from '../components/GlowSlider';
 import { colors, Hue, palettes } from '../design/tokens';
@@ -12,7 +11,6 @@ import { disableNudges, enableNudges, scheduleNudge } from '../services/notifica
 export default function Profile() {
   const { state, dispatch, openNudge, storageError } = useStore();
   const p = palettes[state.hue];
-  const { width } = useWindowDimensions();
   const [sheet, setSheet] = useState<'name' | 'flame' | 'friend' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
@@ -74,11 +72,11 @@ export default function Profile() {
         <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 390 760">
           <Defs>
             <RadialGradient id="profile-warm">
-              <Stop offset="0" stopColor={p.edge} stopOpacity=".22" />
+              <Stop offset="0" stopColor={p.edge} stopOpacity=".12" />
               <Stop offset="1" stopColor={p.edge} stopOpacity="0" />
             </RadialGradient>
             <RadialGradient id="profile-dream">
-              <Stop offset="0" stopColor={second.mid} stopOpacity=".16" />
+              <Stop offset="0" stopColor={second.mid} stopOpacity=".09" />
               <Stop offset="1" stopColor={second.mid} stopOpacity="0" />
             </RadialGradient>
           </Defs>
@@ -89,10 +87,7 @@ export default function Profile() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
         <View style={s.header}>
           <View>
-            <T variant="small" color={palettes.Ember.body}>
-              your flame
-            </T>
-            <T variant="title" style={{ fontSize: 30, marginTop: 3 }}>
+            <T variant="title" style={{ fontSize: 28 }}>
               make it yours.
             </T>
           </View>
@@ -110,69 +105,51 @@ export default function Profile() {
           </Pressable>
         </View>
 
-        <View style={s.flameCard}>
-          <LinearGradient
-            colors={[p.deep + '24', second.deep + '28', '#FFFFFF02']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={s.mascot}>
-            <Mascot hue={state.hue} size={width < 360 ? 158 : 192} />
-          </View>
-          <View style={s.colorControls}>
-            <T style={{ fontSize: 13 }}>
-              {state.hue} + {state.blendHue}
-            </T>
-            <T variant="small" style={{ fontSize: 10 }}>
-              {100 - state.blend}% warm · {state.blend}% dream
-            </T>
-            <View style={s.swatches}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="choose your flame"
-                onPress={() => chooseColor('base')}
-                style={s.swatchHit}
-              >
-                <View style={[s.swatch, { backgroundColor: p.mid }]} />
-              </Pressable>
-              <LinearGradient
-                colors={[p.mid + '70', second.mid + '70']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ flex: 1, height: 3, borderRadius: 9 }}
-              />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="choose your blend color"
-                onPress={() => chooseColor('blend')}
-                style={s.swatchHit}
-              >
-                <View style={[s.swatch, { backgroundColor: second.mid }]} />
-              </Pressable>
-            </View>
+        <View style={s.mascot}>
+          <Mascot hue={state.hue} size={198} />
+        </View>
+        <View style={s.colorControls}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="choose your flame"
+            onPress={() => chooseColor('base')}
+            style={s.swatchHit}
+          >
+            <View style={[s.swatch, { backgroundColor: p.mid }]} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
             <GlowSlider
               label="flame color blend"
               value={state.blend}
               onChange={(value) => dispatch({ type: 'BLEND', value })}
               tint={second.body}
+              startTint={p.mid}
+              endTint={second.mid}
             />
-            <T variant="small" style={{ fontSize: 11, marginTop: 4 }}>
-              find your glow.
-            </T>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="choose your blend color"
+            onPress={() => chooseColor('blend')}
+            style={s.swatchHit}
+          >
+            <View style={[s.swatch, { backgroundColor: second.mid }]} />
+          </Pressable>
+        </View>
+        <View style={s.colorLabels}>
+          <T variant="small">{state.hue}</T>
+          <T variant="small">{state.blendHue}</T>
         </View>
 
-        <View style={s.sectionLabel}>
-          <T variant="small" color={colors.text}>
-            restriction level
-          </T>
-          <T variant="small">{restriction}</T>
-        </View>
         <View style={s.burnCard}>
           <View style={s.row}>
-            <T>burn rate</T>
-            <T variant="small">{state.burnRate}%</T>
+            <T style={{ fontSize: 13 }}>burn rate</T>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <T variant="small">{restriction}</T>
+              <T variant="small" color={colors.text}>
+                {state.burnRate}%
+              </T>
+            </View>
           </View>
           <GlowSlider
             label="burn rate"
@@ -181,28 +158,14 @@ export default function Profile() {
             glow
             tint={p.core}
           />
-          <View style={s.row}>
-            <T variant="small" color={colors.muted}>
-              0%
-            </T>
-            <T variant="small" color={colors.muted}>
-              100%
-            </T>
-          </View>
         </View>
 
-        <View style={[s.sectionLabel, { marginTop: 32 }]}>
-          <T variant="small" color={colors.text}>
-            trusted friend
-          </T>
-          <T variant="small">a little support</T>
-        </View>
         <View style={s.friendCard}>
           <View style={s.avatar}>
             {friend ? (
-              <Mascot hue={friend.hue} size={48} companionId={friend.id} />
+              <Mascot hue={friend.hue} size={44} companionId={friend.id} />
             ) : (
-              <Icon name="users" size={21} />
+              <Icon name="users" size={18} />
             )}
           </View>
           <Pressable
@@ -211,18 +174,9 @@ export default function Profile() {
             onPress={() => setSheet('friend')}
             style={s.friendDetails}
           >
-            <View style={{ flex: 1 }}>
-              <T>{friend?.name ?? 'someone you trust'}</T>
-              <T variant="small" style={{ fontSize: 11 }}>
-                {' '}
-                {friend ? 'a pause, together' : 'choose from your circle'}
-              </T>
-            </View>
-            <View style={s.badge}>
-              <T variant="small" color={palettes.Ember.core}>
-                {friend ? 'trusted' : 'choose'}
-              </T>
-            </View>
+            <T style={{ flex: 1, fontSize: 13 }}>trusted friend</T>
+            <T variant="small">{friend?.name ?? 'choose'}</T>
+            <Icon name="chevron-right" size={14} />
           </Pressable>
         </View>
 
@@ -230,9 +184,6 @@ export default function Profile() {
           <Icon name="bell" color={colors.text} size={21} />
           <View style={{ flex: 1, marginLeft: 13 }}>
             <T style={{ fontSize: 13 }}>gentle notifications</T>
-            <T variant="small" style={{ fontSize: 11 }}>
-              only when your flame can help
-            </T>
           </View>
           <Pressable
             accessibilityRole="switch"
@@ -383,74 +334,42 @@ export default function Profile() {
   );
 }
 const s = StyleSheet.create({
-  content: { paddingHorizontal: 24, paddingTop: 30, paddingBottom: 12 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
+  content: { paddingHorizontal: 28, paddingTop: 28, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   name: { maxWidth: 90, paddingVertical: 12 },
-  flameCard: {
-    height: 216,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: '#FFFFFF16',
-    overflow: 'hidden',
-  },
-  mascot: { position: 'absolute', left: -25, bottom: -12 },
-  colorControls: { marginLeft: '46%', marginRight: 16, paddingTop: 29 },
-  swatches: { flexDirection: 'row', alignItems: 'center', marginTop: 9 },
-  swatchHit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  swatch: { width: 27, height: 27, borderRadius: 14 },
-  sectionLabel: {
+  mascot: { alignItems: 'center', marginTop: 2, marginBottom: 4 },
+  colorControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  colorLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 10,
+    paddingHorizontal: 10,
+    marginTop: 0,
   },
+  swatchHit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  swatch: { width: 18, height: 18, borderRadius: 9 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  burnCard: {
-    backgroundColor: '#060404CC',
-    borderRadius: 26,
-    borderWidth: 1,
-    borderColor: '#FFFFFF20',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
+  burnCard: { marginTop: 32, paddingBottom: 12 },
   friendCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 76,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    backgroundColor: '#070505D9',
-    borderWidth: 1,
-    borderColor: '#FFFFFF20',
+    minHeight: 64,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  avatar: { width: 48, height: 54, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 32, height: 50, alignItems: 'center', justifyContent: 'center' },
   friendDetails: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingVertical: 12,
-    paddingLeft: 4,
-  },
-  badge: {
-    borderWidth: 1,
-    borderColor: palettes.Ember.body + '90',
-    borderRadius: 99,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    gap: 8,
+    paddingVertical: 18,
+    paddingLeft: 8,
   },
   notifications: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
+    paddingVertical: 10,
     paddingHorizontal: 4,
-    paddingVertical: 8,
   },
   option: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12 },
 });

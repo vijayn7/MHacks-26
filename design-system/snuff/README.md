@@ -40,6 +40,8 @@ Native haptics are gently throttled; browser previews show visual feedback only.
 
 ## Profile settings composition
 
-The latest profile reference is `previews/snuff-profile-redesign.png`. A rounded companion sits in the left half of a translucent two-color card; color swatches and a blend slider sit to its right. Below are restriction-level metadata, a dark burn-rate card with a diffused light handle, a trusted-friend row, and a quiet notification switch. Maintain the three existing navigation tabs. The content scrolls on shorter phones, and the flame scales down below 360px width to keep controls clear.
+The latest profile reference is `previews/snuff-profile-minimal.png`. Keep the companion centered and unboxed. Use a single gradient color track between two small endpoint swatches, a burn-rate control without a card, and quiet friend / notification rows. Keep the existing three-tab navigation and lowercase copy.
 
-Mix any two existing palette hues through `src/design/blend.ts`; the user's mascot shares that mix across screens. Native and web slider implementations are in `src/components/GlowSlider.tsx` and `.web.tsx`. Profile preferences persist locally. Burn rate and trusted-friend selection remain prototype preferences; backend restriction enforcement and messaging are not connected. The friend is supportive rather than an approval gate.
+The burn-rate glow grows from 28 to 96 logical pixels and increases from 30% to full opacity as the slider moves right. Both platform implementations share `src/design/slider.ts`. Color blending uses `src/design/blend.ts`; native and web controls live in `src/components/GlowSlider.tsx` and `.web.tsx`. The user’s color mix remains shared across screens.
+
+Profile preferences persist locally. Burn rate and trusted-friend selection are prototype preferences; backend restriction enforcement and messaging are not connected.

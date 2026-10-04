@@ -16,7 +16,19 @@ test('profile color, burn rate, and trusted friend settings persist across scree
   await blend.press('ArrowRight');
   await expect(blend).toHaveAttribute('aria-valuenow', '1');
   const burn = page.getByRole('slider', { name: 'burn rate', exact: true });
+  await burn.press('Home');
+  const glow = page.getByTestId('slider-glow');
+  const dim = await glow.evaluate((e) => ({
+    width: e.getBoundingClientRect().width,
+    opacity: Number(getComputedStyle(e).opacity),
+  }));
   await burn.press('End');
+  const bright = await glow.evaluate((e) => ({
+    width: e.getBoundingClientRect().width,
+    opacity: Number(getComputedStyle(e).opacity),
+  }));
+  expect(bright.width).toBeGreaterThan(dim.width * 2);
+  expect(bright.opacity).toBeGreaterThan(dim.opacity);
   await burn.press('ArrowLeft');
   await expect(burn).toHaveAttribute('aria-valuenow', '99');
   await expect(page.getByText('mindful', { exact: true })).toBeVisible();
@@ -44,7 +56,7 @@ test('profile remains usable on a small phone and sliders respond to dragging', 
   const b = (await blend.boundingBox())!;
   await page.mouse.move(b.x + 10, b.y + b.height / 2);
   await page.mouse.down();
-  await page.mouse.move(b.x + b.width - 10, b.y + b.height / 2, { steps: 10 });
+  await page.mouse.move(b.x + b.width - 2, b.y + b.height / 2, { steps: 10 });
   await page.mouse.up();
   await expect(blend).toHaveAttribute('aria-valuenow', '100');
   await page.getByRole('switch', { name: 'quiet notifications' }).scrollIntoViewIfNeeded();

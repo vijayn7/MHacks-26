@@ -1,5 +1,7 @@
 import React, { useId, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { sliderGlow } from '../design/slider';
 import Slider from '@react-native-community/slider';
 import Svg, { Defs, RadialGradient, Stop, Circle } from 'react-native-svg';
 import { colors, palettes } from '../design/tokens';
@@ -10,37 +12,45 @@ export function GlowSlider({
   onChange,
   glow = false,
   tint = palettes.Violet.body,
+  startTint = tint,
+  endTint = tint,
 }: {
   label: string;
   value: number;
   onChange: (value: number) => void;
   glow?: boolean;
   tint?: string;
+  startTint?: string;
+  endTint?: string;
 }) {
   const [width, setWidth] = useState(0);
   const id = useId().replace(/[^a-z0-9]/gi, '');
   const change = (next: number) => onChange(Math.round(Math.max(0, Math.min(100, next))));
+  const light = sliderGlow(value);
   return (
-    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height: glow ? 62 : 44 }}>
-      {glow && (
-        <View
-          style={{
-            pointerEvents: 'none',
-            position: 'absolute',
-            top: 12,
-            left: 0,
-            right: 0,
-            height: 38,
-            borderRadius: 99,
-            borderWidth: 1,
-            borderColor: '#FFFFFF12',
-            backgroundColor: '#FFFFFF06',
-            overflow: 'hidden',
-          }}
-        >
-          <View style={{ width: `${value}%`, height: '100%', backgroundColor: '#FFFFFF0C' }} />
-        </View>
-      )}
+    <View
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={{ height: glow ? 62 : 44, marginHorizontal: glow ? 12 : 0 }}
+    >
+      <View
+        style={{
+          pointerEvents: 'none',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: glow ? 29.5 : 20.5,
+          height: 3,
+          borderRadius: 9,
+          overflow: 'hidden',
+        }}
+      >
+        <LinearGradient
+          colors={glow ? ['#FFFFFF12', '#FFFFFF12'] : [startTint, endTint]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ flex: 1 }}
+        />
+      </View>
       <Slider
         accessibilityLabel={label}
         accessibilityValue={{ min: 0, max: 100, now: value, text: `${value}%` }}
@@ -55,41 +65,23 @@ export function GlowSlider({
         step={1}
         onValueChange={change}
         onSlidingComplete={change}
-        minimumTrackTintColor={glow ? 'transparent' : tint + '70'}
-        maximumTrackTintColor={glow ? 'transparent' : '#FFFFFF1C'}
-        thumbTintColor={glow ? 'transparent' : tint}
+        minimumTrackTintColor="transparent"
+        maximumTrackTintColor="transparent"
+        thumbTintColor={glow ? 'transparent' : colors.text}
         style={{ width: '100%', height: glow ? 62 : 44 }}
-        {...(Platform.OS === 'web'
-          ? {
-              tabIndex: 0,
-              'aria-valuenow': value,
-              'aria-valuemin': 0,
-              'aria-valuemax': 100,
-              'aria-valuetext': `${value}%`,
-              onKeyDown: (e: { key: string; preventDefault: () => void }) => {
-                const step = ['ArrowRight', 'ArrowUp'].includes(e.key)
-                  ? 1
-                  : ['ArrowLeft', 'ArrowDown'].includes(e.key)
-                    ? -1
-                    : 0;
-                if (step || e.key === 'Home' || e.key === 'End') {
-                  e.preventDefault();
-                  change(e.key === 'Home' ? 0 : e.key === 'End' ? 100 : value + step);
-                }
-              },
-            }
-          : {})}
       />
       {glow && width > 0 && (
         <View
           style={{
             pointerEvents: 'none',
-            ...StyleSheet.absoluteFill,
-            left: 10 + ((width - 20) * value) / 100 - 31,
-            width: 62,
+            position: 'absolute',
+            top: (62 - light.size) / 2,
+            opacity: light.opacity,
+            left: 10 + ((width - 20) * value) / 100 - light.size / 2,
+            width: light.size,
           }}
         >
-          <Svg width={62} height={62} viewBox="0 0 62 62">
+          <Svg width={light.size} height={light.size} viewBox="0 0 62 62">
             <Defs>
               <RadialGradient id={id}>
                 <Stop offset="0" stopColor={colors.text} stopOpacity="1" />
@@ -99,7 +91,7 @@ export function GlowSlider({
               </RadialGradient>
             </Defs>
             <Circle cx="31" cy="31" r="31" fill={`url(#${id})`} />
-            <Circle cx="31" cy="31" r="5" fill={palettes.Ember.core} />
+            <Circle cx="31" cy="31" r="2.5" fill={palettes.Ember.core} />
           </Svg>
         </View>
       )}

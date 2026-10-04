@@ -330,7 +330,16 @@ export default function Profile() {
             router.push('/onboarding?edit=1');
           }}
         >
-          spending preferences
+          refine preferences
+        </QuietButton>
+        <QuietButton
+          secondary
+          onPress={() => {
+            setSheet(null);
+            router.push('/purchase-demo');
+          }}
+        >
+          purchase demo
         </QuietButton>
         <QuietButton
           secondary

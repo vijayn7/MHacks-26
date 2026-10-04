@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { SoftPressable as Pressable } from './SoftPressable';
 import { Input, Icon, QuietButton, T } from './ui';
 import { colors } from '../design/tokens';
 

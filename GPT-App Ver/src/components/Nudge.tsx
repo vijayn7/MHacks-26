@@ -22,7 +22,7 @@ import { colors, palettes } from '../design/tokens';
 import { blendPalette } from '../design/blend';
 import { celebrate, Icon, QuietButton, T, tap } from './ui';
 import { Mascot } from './Mascot';
-import { enableNudges, scheduleNudge, cancelNudge } from '../services/notifications';
+import { cancelNudge } from '../services/notifications';
 import { apiEnabled } from '../services/api';
 import { fetchCheckIn, sendCheckIn } from '../services/checkin';
 
@@ -46,14 +46,12 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [friendId, setFriendId] = useState<string | null>(null);
   const friend = state.friends.find((f) => f.id === friendId);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const [checkInStatus, setCheckInStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [friendReply, setFriendReply] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [settled, setSettled] = useState(done);
-  const [fade] = useState(() => new Animated.Value(done ? 1 : 0));
+  const [settled, setSettled] = useState(kept);
+  const [fade] = useState(() => new Animated.Value(kept ? 1 : 0));
   const p = blendPalette(state.hue, state.blendHue, state.blend);
   const size = Math.min(246, Math.max(148, height * 0.29));
   useEffect(() => {
@@ -69,18 +67,18 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
   }, []);
   useEffect(() => {
     const animation = Animated.timing(fade, {
-      toValue: done ? 1 : 0,
+      toValue: kept ? 1 : 0,
       duration: reducedMotion ? 0 : 1100,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: Platform.OS !== 'web',
     });
     animation.start();
-    const timeout = setTimeout(() => setSettled(done), reducedMotion ? 0 : 550);
+    const timeout = setTimeout(() => setSettled(kept), reducedMotion ? 0 : 550);
     return () => {
       animation.stop();
       clearTimeout(timeout);
     };
-  }, [done, fade, reducedMotion]);
+  }, [kept, fade, reducedMotion]);
   useEffect(() => {
     if (!apiEnabled || checkInStatus !== 'sent' || friendReply) return;
     let stop = false;
@@ -119,24 +117,6 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
       setCheckInStatus('error');
     }
   };
-  const later = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      if (!(await enableNudges())) {
-        setError('allow notifications to be reminded.');
-        return;
-      }
-      await scheduleNudge(n, 86400);
-      dispatch({ type: 'NOTIFICATIONS', enabled: true });
-      dispatch({ type: 'SNOOZE_NUDGE', id: n.id, until: Date.now() + 86400000 });
-      onClose();
-    } catch {
-      setError('this device couldn’t schedule the reminder.');
-    } finally {
-      setBusy(false);
-    }
-  };
   const finish = () => {
     onClose();
     if (n.source !== 'sample store') router.navigate('/');
@@ -151,7 +131,7 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
     >
       <View testID="purchase-takeover" style={s.backdrop}>
         <LinearGradient
-          colors={done ? ['#171413', '#090808', '#050505'] : ['#1B100E', '#0D0808', '#050505']}
+          colors={kept ? ['#171413', '#090808', '#050505'] : ['#1B100E', '#0D0808', '#050505']}
           style={[s.popup, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
         >
           <View style={s.top}>
@@ -302,14 +282,14 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                   <Mascot
                     hue={state.hue}
                     size={size}
-                    expression={done || kept || saved ? undefined : 'wistful'}
-                    intensity={done ? (settled ? 'Out' : 'Low') : kept ? 'High' : undefined}
+                    expression={done ? 'happy' : kept ? 'wistful' : saved ? undefined : 'wistful'}
+                    intensity={kept ? (settled ? 'Out' : 'Low') : done ? 'High' : undefined}
                   />
                 </Animated.View>
                 <View accessibilityLiveRegion="polite">
                   <T variant="title" style={s.heading}>
                     {done
-                      ? 'a little quieter.'
+                      ? 'your flame thanks you.'
                       : kept
                         ? 'your choice.'
                         : saved
@@ -320,7 +300,7 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     {done
                       ? `${money(n.amount)}, kept.`
                       : kept
-                        ? 'your flame is still with you.'
+                        ? 'your flame needs a little rest.'
                         : `${n.name} · ${money(n.amount)}`}
                   </T>
                 </View>
@@ -417,17 +397,7 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     <QuietButton secondary onPress={finish}>
                       back to my day
                     </QuietButton>
-                    {kept && (
-                      <QuietButton secondary disabled={busy} onPress={later}>
-                        tomorrow, maybe
-                      </QuietButton>
-                    )}
                   </>
-                )}
-                {!!error && (
-                  <T variant="small" color={palettes.Crimson.body} style={s.centerText}>
-                    {error}
-                  </T>
                 )}
               </>
             )}

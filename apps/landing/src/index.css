@@ -124,6 +124,7 @@ button {
   filter: none;
 }
 
+.tile--interactive:hover,
 .tile--interactive:focus-within {
   z-index: 6;
 }
@@ -133,59 +134,47 @@ button {
   height: 100%;
   object-fit: cover;
   object-position: var(--focus, top center);
-}
-
-/* Dim + blur the whole field when the impulse modal is open */
-.snuff--paused .snuff__field {
-  filter: brightness(0.28) saturate(0.7) blur(7px);
-  transition: filter 220ms ease;
-}
-
-.snuff--paused .snuff__center {
-  opacity: 0.18;
-  filter: blur(6px);
   transition:
-    opacity 220ms ease,
-    filter 220ms ease;
+    filter 200ms ease,
+    transform 200ms ease;
 }
 
-.snuff__field,
-.snuff__center {
-  transition:
-    opacity 220ms ease,
-    filter 220ms ease;
+.tile--interactive:hover img,
+.tile--interactive:focus-within img {
+  filter: brightness(0.32) saturate(0.75) blur(5px);
+  transform: scale(1.02);
 }
 
-.impulse {
+/* Per-window dark overlay + centered flame popup */
+.tile__impulse {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 2;
   display: grid;
   place-items: center;
-  padding: 1.5rem;
-  background: rgb(6 4 3 / 0.62);
-  animation: impulse-in 240ms ease;
+  padding: 6%;
+  background: rgb(6 4 3 / 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
 }
 
-@keyframes impulse-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.tile--interactive:hover .tile__impulse,
+.tile--interactive:focus-within .tile__impulse {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.impulse__dialog {
+.tile__impulse-card {
   position: relative;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1.1fr 0.9fr;
   align-items: center;
-  gap: clamp(1rem, 3vw, 2.4rem);
-  width: min(44rem, 92vw);
-  min-height: clamp(11rem, 22vw, 14.5rem);
-  padding: clamp(1.35rem, 3vw, 2.1rem) clamp(1.35rem, 3vw, 2rem);
-  border-radius: 1.65rem;
+  gap: clamp(0.45rem, 1.4vw, 0.9rem);
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(0.55rem, 1.5vw, 0.95rem) clamp(0.55rem, 1.4vw, 0.9rem);
+  border-radius: clamp(0.7rem, 1.6vw, 1.15rem);
   color: #fff;
   background:
     linear-gradient(
@@ -197,92 +186,73 @@ button {
       #0a0814 100%
     );
   box-shadow:
-    0 0 0 3px #1a100c,
-    0 0 48px rgb(232 120 46 / 0.45),
-    0 0 90px rgb(42 26 110 / 0.35),
-    0 28px 64px rgb(0 0 0 / 0.55);
+    0 0 0 2px #1a100c,
+    0 0 22px rgb(232 120 46 / 0.4),
+    0 0 36px rgb(42 26 110 / 0.28),
+    0 12px 28px rgb(0 0 0 / 0.45);
   overflow: hidden;
-  animation: impulse-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: scale(0.96) translateY(4px);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.impulse__dialog::before {
+.tile--interactive:hover .tile__impulse-card,
+.tile--interactive:focus-within .tile__impulse-card {
+  transform: scale(1) translateY(0);
+}
+
+.tile__impulse-card::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  opacity: 0.22;
+  opacity: 0.2;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
 
-@keyframes impulse-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.94) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.impulse__copy {
+.tile__impulse-copy {
   position: relative;
   z-index: 1;
   margin: 0;
-  max-width: 18ch;
-  font-size: clamp(1.2rem, 2.6vw, 1.85rem);
+  font-size: clamp(0.58rem, 1.15vw, 0.82rem);
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: #fff;
 }
 
-.impulse__actions {
+.tile__impulse-actions {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  width: min(12.5rem, 100%);
-  justify-self: end;
+  gap: clamp(0.2rem, 0.45vw, 0.35rem);
+  width: 100%;
 }
 
-.impulse__actions button {
+.tile__impulse-actions button {
   appearance: none;
   border: none;
   border-radius: 999px;
-  min-height: 2.55rem;
-  padding: 0.55rem 1.1rem;
+  min-height: clamp(1.25rem, 2.2vw, 1.7rem);
+  padding: 0.2rem 0.45rem;
   background: #fff;
   color: #14110f;
-  font-size: 0.92rem;
+  font-size: clamp(0.48rem, 0.85vw, 0.68rem);
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition:
-    transform 140ms ease,
-    filter 140ms ease;
+  white-space: nowrap;
 }
 
-.impulse__actions button:hover {
-  transform: translateY(-1px);
-  filter: brightness(0.97);
+.tile__impulse-actions button:hover {
+  filter: brightness(0.96);
 }
 
-.impulse__actions button:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-}
-
-.impulse__ask {
+.tile__impulse-ask {
   background: #e8782e !important;
   color: #fff !important;
-}
-
-.impulse__ask:hover {
-  filter: brightness(1.06) !important;
 }
 
 .snuff__center {
@@ -417,20 +387,19 @@ button {
     );
   }
 
-  .impulse__dialog {
+  .tile__impulse-card {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
-    min-height: 0;
-    padding: 1.35rem 1.25rem 1.4rem;
+    gap: 0.45rem;
+    padding: 0.55rem;
   }
 
-  .impulse__copy {
-    max-width: none;
+  .tile__impulse-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
-  .impulse__actions {
-    width: 100%;
-    justify-self: stretch;
+  .tile__impulse-actions button {
+    flex: 1 1 calc(50% - 0.2rem);
   }
 }
 
@@ -447,11 +416,9 @@ button {
     transform: none;
   }
 
-  .impulse,
-  .impulse__dialog,
-  .snuff__field,
-  .snuff__center {
-    animation: none;
+  .tile img,
+  .tile__impulse,
+  .tile__impulse-card {
     transition: none;
   }
 }

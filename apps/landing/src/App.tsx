@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 type Layer = "far" | "mid" | "near";
 
@@ -599,35 +599,18 @@ function DownloadIcon() {
   );
 }
 
-function ImpulseModal({ onClose }: { onClose: () => void }) {
+function ImpulsePopup() {
   return (
-    <div
-      className="impulse"
-      role="presentation"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="impulse__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="impulse-title"
-      >
-        <p id="impulse-title" className="impulse__copy">
+    <div className="tile__impulse" role="dialog" aria-label="Impulse purchase pause">
+      <div className="tile__impulse-card">
+        <p className="tile__impulse-copy">
           I see you’re about to make an impulse purchase...
         </p>
-        <div className="impulse__actions">
-          <button type="button" onClick={onClose}>
-            Drop
-          </button>
-          <button type="button" onClick={onClose}>
-            Save for later
-          </button>
-          <button type="button" onClick={onClose}>
-            Continue
-          </button>
-          <button type="button" className="impulse__ask" onClick={onClose}>
+        <div className="tile__impulse-actions">
+          <button type="button">Drop</button>
+          <button type="button">Save for later</button>
+          <button type="button">Continue</button>
+          <button type="button" className="tile__impulse-ask">
             Ask a friend
           </button>
         </div>
@@ -638,7 +621,6 @@ function ImpulseModal({ onClose }: { onClose: () => void }) {
 
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
-  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -686,19 +668,8 @@ export function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!modalOpen) return;
-
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setModalOpen(false);
-    };
-
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [modalOpen]);
-
   return (
-    <main className={["snuff", modalOpen ? "snuff--paused" : null].filter(Boolean).join(" ")} ref={rootRef}>
+    <main className="snuff" ref={rootRef}>
       <div className="snuff__field">
         {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);
@@ -721,9 +692,9 @@ export function App() {
                 } as CSSProperties
               }
               aria-hidden={interactive ? undefined : true}
-              onPointerEnter={interactive && !modalOpen ? () => setModalOpen(true) : undefined}
             >
               <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
+              {interactive ? <ImpulsePopup /> : null}
             </figure>
           );
         })}
@@ -747,8 +718,6 @@ export function App() {
           </a>
         </div>
       </div>
-
-      {modalOpen ? <ImpulseModal onClose={() => setModalOpen(false)} /> : null}
     </main>
   );
 }

@@ -423,13 +423,35 @@ const fieldTiles = withStaggeredDepth(tiles);
 
 function ChromeIcon() {
   return (
-    <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
-      {/* Recognizable Chrome silhouette in one fill (CTA uses currentColor) */}
+    <svg className="cta__icon" viewBox="0 0 48 48" aria-hidden="true">
+      <defs>
+        <linearGradient id="chromeRed" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#d93025" />
+          <stop offset="1" stopColor="#ea4335" />
+        </linearGradient>
+        <linearGradient id="chromeYellow" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fcc934" />
+          <stop offset="1" stopColor="#fbbc04" />
+        </linearGradient>
+        <linearGradient id="chromeGreen" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#1e8e3e" />
+          <stop offset="1" stopColor="#34a853" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="23.9947" r="12" fill="#fff" />
       <path
-        fill="currentColor"
-        fillRule="evenodd"
-        d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3.5a6.5 6.5 0 0 1 5.48 3H12a3.5 3.5 0 0 0-3.03 1.75L7.12 7.13A6.48 6.48 0 0 1 12 5.5Zm-3.5 6.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0Zm1.22 4.12L7.87 19.1A6.48 6.48 0 0 0 18.5 12h-3.65a3.5 3.5 0 0 1-5.13 2.62Z"
+        fill="url(#chromeRed)"
+        d="M24 12h20.7812a23.9939 23.9939 0 0 0-41.5639.0029L13.6079 30l.0093-.0024A11.9852 11.9852 0 0 1 24 12Z"
       />
+      <path
+        fill="url(#chromeYellow)"
+        d="M34.3913 30.0029 24.0007 48A23.994 23.994 0 0 0 44.78 12.0031H23.9989l-.0025.0093A11.985 11.985 0 0 1 34.3913 30.0029Z"
+      />
+      <path
+        fill="url(#chromeGreen)"
+        d="M13.6086 30.0031 3.218 12.006A23.994 23.994 0 0 0 24.0025 48L34.3931 30.0029l-.0067-.0068a11.9852 11.9852 0 0 1-20.7778.007Z"
+      />
+      <circle cx="24" cy="24" r="9.5" fill="#1a73e8" />
     </svg>
   );
 }

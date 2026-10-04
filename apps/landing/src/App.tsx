@@ -17,7 +17,7 @@ const planes: Plane[] = [
   { id: "p2", src: "/sites/draftkings.jpg", alt: "DraftKings", x: 32, y: 14, z: -460, w: 40, rotY: -8 },
   { id: "p3", src: "/sites/nike.jpg", alt: "Nike", x: 4, y: -24, z: -700, w: 38, rotY: 4 },
   { id: "p4", src: "/sites/fanduel.jpg", alt: "FanDuel", x: -32, y: 18, z: -940, w: 42, rotY: -6 },
-  { id: "p5", src: "/sites/ebay.jpg", alt: "eBay", x: 36, y: -12, z: -1160, w: 38, rotY: 9 },
+  { id: "p5", src: "/sites/princesspolly.jpg", alt: "Princess Polly", x: 36, y: -12, z: -1160, w: 38, rotY: 9 },
   { id: "p6", src: "/sites/walmart.jpg", alt: "Walmart", x: -40, y: -2, z: -1400, w: 40, rotY: -10 },
   { id: "p7", src: "/sites/bestbuy.jpg", alt: "Best Buy", x: 18, y: 20, z: -1660, w: 42, rotY: 6 },
   { id: "p8", src: "/sites/pointsbet.jpg", alt: "Fanatics Sportsbook", x: -18, y: -22, z: -1920, w: 38, rotY: -5 },

@@ -107,6 +107,45 @@ button {
   pointer-events: none;
 }
 
+.snuff__cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 13;
+  width: 3.15rem;
+  height: 3.55rem;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 12px rgb(245 165 36 / 0.5));
+  transition: opacity 120ms ease;
+}
+
+.snuff__mascot-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: snuff-mascot-breathe 2.8s ease-in-out infinite;
+  transform-origin: 50% 18%;
+}
+
+@keyframes snuff-mascot-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.03, 1.015);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snuff__mascot-svg {
+    animation: none;
+  }
+}
+
 .snuff__field {
   position: absolute;
   inset: 0;

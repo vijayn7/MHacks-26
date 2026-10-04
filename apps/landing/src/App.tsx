@@ -492,15 +492,89 @@ function PausePopup({ site }: { site: string }) {
   );
 }
 
+const FLAME_SILHOUETTE =
+  "M 59 179 C 42 158 42 131 48 111 C 61 139 76 133 84 108 C 94 79 103 46 114 22 C 119 59 116 87 137 102 C 151 113 163 103 161 83 C 188 95 202 116 202 149 C 202 188 176 215 131 216 C 96 218 73 201 59 179 Z";
+
+/** Little Snuff flame mascot — same silhouette + awake eyes as the app. */
+function FlameCursor() {
+  return (
+    <svg className="snuff__mascot-svg" viewBox="0 0 240 270" aria-hidden="true">
+      <defs>
+        <filter id="cursor-edge" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="3.2" />
+        </filter>
+        <linearGradient id="cursor-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FFD66B" stopOpacity="0" />
+          <stop offset="19%" stopColor="#FFD66B" stopOpacity="0.28" />
+          <stop offset="43%" stopColor="#FFD66B" stopOpacity="0.9" />
+          <stop offset="64%" stopColor="#F5A524" />
+          <stop offset="100%" stopColor="#ED7014" />
+        </linearGradient>
+        <radialGradient id="cursor-core" cx="47%" cy="74%" r="58%">
+          <stop offset="0%" stopColor="#FFF3D6" stopOpacity="0.96" />
+          <stop offset="37%" stopColor="#FFF3D6" stopOpacity="0.76" />
+          <stop offset="73%" stopColor="#FFD66B" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#FFD66B" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="cursor-bloom" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFF3D6" stopOpacity="0.28" />
+          <stop offset="50%" stopColor="#F5A524" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#ED7014" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="cursor-plume" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFD66B" stopOpacity="0.4" />
+          <stop offset="35%" stopColor="#F5A524" stopOpacity="0.22" />
+          <stop offset="70%" stopColor="#ED7014" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#ED7014" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="125" cy="181" rx="91" ry="75" fill="url(#cursor-bloom)" />
+      <ellipse
+        cx="120"
+        cy="100"
+        rx="42"
+        ry="78"
+        fill="url(#cursor-plume)"
+        transform="rotate(10 120 100)"
+        opacity="0.75"
+      />
+      <g transform="translate(10 30) scale(0.92)">
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" filter="url(#cursor-edge)" opacity="0.55" />
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" />
+        <path d={FLAME_SILHOUETTE} fill="url(#cursor-core)" />
+      </g>
+      {/* awake eyes — same absolute coords as app Mascot (outside body transform) */}
+      <ellipse
+        cx="111.2"
+        cy="165.24"
+        rx="4.14"
+        ry="6.9"
+        fill="#3A0F02"
+        transform="rotate(22 111.2 165.24)"
+      />
+      <ellipse
+        cx="145.24"
+        cy="163.4"
+        rx="4.14"
+        ry="6.9"
+        fill="#3A0F02"
+        transform="rotate(22 145.24 163.4)"
+      />
+    </svg>
+  );
+}
+
 export function App() {
   const rootRef = useRef<HTMLElement>(null);
   const trailRef = useRef<HTMLCanvasElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
     const canvas = trailRef.current;
-    if (!root || !canvas) return;
+    const cursor = cursorRef.current;
+    if (!root || !canvas || !cursor) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -530,6 +604,12 @@ export function App() {
     let moving = false;
     let lastMove = 0;
     const embers: Ember[] = [];
+
+    // Hotspot is the flame tip (~18.5% from top of the 240×270 mascot viewBox).
+    const placeCursor = (x: number, y: number, visible: boolean) => {
+      cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -18%)`;
+      cursor.style.opacity = visible ? "1" : "0";
+    };
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -574,19 +654,6 @@ export function App() {
       const w = root.clientWidth;
       const h = root.clientHeight;
       ctx.clearRect(0, 0, w, h);
-
-      if (!reduceMotion && moving && Date.now() - lastMove < 80) {
-        // Soft fire core under the cursor tip
-        const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 14);
-        core.addColorStop(0, "rgba(255, 236, 170, 0.95)");
-        core.addColorStop(0.35, "rgba(255, 140, 48, 0.7)");
-        core.addColorStop(0.7, "rgba(196, 54, 24, 0.28)");
-        core.addColorStop(1, "rgba(40, 20, 10, 0)");
-        ctx.fillStyle = core;
-        ctx.beginPath();
-        ctx.arc(pointerX, pointerY, 14, 0, Math.PI * 2);
-        ctx.fill();
-      }
 
       for (let i = embers.length - 1; i >= 0; i--) {
         const e = embers[i];
@@ -662,8 +729,10 @@ export function App() {
       lastY = pointerY;
       lastMove = Date.now();
       moving = true;
+      placeCursor(pointerX, pointerY, true);
 
-      if (!reduceMotion && speed > 0.4) spawn(pointerX, pointerY, speed);
+      // Smoke rises from the flame tip (cursor hotspot)
+      if (!reduceMotion && speed > 0.4) spawn(pointerX, pointerY - 4, speed);
     };
 
     const onLeave = () => {
@@ -672,6 +741,7 @@ export function App() {
       moving = false;
       pointerX = -9999;
       pointerY = -9999;
+      placeCursor(0, 0, false);
     };
 
     root.addEventListener("pointermove", onMove);
@@ -690,6 +760,9 @@ export function App() {
   return (
     <main className="snuff" ref={rootRef}>
       <canvas className="snuff__trail" ref={trailRef} aria-hidden="true" />
+      <div className="snuff__cursor" ref={cursorRef} aria-hidden="true">
+        <FlameCursor />
+      </div>
       <div className="snuff__field">
         {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);

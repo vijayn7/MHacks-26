@@ -333,6 +333,9 @@ export function App() {
                   <input value="Nessie checking account" disabled />
                 </label>
                 <p className="pay-note">This demo does not charge a real card.</p>
+                <p>
+                  Order total ${money(product.price)}
+                </p>
                 <button id="checkout" className="a-button" type="button" onClick={() => void placeOrder()} disabled={busy}>
                   {busy ? "Placing order…" : "Place order"}
                 </button>

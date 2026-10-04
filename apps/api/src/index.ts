@@ -49,7 +49,7 @@ const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
 const askAgain = "Reply YES to approve the purchase or NO to reject it.";
 const approvedAck = "Approved. The checkout can go through.";
 const rejectedAck = "Rejected. The purchase will be dropped.";
-const origin = "http://localhost:5173";
+const origin = "*";
 const maxBody = 64 * 1024;
 const seedRule = {
   id: "seed-over-40",

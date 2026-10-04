@@ -1,3 +1,4 @@
+import { shouldPause } from "./checkout-analyzer";
 import { DbConnection, tables, type SubscriptionHandle } from "./module_bindings";
 
 const fallback = { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 };
@@ -7,7 +8,7 @@ function pauseCopy() {
   return `Pause purchases over $${rule.minAmount} for ${rule.pauseMinutes} minutes.`;
 }
 
-let bypass = false;
+let shown = false;
 let pauseId = "";
 let poll: ReturnType<typeof setInterval> | undefined;
 let decided = false;
@@ -74,7 +75,7 @@ shadow.innerHTML = `
 <div class="overlay" hidden>
   <div class="card" role="dialog" aria-label="Checkout pause">
     <p class="copy">${pauseCopy()}</p>
-    <p class="note">Ask a friend. YES approves the purchase. NO rejects it.</p>
+    <p class="note">Ask a friend. NO closes this tab. YES leaves it open.</p>
     <p class="friend" hidden></p>
     <button type="button" data-action="drop">Drop</button>
     <button type="button" data-action="save">Save for later</button>
@@ -106,12 +107,15 @@ async function loadRule() {
   }
 }
 
-function post(type: string, id: string = crypto.randomUUID()) {
-  fetch("http://localhost:8787/events", {
+function post(type: string, id: string = crypto.randomUUID()): Promise<void> {
+  return fetch("http://localhost:8787/events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, type, ruleId: rule.id }),
-  }).catch(() => {});
+  }).then(
+    () => undefined,
+    () => undefined,
+  );
 }
 
 function stopLive() {
@@ -144,15 +148,22 @@ function openCard() {
   post("pause_started");
 }
 
-function closeCard(type: string, status?: string) {
+function closeCard(type: string, status?: string): Promise<void> {
   if (poll) clearInterval(poll);
   poll = undefined;
   stopLive();
   overlay.hidden = true;
-  post(type);
-  if (pauseId) post("pause_resolved", `${pauseId}:pause_resolved`);
+  const writes = [post(type)];
+  if (pauseId) writes.push(post("pause_resolved", `${pauseId}:pause_resolved`));
   statusEl.hidden = !status;
   if (status) statusEl.textContent = status;
+  return Promise.all(writes).then(() => undefined);
+}
+
+function closeTab() {
+  const send = (globalThis as { chrome?: { runtime?: { sendMessage: (message: string) => void } } }).chrome
+    ?.runtime?.sendMessage;
+  send?.("close-tab");
 }
 
 let applying = false;
@@ -162,12 +173,10 @@ function applyDecision(status: "approved" | "rejected") {
   applying = true;
   if (poll) clearInterval(poll);
   if (status === "approved") {
-    bypass = true;
-    closeCard("continue_selected", "Friend approved");
-    document.querySelector<HTMLButtonElement>("#checkout")?.click();
+    void closeCard("continue_selected", "Friend approved");
     return;
   }
-  closeCard("purchase_dropped", "Friend rejected");
+  void closeCard("purchase_dropped", "Friend rejected").then(closeTab);
 }
 
 function showFriendDecision(status: "approved" | "rejected") {
@@ -283,30 +292,39 @@ shadow.addEventListener("click", (event) => {
     void saveItem();
     closeCard("saved_for_later", "Saved for later");
   }
-  else if (action === "continue") {
-    bypass = true;
-    closeCard("continue_selected");
-    document.querySelector<HTMLButtonElement>("#checkout")?.click();
-  }
+  else if (action === "continue") void closeCard("continue_selected");
 });
 
-document.addEventListener(
-  "click",
-  (event) => {
-    const target = event.target;
-    if (!(target instanceof Element) || !target.closest("#checkout")) return;
-    if (bypass) {
-      bypass = false;
-      return;
-    }
-    const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
-    if (!(amount >= rule.minAmount)) return;
-    event.preventDefault();
-    event.stopPropagation();
+function markedTotal(): number | undefined {
+  const marked = document.querySelector("[data-total]");
+  if (!marked?.hasAttribute("data-total")) return undefined;
+  const amount = Number(marked.getAttribute("data-total"));
+  return Number.isFinite(amount) ? amount : undefined;
+}
+
+function visibleLines(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+function isBuyPage(): boolean {
+  return shouldPause(visibleLines(document.body?.innerText ?? ""), markedTotal(), rule.minAmount);
+}
+
+// ponytail: whole-document observer until the first buy page. Drop it if the scan gets janky.
+function watchBuyPage() {
+  const look = () => {
+    if (shown || !isBuyPage()) return;
+    shown = true;
+    observer.disconnect();
     openCard();
-  },
-  true,
-);
+  };
+  const observer = new MutationObserver(look);
+  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  look();
+}
 
 document.documentElement.appendChild(host);
-void loadRule();
+void loadRule().then(watchBuyPage);

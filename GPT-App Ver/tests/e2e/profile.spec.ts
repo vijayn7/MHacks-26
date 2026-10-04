@@ -30,7 +30,7 @@ test('profile color and burn rate persist across screens and reload', async ({ p
   expect(bright.opacity).toBeGreaterThan(dim.opacity);
   await burn.press('ArrowLeft');
   await expect(burn).toHaveAttribute('aria-valuenow', '99');
-  await expect(page.getByText('mindful', { exact: true })).toBeVisible();
+  await expect(page.getByText('firm', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'home', exact: true }).click();
   await expect(page.getByText('$284', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'profile', exact: true }).click();

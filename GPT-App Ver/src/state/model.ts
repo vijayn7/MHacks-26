@@ -44,6 +44,8 @@ export type AppState = {
   archive: SavedItem[];
 };
 export type Action =
+  | { type: 'RENAME_FRIEND'; id: string; name: string }
+  | { type: 'REMOVE_FRIEND'; id: string }
   | { type: 'DEMO_PURCHASE'; id: string }
   | { type: 'WEARABLE'; settings: Partial<Omit<Wearable, 'moments'>> }
   | { type: 'SAVE_MOMENT'; moment: Moment }
@@ -259,6 +261,21 @@ export function reducer(s: AppState, a: Action): AppState {
         : s;
     case 'NOTIFICATIONS':
       return { ...s, notificationsEnabled: a.enabled };
+    case 'RENAME_FRIEND':
+      return a.name.trim()
+        ? {
+            ...s,
+            friends: s.friends.map((f) =>
+              f.id === a.id ? { ...f, name: a.name.trim().slice(0, 60) } : f,
+            ),
+          }
+        : s;
+    case 'REMOVE_FRIEND':
+      return {
+        ...s,
+        friends: s.friends.filter((f) => f.id !== a.id),
+        trustedFriendId: s.trustedFriendId === a.id ? null : s.trustedFriendId,
+      };
     case 'CONNECT_CONTACTS':
       return { ...s, friends: addContacts(s.friends, a.contacts) };
     case 'CONNECT': {

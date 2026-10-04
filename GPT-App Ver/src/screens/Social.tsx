@@ -14,6 +14,9 @@ export default function Social() {
   const { height } = useWindowDimensions();
   const compact = height < 700;
   const [sheet, setSheet] = useState<'connect' | null>(null);
+  const [managing, setManaging] = useState(false);
+  const [friendEdit, setFriendEdit] = useState<{ id: string; name: string } | null>(null);
+  const [removing, setRemoving] = useState(false);
   const [contactsMode, setContactsMode] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -50,6 +53,26 @@ export default function Social() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 34, paddingBottom: 28 }}
       >
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={managing ? 'done editing friends' : 'edit friends'}
+            onPress={() => setManaging(!managing)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Icon name={managing ? 'check' : 'edit-2'} size={14} />
+            <T variant="small">{managing ? 'done' : 'edit friends'}</T>
+          </Pressable>
+        </View>
         <View style={{ height: compact ? 260 : 330 }}>
           <View style={{ position: 'absolute', inset: 0, top: 38, justifyContent: 'flex-end' }}>
             <Svg
@@ -150,6 +173,24 @@ export default function Social() {
               <T variant="title" color={palettes[f.hue].body} style={{ fontSize: 23 }}>
                 {money(f.savings)}
               </T>
+              {managing && f.id !== 'you' && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`edit ${f.name.toLowerCase()}`}
+                  onPress={() => {
+                    setFriendEdit({ id: f.id, name: f.name });
+                    setRemoving(false);
+                  }}
+                  style={{
+                    padding: 12,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <Icon name="edit-2" size={15} />
+                </Pressable>
+              )}
             </View>
           ))}
         </View>
@@ -190,6 +231,49 @@ export default function Social() {
             <Icon name="user-plus" color={p.body} size={19} />
           </LinearGradient>
         </Pressable>
+        <Sheet
+          visible={!!friendEdit}
+          title={removing ? 'remove this friend?' : 'edit friend'}
+          onClose={() => setFriendEdit(null)}
+        >
+          {removing ? (
+            <>
+              <T>{friendEdit?.name} will leave your local circle.</T>
+              <QuietButton
+                onPress={() => {
+                  if (friendEdit) dispatch({ type: 'REMOVE_FRIEND', id: friendEdit.id });
+                  setFriendEdit(null);
+                }}
+              >
+                remove friend
+              </QuietButton>
+              <QuietButton secondary onPress={() => setRemoving(false)}>
+                cancel
+              </QuietButton>
+            </>
+          ) : (
+            <>
+              <Input
+                label="friend name"
+                value={friendEdit?.name || ''}
+                onChangeText={(name) => setFriendEdit((f) => (f ? { ...f, name } : null))}
+                placeholder="first name"
+              />
+              <QuietButton
+                disabled={!friendEdit?.name.trim()}
+                onPress={() => {
+                  if (friendEdit) dispatch({ type: 'RENAME_FRIEND', ...friendEdit });
+                  setFriendEdit(null);
+                }}
+              >
+                save changes
+              </QuietButton>
+              <QuietButton secondary onPress={() => setRemoving(true)}>
+                remove from circle
+              </QuietButton>
+            </>
+          )}
+        </Sheet>
         <Sheet
           visible={sheet === 'connect'}
           title={

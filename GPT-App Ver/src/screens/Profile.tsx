@@ -15,7 +15,7 @@ import { disableNudges, enableNudges, scheduleNudge } from '../services/notifica
 export default function Profile() {
   const { state, dispatch, openNudge, storageError } = useStore();
   const p = palettes[state.hue];
-  const [sheet, setSheet] = useState<'settings' | 'flame' | null>(null);
+  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [customize, setCustomize] = useState<'color' | 'face'>('color');
@@ -63,7 +63,7 @@ export default function Profile() {
     }
   };
   const second = palettes[state.blendHue];
-  const restriction = state.burnRate < 34 ? 'gentle' : state.burnRate < 67 ? 'balanced' : 'mindful';
+  const restriction = state.burnRate < 34 ? 'gentle' : state.burnRate < 67 ? 'balanced' : 'firm';
   const [colorTarget, setColorTarget] = useState<'base' | 'blend'>('base');
   const chooseColor = (target: 'base' | 'blend') => {
     tap();
@@ -203,7 +203,15 @@ export default function Profile() {
 
         <View style={s.burnCard}>
           <View style={s.row}>
-            <T style={{ fontSize: 13 }}>burn rate</T>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="about burn rate"
+              onPress={() => setSheet('burn')}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}
+            >
+              <T style={{ fontSize: 13 }}>burn rate</T>
+              <Icon name="info" size={14} />
+            </Pressable>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <T variant="small">{restriction}</T>
               <T variant="small" color={colors.text}>
@@ -218,6 +226,9 @@ export default function Profile() {
             glow
             tint={p.core}
           />
+          <T variant="small" style={{ fontSize: 10 }}>
+            higher = firmer reminders · budget set separately
+          </T>
         </View>
 
         <FriendStrip />
@@ -279,6 +290,33 @@ export default function Profile() {
         )}
       </ScrollView>
 
+      <Sheet
+        visible={sheet === 'burn'}
+        title="your nudge intensity."
+        onClose={() => setSheet(null)}
+      >
+        <T>burn rate is a setting you choose, not a calculation from your spending.</T>
+        <T variant="small" style={{ marginTop: 16 }}>
+          0–33% · gentle reminders{'\n'}34–66% · balanced check-ins{'\n'}67–100% · firmer reminders
+        </T>
+        <T variant="small" style={{ marginTop: 16 }}>
+          higher means stronger popup wording and a livelier flame. it doesn’t change your budget or
+          block purchases.
+        </T>
+        <T variant="small" style={{ marginTop: 16 }}>
+          {state.plan
+            ? `your block starts at $${state.plan.minAmount}. ${state.plan.mode === 'pause' ? `pause: ${state.plan.cooldownMinutes} minutes.` : 'reminder only.'}`
+            : 'set a goal on home to choose purchase limits and pause rules.'}
+        </T>
+        <QuietButton
+          onPress={() => {
+            setSheet(null);
+            router.push('/');
+          }}
+        >
+          edit budget & blocks
+        </QuietButton>
+      </Sheet>
       <Sheet visible={sheet === 'settings'} title="settings" onClose={() => setSheet(null)}>
         <Input label="your name" value={name} onChangeText={setName} placeholder="your name" />
         <QuietButton

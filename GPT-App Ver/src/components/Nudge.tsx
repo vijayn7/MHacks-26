@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useStore } from '../state/Store';
+import { supportLevel } from '../design/onboarding';
 import { savedDate } from '../state/archive';
 import { money, type Nudge } from '../state/model';
 import { colors, palettes } from '../design/tokens';
@@ -241,7 +242,7 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                         ? 'your choice.'
                         : saved
                           ? 'saved for later.'
-                          : 'snuff this urge?'}
+                          : supportLevel(state.burnRate).title}
                   </T>
                   <T variant="small" style={s.detail}>
                     {done

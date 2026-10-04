@@ -80,6 +80,7 @@ export function Mascot({
     : companionId === 'you'
       ? blendPalette(hue, state.blendHue, state.blend)
       : palettes[hue];
+  const tempo = companionId === 'you' ? 1.2 - state.burnRate / 250 : 1;
   const [flicker] = useState(() => new Animated.Value(0));
   const silhouette = flicker.interpolate({
     inputRange: [0, 0.34, 0.7, 1],
@@ -90,7 +91,7 @@ export function Mascot({
     const motion = Animated.loop(
       Animated.timing(flicker, {
         toValue: 1,
-        duration: (calm ? 6500 : low ? 4900 : 3600) * (excited ? 0.4 : 1),
+        duration: (calm ? 6500 : low ? 4900 : 3600) * (excited ? 0.4 : 1) * tempo,
         easing: Easing.linear,
         useNativeDriver: false,
         isInteraction: false,
@@ -98,7 +99,7 @@ export function Mascot({
     );
     motion.start();
     return () => motion.stop();
-  }, [animate, pet.awake, calm, low, flicker, excited]);
+  }, [animate, pet.awake, calm, low, flicker, excited, tempo]);
   const [breath] = useState(() => new Animated.Value(0));
   const [drift] = useState(() => new Animated.Value(0));
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
@@ -274,6 +275,16 @@ export default function Profile() {
             {message}
           </T>
         )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="revisit onboarding"
+          onPress={() => router.push('/onboarding?edit=1')}
+          style={{ alignSelf: 'center', padding: 12 }}
+        >
+          <T variant="small" style={{ fontSize: 11 }}>
+            your spending preferences
+          </T>
+        </Pressable>
         {storageError && (
           <T variant="small" style={{ marginTop: 12 }}>
             {storageError}

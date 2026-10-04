@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { initialState } from '../../src/state/model';
+import { test, expect } from './fixtures';
+import { initialState } from './fixtures';
 import { freshPlan } from '../../src/state/blocking';
 
 test('home flow validates, saves a goal, and previews a block without creating fake savings', async ({

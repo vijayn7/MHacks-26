@@ -123,3 +123,9 @@ The config plugin supplies the iOS usage description, and Android blocks WRITE_C
 See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.
 
 Slider feedback: all GlowSlider controls temporarily give the user’s flame happy eyes, faster crown flickering, and an extra rising spark. Releasing, canceling, leaving the screen, or backgrounding ends the reaction without changing the saved face or flame status. Keyboard/accessibility changes give a brief response. Reduced motion keeps the face and a static spark. Shared implementation: `src/hooks/useSliderCompanion.ts`.
+
+## Minimal onboarding
+
+Three screens: demo Google / Apple / email sign-in; optional spending categories; and a gentle-to-firm strength slider with a live popup preview. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. New installations see onboarding; existing version-2 accounts retain access and can revisit it. Completion and categories persist locally; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
+
+Authentication is deliberately fake, as requested. Google and Apple advance locally; email validates syntax, then discards the address without sending or storing it. No account, session, or identity is established. Backend entry point: `src/screens/Onboarding.tsx` provider button callbacks and the email sheet. Replace these with the authentication provider and advance only on success; retain cancellation and guest entry. Google sign-in should not request Gmail inbox access. Preference completion dispatches `COMPLETE_ONBOARDING` in `src/state/model.ts`. Popup tone lives in `src/design/onboarding.ts`. No notification permission is requested during onboarding.

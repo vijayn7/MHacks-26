@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Locator } from '@playwright/test';
+import { test, expect, type Page, type Locator } from './fixtures';
 
 async function stroke(page: Page, flame: Locator, count = 6) {
   const box = await flame.boundingBox();

@@ -1,5 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
-import { initialState, type AppState } from '../../src/state/model';
+import { test, expect, Page } from './fixtures';
+import { initialState, type AppState } from './fixtures';
 const snapshot = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2') || '{}') as AppState);
 async function hold(page: Page, ms: number) {

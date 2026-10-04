@@ -1,5 +1,5 @@
-import { initialState } from '../../src/state/model';
-import { test, expect } from '@playwright/test';
+import { initialState } from './fixtures';
+import { test, expect } from './fixtures';
 
 test('profile color and burn rate persist across screens and reload', async ({ page }) => {
   await page.goto('/profile');

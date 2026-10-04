@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { initialState } from '../../src/state/model';
+import { test, expect } from './fixtures';
+import { initialState } from './fixtures';
 import { archiveSamples } from '../../src/state/archive';
 
 test('saving from the notification persists name, price and date and can be revisited without duplicates', async ({
@@ -8,8 +8,10 @@ test('saving from the notification persists name, price and date and can be revi
   const state = { ...initialState(), notificationsEnabled: true };
   state.nudges[0].dueAt = Date.now() - 1000;
   await page.addInitScript((s) => {
-    if (!localStorage.getItem('snuff.mobile.v2'))
+    if (!sessionStorage.getItem('archive-test-seeded')) {
       localStorage.setItem('snuff.mobile.v2', JSON.stringify(s));
+      sessionStorage.setItem('archive-test-seeded', 'true');
+    }
   }, state);
   await page.goto('/');
   await page.getByRole('button', { name: 'save for later', exact: true }).click();

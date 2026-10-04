@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { initialState } from '../../src/state/model';
+import { test, expect } from './fixtures';
+import { initialState } from './fixtures';
 
 for (const width of [320, 390]) {
   test(`notification choices fit at ${width}px and no retains the customized companion`, async ({

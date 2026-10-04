@@ -12,7 +12,7 @@ import { CompanionProvider } from '../state/Companion';
 import { NotificationBridge } from '../components/NotificationBridge';
 
 function Navigation() {
-  const { ready } = useStore();
+  const { ready, state } = useStore();
   const [fontsLoaded, fontError] = useFonts({
     Neco: require('../../assets/fonts/Neco-Regular.otf'),
     NecoItalic: require('../../assets/fonts/Neco-Italic.otf'),
@@ -38,9 +38,14 @@ function Navigation() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
       </Stack>
-      <NotificationBridge />
-      <NudgeSheet />
+      {state.onboardingComplete && (
+        <>
+          <NotificationBridge />
+          <NudgeSheet />
+        </>
+      )}
     </>
   );
 }

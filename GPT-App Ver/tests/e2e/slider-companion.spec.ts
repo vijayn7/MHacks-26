@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('sliders animate a temporary happy companion and restore the saved face', async ({ page }) => {
   await page.goto('/profile');

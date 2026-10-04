@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 test('system contacts option explains native availability and preserves email entry on web', async ({
   page,
 }) => {

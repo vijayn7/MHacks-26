@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
@@ -84,6 +84,8 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 export default function TabLayout() {
+  const { state: settings } = useStore();
+  if (!settings.onboardingComplete) return <Redirect href="/onboarding" />;
   return (
     <Tabs
       tabBar={(props) => <TabBar {...props} />}

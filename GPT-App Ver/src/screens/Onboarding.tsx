@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mascot } from '../components/Mascot';
@@ -13,8 +13,9 @@ import { useStore } from '../state/Store';
 export default function Onboarding() {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
   const { edit } = useLocalSearchParams<{ edit?: string }>();
-  const [step, setStep] = useState(edit === '1' && state.onboardingComplete ? 1 : 0);
+  const [step, setStep] = useState(edit === '1' && state.onboardingComplete ? 1 : -1);
   const [categories, setCategories] = useState(state.spendingCategories);
   const [strength, setStrength] = useState(state.burnRate);
   const [provider, setProvider] = useState<string | null>(null);
@@ -25,6 +26,40 @@ export default function Onboarding() {
     dispatch({ type: 'COMPLETE_ONBOARDING', categories, strength });
     router.replace('/');
   };
+  if (step === -1)
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
+      >
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Mascot hue={state.hue} size={Math.min(300, width - 40, height * 0.48)} />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="begin onboarding"
+          onPress={() => setStep(0)}
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 38,
+            alignSelf: 'center',
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            borderWidth: 1,
+            borderColor: colors.border,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon name="arrow-right" size={20} color={p.body} />
+        </Pressable>
+      </View>
+    );
   return (
     <View
       style={{
@@ -48,41 +83,30 @@ export default function Onboarding() {
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={step ? 'previous step' : 'snuff'}
-            disabled={!step}
+            accessibilityLabel="previous step"
             onPress={() => setStep(step - 1)}
             style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
           >
-            {step ? (
-              <Icon name="arrow-left" size={18} />
-            ) : (
-              <T variant="title" style={{ fontSize: 24 }}>
-                snuff.
-              </T>
-            )}
+            <Icon name="arrow-left" size={18} />
           </Pressable>
           <T variant="small">{step + 1} / 3</T>
         </View>
         <View style={{ alignItems: 'center', marginVertical: 8 }}>
           <Mascot
             hue={state.hue}
-            size={step === 0 ? 210 : 158}
+            size={128}
             intensity={step === 2 && strength < 34 ? 'Low' : undefined}
           />
         </View>
         <T variant="title" style={{ textAlign: 'center', fontSize: 32, lineHeight: 38 }}>
-          {step === 0
-            ? 'a little space\nbefore you spend.'
-            : step === 1
-              ? 'where do you\nget carried away?'
-              : 'how much of\na nudge?'}
+          {step === 0 ? 'make space.' : step === 1 ? 'what pulls you in?' : 'find your balance.'}
         </T>
         <T variant="small" style={{ textAlign: 'center', marginTop: 12, marginBottom: 24 }}>
           {step === 0
-            ? 'meet your flame. find your pause.'
+            ? 'sign in to snuff.'
             : step === 1
-              ? 'pick what feels familiar. no judgment.'
-              : 'your flame follows your pace. change this anytime.'}
+              ? 'choose any. or skip.'
+              : 'a little nudge, or a firmer pause.'}
         </T>
         {step === 0 ? (
           <View style={{ gap: 10, marginTop: 8 }}>
@@ -97,7 +121,7 @@ export default function Onboarding() {
                   borderRadius: 28,
                   borderWidth: 1,
                   borderColor: colors.border,
-                  backgroundColor: colors.surface,
+                  backgroundColor: 'transparent',
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -108,10 +132,10 @@ export default function Onboarding() {
               </Pressable>
             ))}
             <QuietButton secondary onPress={() => setStep(1)}>
-              try without an account
+              continue as guest
             </QuietButton>
             <T variant="small" style={{ textAlign: 'center', fontSize: 10 }}>
-              demo sign-in · no account is created
+              demo sign-in
             </T>
           </View>
         ) : step === 1 ? (
@@ -143,14 +167,21 @@ export default function Onboarding() {
                     }}
                   >
                     <T style={{ fontSize: 13 }} color={chosen ? p.body : colors.secondary}>
-                      {category}
+                      {(
+                        {
+                          'clothes & beauty': 'shopping',
+                          'tech & gadgets': 'tech',
+                          'food & delivery': 'food',
+                          'games & in-app purchases': 'gaming',
+                        } as Record<string, string>
+                      )[category] || category}
                     </T>
                   </Pressable>
                 );
               })}
             </View>
             <T variant="small" style={{ marginTop: 22, textAlign: 'center', fontSize: 11 }}>
-              optional · saved only on this device
+              private to this device
             </T>
             <View style={{ flex: 1, minHeight: 22 }} />
             <QuietButton onPress={() => setStep(2)}>continue</QuietButton>
@@ -161,7 +192,7 @@ export default function Onboarding() {
                 setStep(2);
               }}
             >
-              prefer not to say
+              skip
             </QuietButton>
           </>
         ) : (
@@ -184,28 +215,24 @@ export default function Onboarding() {
             </View>
             <View
               style={{
-                borderRadius: 24,
-                padding: 22,
-                borderWidth: 1,
+                paddingVertical: 24,
+                borderTopWidth: 1,
                 borderColor: colors.border,
-                backgroundColor: colors.surface,
+                alignItems: 'center',
               }}
             >
               <T variant="small" style={{ fontSize: 10, marginBottom: 10 }}>
-                your popup · preview
+                popup preview
               </T>
               <T variant="title" style={{ fontSize: 24, lineHeight: 30 }}>
                 {support.title}
               </T>
-              <T variant="small" style={{ marginTop: 8 }}>
-                {support.detail}
-              </T>
             </View>
             <T variant="small" style={{ textAlign: 'center', fontSize: 11, marginTop: 16 }}>
-              a reminder, never a lock. you’re always in control.
+              change this anytime.
             </T>
             <View style={{ flex: 1, minHeight: 20 }} />
-            <QuietButton onPress={finish}>meet your snuff</QuietButton>
+            <QuietButton onPress={finish}>start</QuietButton>
           </>
         )}
       </ScrollView>

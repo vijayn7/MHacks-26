@@ -4,6 +4,8 @@ test('three-step demo onboarding saves categories and strength, then stays compl
   page,
 }) => {
   await page.goto('/');
+  await expect(page.getByTestId('flame-mascot')).toBeVisible();
+  await page.getByRole('button', { name: 'begin onboarding' }).click();
   await expect(
     page.getByRole('button', { name: 'continue with google', exact: true }),
   ).toBeVisible();
@@ -14,7 +16,7 @@ test('three-step demo onboarding saves categories and strength, then stays compl
   const slider = page.getByRole('slider', { name: 'popup strength' });
   await slider.fill('85');
   await expect(page.getByText('take a breath first.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'meet your snuff', exact: true }).click();
+  await page.getByRole('button', { name: 'start', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
@@ -30,11 +32,12 @@ test('three-step demo onboarding saves categories and strength, then stays compl
 test('email demo and optional categories work on a small phone', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('/onboarding');
+  await page.getByRole('button', { name: 'begin onboarding' }).click();
   await page.getByRole('button', { name: 'continue with email', exact: true }).click();
   await page.getByRole('textbox', { name: 'email address' }).fill('demo@example.com');
   await page.getByRole('button', { name: 'continue', exact: true }).click();
-  await page.getByRole('button', { name: 'prefer not to say', exact: true }).click();
-  await page.getByRole('button', { name: 'meet your snuff', exact: true }).click();
+  await page.getByRole('button', { name: 'skip', exact: true }).click();
+  await page.getByRole('button', { name: 'start', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
   const state = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
   expect(state.spendingCategories).toEqual([]);

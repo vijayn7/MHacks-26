@@ -99,8 +99,8 @@ const tiles: Tile[] = [
   },
   {
     id: "c3",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando",
+    src: "/sites/depop.jpg",
+    alt: "Depop",
     layer: "mid",
     drift: 0.75,
     style: { top: "22%", left: "22%", width: "14%", aspectRatio: "16 / 10" },
@@ -289,8 +289,8 @@ const tiles: Tile[] = [
   },
   {
     id: "c32",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando low",
+    src: "/sites/depop.jpg",
+    alt: "Depop low",
     layer: "void",
     drift: 1.25,
     style: {

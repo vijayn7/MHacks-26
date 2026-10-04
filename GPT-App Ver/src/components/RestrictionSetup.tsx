@@ -86,7 +86,7 @@ export function RestrictionSetup({
   strength: number;
   editing: boolean;
   tint: string;
-  onComplete: (rules: PurchaseRules, tone: number, demo?: boolean) => void;
+  onComplete: (rules: PurchaseRules, tone: number) => void;
 }) {
   const [selected, setSelected] = useState(
     editing ? (strength < 34 ? 0 : strength < 67 ? 1 : 2) : 1,
@@ -135,7 +135,7 @@ export function RestrictionSetup({
     setLevels((ls) => ls.map((l, i) => (i === index ? { ...l, ...changes } : l)));
   const chosen = levels[selected];
   const valid = /^\d+(\.\d{1,2})?$/.test(chosen.amount) && Number(chosen.amount) <= 1000000;
-  const complete = (demo = false) =>
+  const complete = () =>
     onComplete(
       {
         amountEnabled: true,
@@ -145,7 +145,6 @@ export function RestrictionSetup({
         match: chosen.match,
       },
       chosen.tone,
-      demo,
     );
   return (
     <View style={{ gap: 12 }}>
@@ -281,9 +280,6 @@ export function RestrictionSetup({
       )}
       <QuietButton disabled={!valid} onPress={() => complete()}>
         {editing ? 'save preferences' : 'start'}
-      </QuietButton>
-      <QuietButton secondary disabled={!valid} onPress={() => complete(true)}>
-        save & try purchase demo
       </QuietButton>
     </View>
   );

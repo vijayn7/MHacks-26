@@ -80,10 +80,10 @@ export default function Onboarding() {
   );
   const named = !!firstName.trim() && !!lastName.trim();
   const p = palettes[state.hue];
-  const finish = (rules: PurchaseRules, strength: number, demo = false) => {
+  const finish = (rules: PurchaseRules, strength: number) => {
     if (named) dispatch({ type: 'NAME', name: `${firstName.trim()} ${lastName.trim()}` });
     dispatch({ type: 'COMPLETE_ONBOARDING', categories: rules.categories, strength, rules });
-    transition(() => router.replace(demo ? '/purchase-demo' : edit === '1' ? '/profile' : '/'));
+    transition(() => router.replace(edit === '1' ? '/profile' : '/'));
   };
   if (step === -1)
     return (

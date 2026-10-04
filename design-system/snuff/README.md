@@ -142,7 +142,7 @@ After welcome and sign-in, the third page is a chat-style conversation asking wh
 The fourth page offers light ($150, gentle), balanced ($75, balanced), and strong ($25, firm) starting points. Each has an expandable adjustment panel containing an amount input, tone dropdown, category choices, and an either/both dropdown. Each card retains its own edits while comparing levels. Only the selected level’s rules and tone are persisted on Start. Light defaults to both conditions; balanced and strong default to either. Without categories, only amount applies. Amount validation, local persistence, and the existing purchase matcher remain in use.
 
 
-## Preference refinement and purchase demo
+## Preference refinement
 
 Settings → refine preferences opens the conversation with the current threshold. Local parsing recognizes a dollar threshold and gentler/firmer reminder requests, while the existing category suggestions carry forward. Changes remain drafts until reviewed in the restriction cards and saved. Cancel returns to Profile without saving; saving preferences returns there too. Personal free-text replies remain local and ephemeral; live AI is not connected.
 
@@ -156,8 +156,6 @@ The separate three-level restriction screen is removed from onboarding and prefe
 
 Replies use a 750 ms simulated typing state with three softly pulsing dots; inputs are unavailable while a reply is pending. Pending callbacks are cleared on unmount, chat follows new messages, and reduced motion leaves dots static. This is scripted local response pacing, not remote AI processing. Free-text chat remains ephemeral and is not uploaded.
 
-## Sample storefront and full-screen pause
 
-Settings → sample purchase opens a distinct light storefront with studio headphones, a price, and a buy-now action. The web storefront is a separate local HTML document hosted in an iframe; native builds use a matching storefront screen. Amount and category are evaluated against confirmed purchase rules. Matching purchases show an edge-to-edge Snuff takeover, with the companion and skip, continue, save-for-later, and friend-preview actions. Nonmatching purchases continue in the sample store. No payment occurs and no operating-system control is claimed. Returning to the store displays the decision. Saves use “sample store” as their source; local sample decisions do not award Chrome score.
 
-The product centers on user-confirmed spending rules and checkout decisions. It collects no biometric or inferred-emotion data. Old locally stored sensor data is discarded during migration.
+The standalone purchase demo has been removed. Settings and onboarding only offer preference refinement; normal spending-pause decisions remain available.

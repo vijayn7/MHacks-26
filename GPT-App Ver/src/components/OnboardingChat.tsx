@@ -53,7 +53,7 @@ export function OnboardingChat({
   strength: number;
   editing: boolean;
   tint: string;
-  onComplete: (rules: PurchaseRules, tone: number, demo?: boolean) => void;
+  onComplete: (rules: PurchaseRules, tone: number) => void;
 }) {
   const [rules, setRules] = useState(existing);
   const [tone, setTone] = useState(strength);
@@ -380,9 +380,6 @@ export function OnboardingChat({
                 )}
               </View>
               <QuietButton onPress={() => onComplete(rules, tone)}>confirm & continue</QuietButton>
-              <QuietButton secondary onPress={() => onComplete(rules, tone, true)}>
-                confirm & try purchase demo
-              </QuietButton>
               <T
                 variant="small"
                 style={{

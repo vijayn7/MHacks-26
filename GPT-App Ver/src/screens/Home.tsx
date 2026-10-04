@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../state/Store';
@@ -7,20 +7,16 @@ import { palettes } from '../design/tokens';
 import { Canvas, T } from '../components/ui';
 import { useCompanion } from '../state/Companion';
 import { Mascot } from '../components/Mascot';
-import { WearableSummary } from '../components/WearableSummary';
-import { GoalFlow } from '../components/GoalFlow';
+import { ExtensionScore } from '../components/ExtensionScore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavingsChart } from '../components/Chart';
 
 export default function Home() {
-  const { state, dispatch } = useStore();
+  const { state } = useStore();
   const { width, height } = useWindowDimensions();
   const p = palettes[state.hue];
   const insets = useSafeAreaInsets();
   const { level } = useCompanion();
-  const pause = useCallback(() => {
-    dispatch({ type: 'PAUSE' });
-  }, [dispatch]);
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
   const textSize = width < 360 ? 25 : 31;
   const textLineHeight = width < 360 ? 34 : 40;
@@ -46,27 +42,27 @@ export default function Home() {
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View
           style={{
-            height: Math.max(450, height - 100 - insets.top - insets.bottom),
+            height: Math.max(560, height - 100 - insets.top - insets.bottom),
             paddingHorizontal: 28,
             paddingTop: 8,
           }}
         >
           <View style={{ flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
             <View testID="snuff-flame" style={{ alignItems: 'center' }}>
-              <Mascot hue={state.hue} size={size} onLongPress={pause} />
+              <Mascot hue={state.hue} size={size} />
             </View>
             <T
               variant="small"
               style={{ position: 'absolute', bottom: 6, fontSize: 11 }}
               color={p.body + (level === 'Out' ? 'B0' : '70')}
             >
-              {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame · hold to pause'}
+              {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame'}
             </T>
           </View>
           <View style={{ alignItems: 'center', gap: 4, marginTop: 16, marginBottom: 22 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-                You’ve saved
+                you’ve saved
               </T>
               {pill(money(state.savings))}
             </View>
@@ -86,12 +82,8 @@ export default function Home() {
           <View style={{ marginHorizontal: 8, marginBottom: 10 }}>
             <SavingsChart />
           </View>
-          <T variant="small" style={{ textAlign: 'center', fontSize: 10, paddingBottom: 10 }}>
-            a little intention ↓
-          </T>
+          <ExtensionScore />
         </View>
-        <WearableSummary />
-        <GoalFlow />
       </ScrollView>
     </Canvas>
   );

@@ -220,6 +220,7 @@ test('save for later is persistent and idempotent, keeps its date on revisits, a
     name: 'Studio headphones',
     amount: 149,
     savedAt: 1791079200000,
+    source: 'snuff',
   });
   assert.equal(saved.nudges[0].status, 'saved');
   assert.equal(saved.nudges[0].dueAt, null);
@@ -380,4 +381,108 @@ test('wearable readings expire, require consent in the demo, and data deletion l
     }).moments,
     [],
   );
+});
+
+test('watch emotion samples validate independently of heart rate and stay in sync', async () => {
+  const { sampleWatchReading } = await import('../src/services/watch-feed');
+  const reading = sampleWatchReading(1000000);
+  const state = reducer(initialState(), {
+    type: 'WEARABLE',
+    settings: {
+      status: 'connected',
+      enabled: true,
+      reading,
+    },
+  });
+  assert.equal(recentReading(state.wearable, 1000000), reading.bpm);
+  assert.deepEqual(state.wearable.reading?.emotions, reading.emotions);
+  assert.equal(state.wearable.reading?.intensity, reading.intensity);
+  const invalid = readWearable({
+    reading: { bpm: 80, at: 1, emotions: ['calm', 'bad'], intensity: 500 },
+  });
+  assert.deepEqual(invalid.reading?.emotions, ['calm']);
+  assert.equal(invalid.reading?.intensity, 100);
+  assert.deepEqual(readWearable({ reading: { bpm: 80, at: 1 } }).reading?.emotions, []);
+});
+
+test('purchase rules match exact thresholds, categories, either/both and survive reload', async () => {
+  const { matchesPurchase, defaultPurchaseRules } = await import('../src/state/purchase-rules');
+  const rules = {
+    ...defaultPurchaseRules(),
+    minAmount: 100,
+    categoryEnabled: true,
+    categories: ['sports betting'],
+  };
+  assert.equal(matchesPurchase(rules, 100, 'other'), true);
+  assert.equal(matchesPurchase(rules, 99.99, 'other'), false);
+  assert.equal(matchesPurchase(rules, 5, 'sports betting'), true);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 5, 'sports betting'), false);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 100, 'sports betting'), true);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 100), false);
+  assert.equal(matchesPurchase(rules, NaN, 'sports betting'), false);
+  let s = reducer(initialState(), {
+    type: 'COMPLETE_ONBOARDING',
+    categories: rules.categories,
+    strength: 54,
+    rules,
+  });
+  s = migrate(JSON.parse(JSON.stringify(s)));
+  assert.deepEqual(s.purchaseRules, rules);
+  const before = s.nudges.length;
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'below',
+    name: 'book',
+    amount: 20,
+    category: 'other',
+  });
+  assert.equal(s.nudges.length, before);
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'match',
+    name: 'ticket',
+    amount: 5,
+    category: 'sports betting',
+  });
+  assert.equal(s.nudges.length, before + 1);
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'match',
+    name: 'ticket',
+    amount: 5,
+    category: 'sports betting',
+  });
+  assert.equal(s.nudges.length, before + 1);
+});
+
+test('extension score is deduplicated, persists, and is not awarded by local pauses', () => {
+  let s = reducer(initialState(), { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'one', 'two'] });
+  assert.deepEqual(s.extensionOptOutIds, ['one', 'two']);
+  s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: ['two', 'three'] });
+  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  s = reducer(s, { type: 'PAUSE' });
+  s = reducer(s, { type: 'SNUFF_NUDGE', id: 'headphones' });
+  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(s))).extensionOptOutIds, [
+    'one',
+    'two',
+    'three',
+  ]);
+  assert.deepEqual(migrate({ version: 2 }).extensionOptOutIds, []);
+});
+
+test('archive retains the incoming save source through persistence and revisits', () => {
+  let s = reducer(initialState(), {
+    type: 'INCOMING_PURCHASE',
+    id: 'source-item',
+    name: 'lamp',
+    amount: 100,
+    source: 'Chrome · example.com',
+  });
+  s = reducer(s, { type: 'SAVE_FOR_LATER', id: 'source-item' });
+  s = migrate(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.archive[0].source, 'chrome · example.com');
+  s = reducer(s, { type: 'REVISIT_ITEM', id: 'source-item' });
+  s = reducer(s, { type: 'SAVE_FOR_LATER', id: 'source-item' });
+  assert.equal(s.archive[0].source, 'chrome · example.com');
 });

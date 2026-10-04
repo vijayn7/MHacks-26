@@ -78,7 +78,7 @@ Archive is the fourth navigation destination (home / social / archive / profile)
 
 Reference: [Colton Tollett’s refracting scroll, via Bencho](https://bencho.dev/finds/colton-lens-scroll). The app uses Snuff’s dark design tokens with the reference’s centered transparent-object column, focused side labels, and edge bending using perspective/scale interpolation rather than the original optical shader. The local product illustrations are new vector placeholders, not the reference’s machine photographs. Shared tokens: `colors.bg`, `colors.surface`, `colors.text`, and `colors.secondary`, with the selected flame palette for price; artwork 112 points, row 140 points; focused objects scale to 145% with gentler edge distortion. Reduced motion keeps cards flat.
 
-Reusable files: `../../GPT-App Ver/src/screens/Archive.tsx`, `../../GPT-App Ver/src/components/ItemArtwork.tsx`, and `../../GPT-App Ver/src/state/archive.ts`. Save-for-later preserves name, amount, and original saved timestamp locally without incrementing savings or pauses. Duplicate saves retain the original date; archived items reopen their decision. Empty archives offer a labeled sample collection that never writes fictional saved history. No merchant URL or real product-image ingestion is connected. Native notification categories also expose the save action; native device delivery still requires device testing.
+Reusable files: `../../GPT-App Ver/src/screens/Archive.tsx`, `../../GPT-App Ver/src/components/ItemArtwork.tsx`, and `../../GPT-App Ver/src/state/archive.ts`. Save-for-later preserves name, amount, and original saved timestamp locally without incrementing savings or pauses. Duplicate saves retain the original date; archived items reopen their decision. Every reload replenishes six demo archive items by stable ID, retaining existing items without duplicating samples. No merchant URL or real product-image ingestion is connected. Native notification categories also expose the save action; native device delivery still requires device testing.
 
 ## System contacts
 
@@ -92,7 +92,7 @@ Slider feedback: all GlowSlider controls temporarily give the user’s flame hap
 
 ## Minimal onboarding
 
-A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; optional spending categories; and a gentle-to-firm strength slider with a live popup preview. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. New installations see onboarding; existing version-2 accounts retain access and can revisit it. Completion and categories persist locally; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
+A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; purchase categories; and explicit amount/category rules with a separate reminder-tone slider. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. Every reload restarts onboarding from the flame welcome while retaining saved preferences, archive items, and check-ins. Completion is session-only; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
 
 Authentication is deliberately fake, as requested. Google and Apple advance locally; email validates syntax, then discards the address without sending or storing it. No account, session, or identity is established. Backend entry point: `src/screens/Onboarding.tsx` provider button callbacks and the email sheet. Replace these with the authentication provider and advance only on success; retain cancellation and guest entry. Google sign-in should not request Gmail inbox access. Preference completion dispatches `COMPLETE_ONBOARDING` in `src/state/model.ts`. Popup tone lives in `src/design/onboarding.ts`. No notification permission is requested during onboarding.
 
@@ -102,10 +102,56 @@ Interface cleanup: Social has no leaderboard heading. Archive removes its headin
 
 ## Integrated watch context
 
-Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home shows a compact, non-navigating orb with recent feelings and heart-rate context when available. The popup contains a small BPM / feelings disclosure that expands in place; purchase actions remain in the same popup. A single reading and any selected feelings are saved locally when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
+Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home replaces goal setup with a spacious interactive emotion orb, feeling choices, a heart-rate scale, and a quiet emotion display. Dragging the orb adjusts intensity. The Home save-check-in action has been removed; purchase BPM averages exclude previously saved daily check-ins. The popup always shows a compact emotion-gradient orb beside current BPM and an estimated emotion label. It has no manual emotion input. The shared watch feed updates both together while the popup is waiting; purchase actions remain in place. The latest reading and estimated feelings are saved locally once when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
 
-Profile settings → watch insights contains on/off, baseline, data clearing, and the sole display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
+Profile settings → apple watch contains connect/disconnect, insights on/off, refresh reading, baseline, data clearing, and the display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
 
 Flame motion is more expressive across all mascot instances: wider crown deformation, faster high/low/resting cycles, larger plume drift and ember travel, and stronger petting squish and sway. Slider excitement remains faster than idle; reduced-motion and background/focus guards are retained.
 
-Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 gentle/balanced/firm ranges, popup wording and flame tempo, and the separate purchase threshold/pause settings. Social provides an outlined edit-friends control, individual edit buttons, persistent local names, and confirmed removal; removing a trusted friend clears that selection without changing savings.
+Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 gentle/balanced/firm ranges, popup wording and flame tempo, without changing a spending budget. Social provides an outlined edit-friends control, individual edit buttons, persistent local names, and confirmed removal; removing a trusted friend clears that selection without changing savings.
+
+
+### Live popup watch feed
+
+`src/services/watch-feed.ts` supplies a scripted sample every two seconds while a connected watch’s purchase popup is open and the app is foregrounded. Closing, resolving, or disconnecting stops the stream. The display expires readings after five minutes and shows a neutral orb for missing emotion data. Daily self-reported feelings are never used as watch estimates.
+
+Backend handoff: replace the sample adapter with consented native sample events that dispatch `WEARABLE` with `reading: { bpm, at, emotions, intensity }`. BPM and emotion data share one timestamp. Emotions are optional estimates from an upstream model, not a capability to infer a known emotion directly from heart rate. No Apple Health or native watch transport is implemented. The simulated-data disclosure remains in settings. This live view is the in-app notification/block popup; OS notification banners retain their native behavior.
+
+
+### Explicit purchase rules
+
+Onboarding uses a centered 440-point maximum content width, consistent gutters, a responsive mascot, labeled name fields, and a two-column category grid. On narrow phones name fields stack. Each step resets scroll position; all controls remain reachable by scrolling.
+
+The final screen sets a per-item USD threshold (inclusive, up to two decimal places), category matching, and either/both semantics when both conditions are enabled. Each condition can be disabled independently; at least one valid condition is required. The rule summary states what will cause the pause. Reminder tone is separate: it changes popup wording and flame animation, not the amount or category rule. Rules can be edited through Profile settings → spending preferences.
+
+`src/state/purchase-rules.ts` validates/migrates rules and evaluates purchases. `useStore().receivePurchase({id,name,amount,category})` is the ingestion entry point: only matching purchases create/open a popup; repeated resolved IDs do not reopen. The reducer independently applies the same rules. Existing archive revisits and “try a nudge” remain deliberate manual previews. Real merchant checkout interception is not connected; onboarding states that boundary. No timed or irreversible payment block is implied.
+
+
+## Minimal Home and extension score
+
+Home now contains the pettable flame, savings statement, line chart with soft radial-gradient orb markers, and Snuff score. Holding the Home flame no longer dispatches a pause; ordinary petting reactions remain. The entire “a moment for you” section and its scroll hint are removed. Watch context remains in the purchase popup and settings. Current visual: `previews/snuff-home-score.png` in the design kit.
+
+Score is 10 points per explicit Chrome extension Drop action. The extension posts `impulse_opt_out` with a stable checkout-derived ID; the API exposes only deduplicated IDs at `GET /score`. Legacy `purchase_dropped` events cannot distinguish a shopper choice from a friend-triggered outcome and are deliberately excluded. Save-for-later, continuing, in-app nudges, and flame petting do not award score. No sample score is seeded.
+
+The app polls every 10 seconds while Home is active and the app is foregrounded. Confirmed IDs are cached locally and deduplicated across refresh/reload. On failure the last score remains with an offline caption. Set `EXPO_PUBLIC_EXTENSION_API_URL` to the API base URL (default `http://localhost:8787`; use a reachable host for phones). The API permits the app origin using `SNUFF_APP_ORIGIN` (default `http://localhost:8081`) on the score endpoint; the existing store origin is unchanged. Rebuild/reload the unpacked extension and restart the API for this integration.
+
+This uses the repository’s existing single-user demo event log. Production must authenticate and scope events by user before sharing a deployed API; no cross-account identity linkage is implemented here. The API stores events in Neon when configured, otherwise in memory.
+
+
+Social’s “my friends” heading sits directly above the ranked list. Adjacent 44-point edit and add icon buttons replace the old top edit pill and bottom connect row. Edit toggles to a highlighted checkmark; add opens the existing email/contact-sync sheet.
+
+
+Archive uses a bookmark navigation icon. A muted source label appears below the saved date and in item details. Save source is persisted and retained across revisits; incoming purchases accept an optional `source` (merchant or channel label). Existing Snuff saves fall back to “snuff”; seeded items use “demo collection.” Source text is normalized to lowercase and capped at 80 characters.
+
+
+Profile removes the “try a nudge” action and its scheduling handler. “Gentle reminders” now has the description “weekly recaps of your score and the money you saved.” This is the settings copy; a weekly recap delivery job is not implemented by this interface change.
+
+
+Onboarding’s welcome now reads “snuffed” and “snuff your impulse spending.” Sign-in places an inline email field with a validated arrow action above an “or” divider, followed by Google, Apple, and guest buttons with aligned icons. First and last name remain required. The demo caption and separate email sheet are removed; authentication remains the intentionally local placeholder flow.
+
+
+## Conversational onboarding and suggested levels
+
+After welcome and sign-in, the third page is a chat-style conversation asking what brought the user to Snuffed. Four quick replies cover shopping, sports betting, impulse purchases, and saving more. Users can also type a reply. The current local adapter provides supportive scripted responses and suggests categories without uploading or persisting the free-text conversation; it is not a connected AI service or diagnostic model. Replace the adapter only with an explicitly configured backend.
+
+The fourth page offers light ($150, gentle), balanced ($75, balanced), and strong ($25, firm) starting points. Each has an expandable adjustment panel containing an amount input, tone dropdown, category choices, and an either/both dropdown. Each card retains its own edits while comparing levels. Only the selected level’s rules and tone are persisted on Start. Light defaults to both conditions; balanced and strong default to either. Without categories, only amount applies. Amount validation, local persistence, and the existing purchase matcher remain in use.

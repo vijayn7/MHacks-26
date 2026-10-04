@@ -211,12 +211,14 @@ export function Input({
   label,
   placeholder,
   email = false,
+  numeric = false,
 }: {
   value: string;
   onChangeText: (value: string) => void;
   label: string;
   placeholder?: string;
   email?: boolean;
+  numeric?: boolean;
 }) {
   return (
     <TextInput
@@ -226,7 +228,7 @@ export function Input({
       placeholder={placeholder?.toLowerCase()}
       placeholderTextColor={colors.muted}
       autoCapitalize="none"
-      keyboardType={email ? 'email-address' : 'default'}
+      keyboardType={numeric ? 'decimal-pad' : email ? 'email-address' : 'default'}
       style={{
         color: colors.text,
         fontFamily: fonts.body,

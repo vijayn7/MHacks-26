@@ -283,7 +283,7 @@ export function HeartScale({ bpm, baseline }: { bpm: number | null; baseline: nu
         </Animated.View>
       </View>
       <T variant="small" style={{ fontSize: 10 }}>
-        {baseline ? `baseline ${baseline} · simulated bpm` : 'no health data connected'}
+        {baseline ? `baseline ${baseline} bpm` : 'no health data connected'}
       </T>
     </View>
   );

@@ -1,6 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Path, Stop, Line } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  Path,
+  Stop,
+  Line,
+  RadialGradient,
+} from 'react-native-svg';
 import { useStore } from '../state/Store';
 import { dayKey, money } from '../state/model';
 import { palettes } from '../design/tokens';
@@ -51,6 +59,13 @@ export function SavingsChart() {
             <Stop offset="0" stopColor={p.body} stopOpacity=".32" />
             <Stop offset="1" stopColor={p.edge} stopOpacity=".025" />
           </LinearGradient>
+          <RadialGradient id="savings-orb">
+            <Stop offset="0" stopColor={p.core} stopOpacity="1" />
+            <Stop offset=".2" stopColor={p.core} stopOpacity=".95" />
+            <Stop offset=".42" stopColor={p.body} stopOpacity=".7" />
+            <Stop offset=".7" stopColor={p.mid} stopOpacity=".22" />
+            <Stop offset="1" stopColor={p.edge} stopOpacity="0" />
+          </RadialGradient>
         </Defs>
         {points.map((pt, i) => (
           <Line
@@ -65,23 +80,15 @@ export function SavingsChart() {
         ))}
         <Line x1="0" x2="318" y1="137" y2="137" stroke={p.body} strokeOpacity=".08" />
         <Path d={line} fill="none" stroke={p.body} strokeOpacity=".8" strokeWidth="1.5" />
-        {[1, 3, 5].map((i) => (
-          <React.Fragment key={i}>
-            <Circle
-              cx={points[i].x}
-              cy={points[i].y}
-              r="8"
-              fill={p.wash}
-              stroke={p.body}
-              strokeOpacity=".5"
-              strokeWidth=".8"
-            />
-            <Circle cx={points[i].x} cy={points[i].y} r="2" fill={p.body} />
-          </React.Fragment>
+        {[...new Set([1, 3, 5, ...(selected === null ? [] : [selected])])].map((i) => (
+          <Circle
+            key={i}
+            cx={points[i].x}
+            cy={points[i].y}
+            r={selected === i ? 17 : 13}
+            fill="url(#savings-orb)"
+          />
         ))}
-        {selected !== null && (
-          <Circle cx={points[selected].x} cy={points[selected].y} r="5" fill={p.core} />
-        )}
       </Svg>
       <View
         style={{
@@ -112,7 +119,7 @@ export function SavingsChart() {
         color={p.body + '70'}
       >
         {selected === null
-          ? 'Room you’ve made, this week'
+          ? 'room you’ve made, this week'
           : money(data[selected].total) +
             ' · ' +
             new Date(data[selected].at).toLocaleDateString('en-US', { weekday: 'short' })}

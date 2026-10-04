@@ -355,8 +355,9 @@ shadow.addEventListener("click", (event) => {
   const action = target.closest("button")?.getAttribute("data-action");
   if (action === "ask") void askFriend();
   else if (action === "drop") {
-    if (decided) return;
+    if (decided || overlay.hidden || !pauseId) return;
     decided = true;
+    void post("impulse_opt_out", `${pauseId}:impulse_opt_out`);
     void postAction("SNUFF_NUDGE");
     void closeCard("purchase_dropped", "Purchase dropped");
   } else if (action === "save") {

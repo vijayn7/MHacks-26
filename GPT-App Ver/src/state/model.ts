@@ -1,7 +1,13 @@
+import {
+  defaultPurchaseRules,
+  readPurchaseRules,
+  matchesPurchase,
+  type PurchaseRules,
+} from './purchase-rules';
 import { freshWearable, readWearable, type Wearable, type Moment } from './wearable';
 import { spendingCategories } from '../design/onboarding';
 import { addContacts, type ContactCandidate } from './contacts';
-import { readArchive, type SavedItem } from './archive';
+import { readArchive, savedSource, type SavedItem } from './archive';
 import { readPlan, type BlockPlan } from './blocking';
 import { isFace, type Face } from '../design/faces';
 import type { Hue } from '../design/tokens';
@@ -16,6 +22,7 @@ export type Friend = {
   savings: number;
 };
 export type Nudge = {
+  source?: string;
   id: string;
   name: string;
   amount: number;
@@ -24,10 +31,12 @@ export type Nudge = {
 };
 export type AppState = {
   version: 2;
+  extensionOptOutIds: string[];
   wearable: Wearable;
   onboardingComplete: boolean;
   spendingCategories: string[];
   plan: BlockPlan | null;
+  purchaseRules: PurchaseRules;
   name: string;
   hue: Hue;
   face: Face;
@@ -44,13 +53,22 @@ export type AppState = {
   archive: SavedItem[];
 };
 export type Action =
+  | { type: 'SYNC_EXTENSION_SCORE'; ids: string[] }
   | { type: 'RENAME_FRIEND'; id: string; name: string }
   | { type: 'REMOVE_FRIEND'; id: string }
   | { type: 'DEMO_PURCHASE'; id: string }
   | { type: 'WEARABLE'; settings: Partial<Omit<Wearable, 'moments'>> }
   | { type: 'SAVE_MOMENT'; moment: Moment }
   | { type: 'DELETE_WEARABLE_DATA' }
-  | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number }
+  | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number; rules?: PurchaseRules }
+  | {
+      type: 'INCOMING_PURCHASE';
+      source?: string;
+      id: string;
+      name: string;
+      amount: number;
+      category?: string;
+    }
   | { type: 'SAVE_PLAN'; plan: BlockPlan }
   | { type: 'PLAN_ENABLED'; enabled: boolean }
   | { type: 'PAUSE'; at?: number }
@@ -76,10 +94,12 @@ export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e
 export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
+    extensionOptOutIds: [],
     wearable: freshWearable(),
     onboardingComplete: false,
     spendingCategories: [],
     plan: null,
+    purchaseRules: defaultPurchaseRules(),
     archive: [],
     name: 'Alex',
     hue: 'Ember',
@@ -117,11 +137,21 @@ export function migrate(raw: unknown): AppState {
       ...base,
       ...old,
       wearable: readWearable(old.wearable),
+      extensionOptOutIds: Array.isArray(old.extensionOptOutIds)
+        ? [
+            ...new Set<string>(
+              old.extensionOptOutIds.filter(
+                (id: unknown) => typeof id === 'string' && id.length > 0 && id.length <= 200,
+              ),
+            ),
+          ]
+        : [],
       onboardingComplete: old.onboardingComplete !== false,
       spendingCategories: Array.isArray(old.spendingCategories)
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
         : [],
       plan: readPlan(old.plan),
+      purchaseRules: readPurchaseRules(old.purchaseRules),
       archive: readArchive(old.archive),
       name: typeof old.name === 'string' ? old.name : base.name,
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
@@ -226,10 +256,38 @@ export function reducer(s: AppState, a: Action): AppState {
       };
     case 'DELETE_WEARABLE_DATA':
       return { ...s, wearable: freshWearable() };
+    case 'SYNC_EXTENSION_SCORE': {
+      const ids = [
+        ...new Set([
+          ...s.extensionOptOutIds,
+          ...a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
+        ]),
+      ];
+      return ids.length === s.extensionOptOutIds.length ? s : { ...s, extensionOptOutIds: ids };
+    }
+    case 'INCOMING_PURCHASE':
+      return matchesPurchase(s.purchaseRules, a.amount, a.category) &&
+        !s.nudges.some((n) => n.id === a.id)
+        ? {
+            ...s,
+            nudges: [
+              ...s.nudges,
+              {
+                id: a.id,
+                name: a.name,
+                source: savedSource(a),
+                amount: a.amount,
+                status: 'waiting',
+                dueAt: null,
+              },
+            ],
+          }
+        : s;
     case 'COMPLETE_ONBOARDING':
       return {
         ...s,
         onboardingComplete: true,
+        purchaseRules: a.rules ? readPurchaseRules(a.rules) : s.purchaseRules,
         spendingCategories: [...new Set(a.categories)].filter((v) =>
           spendingCategories.includes(v as (typeof spendingCategories)[number]),
         ),
@@ -313,7 +371,10 @@ export function reducer(s: AppState, a: Action): AppState {
         ...s,
         archive: s.archive.some((item) => item.id === n.id)
           ? s.archive
-          : [{ id: n.id, name: n.name, amount: n.amount, savedAt: at }, ...s.archive],
+          : [
+              { id: n.id, name: n.name, amount: n.amount, savedAt: at, source: savedSource(n) },
+              ...s.archive,
+            ],
         nudges: s.nudges.map((item) =>
           item.id === n.id ? { ...item, status: 'saved', dueAt: null } : item,
         ),
@@ -330,7 +391,14 @@ export function reducer(s: AppState, a: Action): AppState {
           ? s.nudges.map((v) => (v.id === a.id ? { ...v, status: 'waiting', dueAt: null } : v))
           : [
               ...s.nudges,
-              { id: item.id, name: item.name, amount: item.amount, status: 'waiting', dueAt: null },
+              {
+                id: item.id,
+                name: item.name,
+                source: savedSource(item),
+                amount: item.amount,
+                status: 'waiting',
+                dueAt: null,
+              },
             ],
       };
     }

@@ -1,3 +1,4 @@
+import { matchesPurchase } from './purchase-rules';
 import React, {
   createContext,
   useCallback,
@@ -7,7 +8,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState as RNAppState } from 'react-native';
+import { AppState as NativeAppState } from 'react-native';
+import { sampleWatchReading } from '../services/watch-feed';
+import { archiveSamples } from './archive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Action, AppState, initialState, migrate, reducer } from './model';
 import { api, apiEnabled, newId, post } from '../services/api';
@@ -23,6 +26,13 @@ const Store = createContext<{
   refresh: () => Promise<void>;
   activeNudge: string | null;
   openNudge: (id: string | null) => void;
+  receivePurchase: (purchase: {
+    id: string;
+    name: string;
+    amount: number;
+    category?: string;
+    source?: string;
+  }) => boolean;
 }>({
   state: initialState(),
   dispatch: () => {},
@@ -32,11 +42,25 @@ const Store = createContext<{
   refresh: async () => {},
   activeNudge: null,
   openNudge: () => {},
+  receivePurchase: () => false,
 });
 export function StoreProvider({ children }: React.PropsWithChildren) {
+  // SYNC takes server state but keeps phone-only fields (purchase rules, opt-outs, onboarding
+  // progress, live watch reading) that the API does not store.
   const [state, apply] = useReducer(
-    (s: AppState, a: Action | { type: 'HYDRATE'; state: AppState }) =>
-      a.type === 'HYDRATE' ? a.state : reducer(s, a),
+    (
+      s: AppState,
+      a: Action | { type: 'HYDRATE'; state: AppState } | { type: 'SYNC'; state: unknown },
+    ) => {
+      if (a.type === 'HYDRATE') return a.state;
+      if (a.type !== 'SYNC') return reducer(s, a);
+      const next = migrate({ ...s, ...(a.state as object) });
+      return {
+        ...next,
+        onboardingComplete: s.onboardingComplete,
+        wearable: { ...next.wearable, reading: s.wearable.reading ?? next.wearable.reading },
+      };
+    },
     undefined,
     initialState,
   );
@@ -49,9 +73,9 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
   const edits = useRef(0);
 
   const dispatch = useCallback((action: Action) => {
-    edits.current += 1;
     apply(action);
-    if (!apiEnabled) return;
+    if (!apiEnabled || action.type === 'SYNC_EXTENSION_SCORE') return;
+    edits.current += 1;
     const body = { id: newId(), action };
     outbox.current = outbox.current
       .then(() => post('/app/actions', body))
@@ -66,7 +90,7 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     const before = edits.current;
     try {
       const server = await api('/app/state');
-      if (edits.current === before) apply({ type: 'HYDRATE', state: migrate(server) });
+      if (edits.current === before) apply({ type: 'SYNC', state: server });
       setOnline(true);
     } catch {
       setOnline(false);
@@ -80,7 +104,7 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
         try {
           const server = await api('/app/state');
           if (active) {
-            apply({ type: 'HYDRATE', state: migrate(server) });
+            apply({ type: 'HYDRATE', state: { ...migrate(server), onboardingComplete: false } });
             setOnline(true);
           }
           return;
@@ -91,7 +115,16 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
       const raw =
         (await AsyncStorage.getItem(STORAGE_KEY)) ||
         (await AsyncStorage.getItem('ember.mobile.v1'));
-      if (active && raw) apply({ type: 'HYDRATE', state: migrate(JSON.parse(raw)) });
+      if (active) {
+        const saved = raw ? migrate(JSON.parse(raw)) : initialState();
+        const samples = archiveSamples().filter(
+          (item) => !saved.archive.some((existing) => existing.id === item.id),
+        );
+        apply({
+          type: 'HYDRATE',
+          state: { ...saved, onboardingComplete: false, archive: [...saved.archive, ...samples] },
+        });
+      }
     })()
       .catch(() => {
         if (active) setStorageError('This device could not load your saved progress.');
@@ -115,7 +148,7 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
       timer = null;
     };
     start();
-    const sub = RNAppState.addEventListener('change', (next) => {
+    const sub = NativeAppState.addEventListener('change', (next) => {
       if (next === 'active') {
         void refresh();
         start();
@@ -127,6 +160,28 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     };
   }, [ready, refresh]);
 
+  const streaming =
+    ready &&
+    state.wearable.enabled &&
+    state.wearable.status === 'connected' &&
+    !!activeNudge &&
+    state.nudges.some((n) => n.id === activeNudge && n.status === 'waiting');
+  useEffect(() => {
+    if (!streaming) return;
+    const update = () => {
+      if (NativeAppState.currentState === 'active' || NativeAppState.currentState == null)
+        apply({ type: 'WEARABLE', settings: { reading: sampleWatchReading() } });
+    };
+    update();
+    const timer = setInterval(update, 2000);
+    const subscription = NativeAppState.addEventListener('change', (status) => {
+      if (status === 'active') update();
+    });
+    return () => {
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, [streaming]);
   useEffect(() => {
     if (!ready) return;
     writes.current = writes.current
@@ -136,9 +191,33 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
         setStorageError('Your progress is active, but could not be saved on this device.'),
       );
   }, [state, ready]);
+  const receivePurchase = (purchase: {
+    id: string;
+    name: string;
+    amount: number;
+    category?: string;
+    source?: string;
+  }) => {
+    if (!matchesPurchase(state.purchaseRules, purchase.amount, purchase.category)) return false;
+    const existing = state.nudges.find((n) => n.id === purchase.id);
+    if (existing && existing.status !== 'waiting') return false;
+    dispatch({ type: 'INCOMING_PURCHASE', ...purchase });
+    openNudge(purchase.id);
+    return true;
+  };
   return (
     <Store.Provider
-      value={{ state, dispatch, ready, storageError, online, refresh, activeNudge, openNudge }}
+      value={{
+        state,
+        dispatch,
+        ready,
+        storageError,
+        online,
+        refresh,
+        activeNudge,
+        openNudge,
+        receivePurchase,
+      }}
     >
       {children}
     </Store.Provider>

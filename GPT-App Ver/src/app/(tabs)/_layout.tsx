@@ -43,7 +43,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
               : r.name === 'social'
                 ? 'users'
                 : r.name === 'archive'
-                  ? 'archive'
+                  ? 'bookmark'
                   : 'user';
           return (
             <Pressable

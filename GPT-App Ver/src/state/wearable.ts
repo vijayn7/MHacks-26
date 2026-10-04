@@ -17,7 +17,7 @@ export type Wearable = {
   status: WatchStatus;
   enabled: boolean;
   baseline: number | null;
-  reading: { bpm: number; at: number } | null;
+  reading: { bpm: number; at: number; emotions?: Feeling[]; intensity?: number } | null;
   moments: Moment[];
 };
 export const freshWearable = (): Wearable => ({
@@ -48,7 +48,19 @@ export function readWearable(raw: unknown): Wearable {
     enabled: w.enabled === true,
     baseline: validBpm(w.baseline) ? w.baseline : null,
     reading:
-      w.reading && validBpm(w.reading.bpm) && Number.isFinite(w.reading.at) ? w.reading : null,
+      w.reading && validBpm(w.reading.bpm) && Number.isFinite(w.reading.at)
+        ? {
+            bpm: w.reading.bpm,
+            at: w.reading.at,
+            emotions: Array.isArray(w.reading.emotions)
+              ? w.reading.emotions.filter((f) => feelings.includes(f))
+              : [],
+            intensity:
+              typeof w.reading.intensity === 'number' && Number.isFinite(w.reading.intensity)
+                ? Math.max(0, Math.min(100, w.reading.intensity))
+                : 50,
+          }
+        : null,
     moments: Array.isArray(w.moments)
       ? w.moments
           .filter(

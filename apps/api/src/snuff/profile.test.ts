@@ -87,7 +87,12 @@ if (!databaseUrl) {
     const existing = await sql`
       select 1 from snuff_friends where user_id = ${userId} and id = ${"sam"} limit 1`;
     if (!existing.length) {
-      await sql`insert into snuff_friends (user_id, id) values (${userId}, ${"sam"})`;
+      if (createdFriendsTable)
+        await sql`insert into snuff_friends (user_id, id) values (${userId}, ${"sam"})`;
+      else
+        await sql`
+          insert into snuff_friends (user_id, id, name, email, hue, position)
+          values (${userId}, ${"sam"}, ${"Sam"}, ${"sam@example.com"}, ${"Azure"}, ${0})`;
     }
     await profile.actions.TRUSTED_FRIEND(sql, userId, { type: "TRUSTED_FRIEND", id: "sam" });
 

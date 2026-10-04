@@ -14,7 +14,7 @@ import { useIsFocused } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../state/Store';
-import { archiveSamples, savedDate, type SavedItem } from '../state/archive';
+import { archiveSamples, savedDate, savedSource, type SavedItem } from '../state/archive';
 import { money } from '../state/model';
 import { colors, palettes } from '../design/tokens';
 import { ArchiveObject } from '../components/ArchiveObject';
@@ -153,7 +153,7 @@ export default function Archive() {
                         name={item.name}
                         size={tile}
                         reduce={reduce}
-                        label={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}`}
+                        label={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}, from ${savedSource(item)}`}
                         onPress={() => {
                           if (selected !== index) focus(index);
                           else setDetail(item);
@@ -179,6 +179,13 @@ export default function Archive() {
                             style={{ fontSize: 10, lineHeight: 14 }}
                           >
                             {savedDate(item.savedAt)}
+                          </T>
+                          <T
+                            variant="small"
+                            color={colors.muted}
+                            style={{ fontSize: 9, lineHeight: 13, marginTop: 4 }}
+                          >
+                            {savedSource(item)}
                           </T>
                         </View>
                         <View
@@ -270,6 +277,9 @@ export default function Archive() {
             </T>
             <T variant="small" style={{ textAlign: 'center', marginTop: 8 }}>
               saved {savedDate(detail.savedAt)}
+            </T>
+            <T variant="small" style={{ textAlign: 'center', marginTop: 4 }}>
+              {savedSource(detail)}
             </T>
             {!preview && (
               <Pressable

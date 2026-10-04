@@ -71,7 +71,7 @@ export function App() {
     setError("");
     setBusy(true);
     try {
-      const res = await fetch("http://localhost:8787/purchase", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8787"}/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, amount }),
@@ -183,12 +183,12 @@ export function App() {
           <div className="gallery">
             <div className="thumbs" role="listbox" aria-label="Product images">
               <button type="button" className="thumb selected" aria-label="Front" aria-selected>
-                <img src="/whey.jpg" alt="" />
+                <img src="whey.jpg" alt="" />
               </button>
             </div>
             <div className="stage">
               <div className="stage-art">
-                <img src="/whey.jpg" alt={title} />
+                <img src="whey.jpg" alt={title} />
               </div>
               <p className="zoom-note">Roll over image to zoom in</p>
               <p className="pack-note">Packaging may vary</p>
@@ -575,7 +575,7 @@ function OrderPlaced({ order }: { order: PlacedOrder }) {
             Arriving <span>Thursday, October 8</span>
           </h2>
           <div className="pkg-row">
-            <img src="/whey.jpg" alt="" />
+            <img src="whey.jpg" alt="" />
             <div>
               <p className="pkg-title">{order.name}</p>
               <p className="pkg-meta">Sold by Amazon.com</p>

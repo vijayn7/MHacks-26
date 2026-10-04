@@ -3,7 +3,7 @@ name: Deploy landing and store to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ["apps/landing/**", "apps/store/**", ".github/workflows/pages.yml"]
+    paths: ["apps/landing/**", "apps/store/**", "apps/extension/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -29,7 +29,9 @@ jobs:
       - run: npm run build -w @secondthought/store
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - run: npm run build -w @secondthought/extension
       - run: cp -r apps/store/dist apps/landing/dist/store
+      - run: cd apps/extension && zip -r ../landing/dist/extension/snuffed-extension.zip manifest.json background.js dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/landing/dist

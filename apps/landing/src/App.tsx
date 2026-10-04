@@ -1012,7 +1012,7 @@ export function App() {
         <h1 className="snuff__brand">snuffed</h1>
         <p className="snuff__tag">snuff the spend. save the flame.</p>
         <div className="snuff__ctas">
-          <a className="cta cta--primary" href="#chrome">
+          <a className="cta cta--primary" href="extension/">
             <ChromeIcon />
             add chrome extension
           </a>

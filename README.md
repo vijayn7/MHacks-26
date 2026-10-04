@@ -41,9 +41,25 @@ The extension pauses supported checkout pages in Chrome, on sites the person ena
 - `packages/api` — HTTP API used by the web server and the tests
 - `supabase/migrations` — hosted Postgres schema (not used at runtime yet)
 
+## Run it on your machine
+
+Those commands only work **after** you clone this repo and install Node 22 + pnpm. From `~` they will fail with `command not found` and `No such file or directory`.
+
+```bash
+brew install node@22                       # or: nvm install 22
+git clone https://github.com/vijayn7/MHacks-26.git
+cd MHacks-26
+git checkout cursor/impulse-spending-app-70f2
+bash scripts/setup.sh                      # pnpm, install, .env.local
+pnpm dev:web                               # http://localhost:3000
+```
+
+See `docs/setup.md` for Expo, the extension, and the demo script.
+
 ## Scripts
 
 ```bash
+pnpm setup                                 # first-time: pnpm, install, env file
 pnpm install
 pnpm test                                  # includes the PGlite RLS test
 pnpm typecheck

@@ -1,8 +1,40 @@
 # Setup
 
+You have to be **inside the cloned repo**, not in `~`. `pnpm` is not installed by default on macOS.
+
+## On a fresh Mac
+
 ```bash
+# Node 22 is required (built-in SQLite). Homebrew or nvm both work.
+brew install node@22
+echo 'export PATH="/opt/homebrew/opt/node@22/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+
+git clone https://github.com/vijayn7/MHacks-26.git
+cd MHacks-26
+git checkout cursor/impulse-spending-app-70f2
+
+bash scripts/setup.sh          # enables pnpm, installs deps, copies .env
+pnpm dev:web                   # http://localhost:3000
+```
+
+`scripts/setup.sh` refuses to run if you are in the wrong folder, and it tells you if Node or pnpm is missing.
+
+Then, in other terminals still inside `MHacks-26`:
+
+```bash
+bash scripts/demo.sh           # after the server is up
+cd apps/mobile && pnpm exec expo start
+pnpm build:extension           # load apps/extension/.output/chrome-mv3 unpacked in Chrome
+```
+
+## Already cloned
+
+```bash
+cd /path/to/MHacks-26
+bash scripts/setup.sh
 pnpm install
-cp .env.example apps/web/.env.local
+cp -n .env.example apps/web/.env.local
 pnpm --filter @impulse/web dev
 ```
 

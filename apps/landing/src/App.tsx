@@ -666,10 +666,10 @@ export function App() {
     let idleAccum = 0;
     const ribbon: RibbonPoint[] = [];
     const smoke: SmokePuff[] = [];
-    const MAX_POINTS = 120;
-    const MAX_SMOKE = 160;
-    const MAX_AGE = 50;
-    const STEP = 5.5;
+    const MAX_POINTS = 70;
+    const MAX_SMOKE = 200;
+    const MAX_AGE = 40;
+    const STEP = 8;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);

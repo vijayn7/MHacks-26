@@ -1,0 +1,62 @@
+@font-face { font-family: "Neco"; src: url("assets/fonts/Neco-Regular.otf"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Neco"; src: url("assets/fonts/Neco-Italic.otf"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Satoshi"; src: url("assets/fonts/Satoshi-Regular.otf"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Satoshi"; src: url("assets/fonts/Satoshi-Medium.otf"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Roboto Mono"; src: url("assets/fonts/RobotoMono-Regular.ttf"); font-weight: 400; font-style: normal; font-display: swap; }
+:root {
+  --snuff-colors-bg: #000000;
+  --snuff-colors-surface: #1C100D;
+  --snuff-colors-border: #FFFFFF12;
+  --snuff-colors-text: #F2EAE4;
+  --snuff-colors-secondary: #9A918B;
+  --snuff-colors-muted: #6B625C;
+  --snuff-spacing-xs: 4px;
+  --snuff-spacing-sm: 8px;
+  --snuff-spacing-md: 12px;
+  --snuff-spacing-lg: 16px;
+  --snuff-spacing-xl: 24px;
+  --snuff-spacing-xxl: 32px;
+  --snuff-spacing-xxxl: 40px;
+  --snuff-radius-sm: 12px;
+  --snuff-radius-md: 16px;
+  --snuff-radius-lg: 24px;
+  --snuff-ember-core: #FFF3D6;
+  --snuff-ember-body: #FFD66B;
+  --snuff-ember-mid: #F5A524;
+  --snuff-ember-edge: #ED7014;
+  --snuff-ember-deep: #8E1F02;
+  --snuff-ember-wash: #3A0F02;
+  --snuff-azure-core: #EAFBFF;
+  --snuff-azure-body: #9BE8FF;
+  --snuff-azure-mid: #43B9FF;
+  --snuff-azure-edge: #1D6BF5;
+  --snuff-azure-deep: #0A1C7A;
+  --snuff-azure-wash: #070F2E;
+  --snuff-verdigris-core: #F0FFE9;
+  --snuff-verdigris-body: #B9F7A8;
+  --snuff-verdigris-mid: #52D97A;
+  --snuff-verdigris-edge: #15A05A;
+  --snuff-verdigris-deep: #05482F;
+  --snuff-verdigris-wash: #04200F;
+  --snuff-violet-core: #FBEFFF;
+  --snuff-violet-body: #E0BBFF;
+  --snuff-violet-mid: #B07CFF;
+  --snuff-violet-edge: #7A3CF0;
+  --snuff-violet-deep: #2E0B6B;
+  --snuff-violet-wash: #160530;
+  --snuff-crimson-core: #FFEDEC;
+  --snuff-crimson-body: #FFB3AE;
+  --snuff-crimson-mid: #FF5F62;
+  --snuff-crimson-edge: #D41F49;
+  --snuff-crimson-deep: #5C0426;
+  --snuff-crimson-wash: #2A0612;
+  --snuff-ash-core: #CFC5BE;
+  --snuff-ash-body: #9A918B;
+  --snuff-ash-mid: #6B625C;
+  --snuff-ash-edge: #3A3330;
+  --snuff-ash-deep: #1C1A19;
+  --snuff-ash-wash: #0B0302;
+  --snuff-font-display: "Neco", serif;
+  --snuff-font-body: "Satoshi", sans-serif;
+  --snuff-font-mono: "Roboto Mono", monospace;
+}

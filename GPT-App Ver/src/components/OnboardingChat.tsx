@@ -31,11 +31,15 @@ export function OnboardingChat({
   onCategories,
   onContinue,
   tint,
+  current,
+  onRefine,
 }: {
   categories: string[];
   onCategories: (v: string[]) => void;
   onContinue: () => void;
   tint: string;
+  current?: { amount: number; tone: number };
+  onRefine?: (changes: { amount?: number; tone?: number }) => void;
 }) {
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState<{ text: string; user: boolean }[]>([]);
@@ -50,13 +54,26 @@ export function OnboardingChat({
           ? ['clothes & beauty']
           : []);
     onCategories([...new Set([...categories, ...inferred])]);
+    const amountMatch = text.match(
+      /(?:\$|over\s+|above\s+|limit\s+(?:to\s+)?)(\d+(?:\.\d{1,2})?)/i,
+    );
+    const amount =
+      amountMatch && Number(amountMatch[1]) <= 1000000 ? Number(amountMatch[1]) : undefined;
+    const tone = /less strict|gentler|lighter/i.test(text)
+      ? 20
+      : /more support|stricter|firmer/i.test(text)
+        ? 85
+        : undefined;
+    if (amount !== undefined || tone !== undefined) onRefine?.({ amount, tone });
     setMessages((m) => [
       ...m,
       { text: text.trim().slice(0, 500), user: true },
       {
         text:
-          selected?.reply ??
-          'thanks for telling me. let’s find a level of support that feels right. you can refine the categories and limits next.',
+          amount !== undefined || tone !== undefined
+            ? `i’ve drafted ${amount !== undefined ? `a $${amount} purchase threshold` : 'a ' + (tone === 20 ? 'gentler' : 'firmer') + ' reminder'}. review it next before saving.`
+            : (selected?.reply ??
+              'thanks for telling me. let’s find a level of support that feels right. you can refine the categories and limits next.'),
         user: false,
       },
     ]);
@@ -72,9 +89,11 @@ export function OnboardingChat({
           backgroundColor: tint + '0D',
         }}
       >
-        <T>what brought you to snuffed?</T>
+        <T>{current ? 'what would you like to change?' : 'what brought you to snuffed?'}</T>
         <T variant="small" style={{ marginTop: 6 }}>
-          tell me what you’d like a little help with.
+          {current
+            ? `your current threshold is $${current.amount}. tell me what’s working, or what needs adjusting.`
+            : 'tell me what you’d like a little help with.'}
         </T>
       </View>
       {messages.map((m, i) => (
@@ -92,7 +111,22 @@ export function OnboardingChat({
         </View>
       ))}
       <View style={{ gap: 8 }}>
-        {replies.map((reply) => (
+        {(current
+          ? [
+              {
+                text: 'make my reminders gentler.',
+                categories: [],
+                reply: 'let’s ease the reminders.',
+              },
+              {
+                text: 'i need more support.',
+                categories: [],
+                reply: 'let’s try a firmer reminder.',
+              },
+              ...replies.slice(0, 2),
+            ]
+          : replies
+        ).map((reply) => (
           <Pressable
             key={reply.text}
             accessibilityRole="button"

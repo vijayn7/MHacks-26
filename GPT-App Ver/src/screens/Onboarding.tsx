@@ -19,6 +19,9 @@ export default function Onboarding() {
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const [step, setStep] = useState(edit === '1' && state.onboardingComplete ? 1 : -1);
   const [categories, setCategories] = useState(state.spendingCategories);
+  const [draftRules, setDraftRules] = useState(state.purchaseRules);
+  const [draftTone, setDraftTone] = useState(state.burnRate);
+  const [refined, setRefined] = useState(false);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState(
     state.onboardingComplete ? state.name.split(' ')[0] : '',
@@ -28,10 +31,10 @@ export default function Onboarding() {
   );
   const named = !!firstName.trim() && !!lastName.trim();
   const p = palettes[state.hue];
-  const finish = (rules: PurchaseRules, strength: number) => {
+  const finish = (rules: PurchaseRules, strength: number, demo = false) => {
     if (named) dispatch({ type: 'NAME', name: `${firstName.trim()} ${lastName.trim()}` });
     dispatch({ type: 'COMPLETE_ONBOARDING', categories: rules.categories, strength, rules });
-    router.replace('/');
+    router.replace(demo ? '/purchase-demo' : edit === '1' ? '/profile' : '/');
   };
   if (step === -1)
     return (
@@ -109,7 +112,9 @@ export default function Onboarding() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="previous step"
-            onPress={() => setStep(step - 1)}
+            onPress={() =>
+              edit === '1' && step === 1 ? router.replace('/profile') : setStep(step - 1)
+            }
             style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
           >
             <Icon name="arrow-left" size={18} />
@@ -226,15 +231,21 @@ export default function Onboarding() {
           <OnboardingChat
             categories={categories}
             onCategories={setCategories}
+            current={edit === '1' ? { amount: draftRules.minAmount, tone: draftTone } : undefined}
+            onRefine={({ amount, tone }) => {
+              if (amount !== undefined) setDraftRules((r) => ({ ...r, minAmount: amount }));
+              if (tone !== undefined) setDraftTone(tone);
+              setRefined(true);
+            }}
             onContinue={() => setStep(2)}
             tint={p.body}
           />
         ) : (
           <RestrictionSetup
             categories={categories}
-            existing={state.purchaseRules}
-            strength={state.burnRate}
-            editing={edit === '1'}
+            existing={{ ...draftRules, categories, categoryEnabled: categories.length > 0 }}
+            strength={draftTone}
+            editing={edit === '1' || refined}
             tint={p.body}
             onComplete={finish}
           />

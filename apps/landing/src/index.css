@@ -107,7 +107,7 @@ button {
 .tile--void {
   z-index: 0;
   opacity: 1;
-  filter: saturate(0.25) brightness(0.06);
+  filter: saturate(0.4) brightness(0.16);
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.6);
 }
 

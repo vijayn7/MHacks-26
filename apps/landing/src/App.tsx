@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 
-type Layer = "far" | "mid" | "near";
+type Layer = "deep" | "far" | "mid" | "near";
 
 type Tile = {
   id: string;
@@ -18,7 +18,7 @@ type Tile = {
 
 /**
  * Dense organic scatter — roughly balanced, intentionally irregular.
- * Far/mid darkened; a handful of near tiles stay interactive + full brightness.
+ * Deep is behind far and nearly black; mid stays readable; near is interactive.
  */
 const tiles: Tile[] = [
   // Far atmosphere — same count as before, hung just past the edges
@@ -111,12 +111,12 @@ const tiles: Tile[] = [
     },
   },
 
-  // Mid scatter — irregular sizes/gaps around the brand
+  // Deep backfield — former mid windows pushed behind far, almost black
   {
     id: "c1",
     src: "/sites/walmart.jpg",
     alt: "Walmart",
-    layer: "mid",
+    layer: "deep",
     drift: 0.9,
     style: { top: "1%", left: "34%", width: "15%", aspectRatio: "16 / 10" },
   },
@@ -124,7 +124,7 @@ const tiles: Tile[] = [
     id: "c2",
     src: "/sites/costco.jpg",
     alt: "Costco",
-    layer: "mid",
+    layer: "deep",
     drift: 1.2,
     style: { top: "4%", right: "30%", width: "13%", aspectRatio: "16 / 10" },
   },
@@ -204,7 +204,7 @@ const tiles: Tile[] = [
     id: "c9",
     src: "/sites/homedepot.jpg",
     alt: "Home Depot mid",
-    layer: "mid",
+    layer: "deep",
     drift: 1.15,
     style: {
       bottom: "1%",
@@ -232,7 +232,7 @@ const tiles: Tile[] = [
     id: "c11",
     src: "/sites/nike.jpg",
     alt: "Nike mid",
-    layer: "mid",
+    layer: "deep",
     drift: 1.25,
     style: {
       top: "34%",
@@ -274,7 +274,7 @@ const tiles: Tile[] = [
     id: "c14",
     src: "/sites/walmart.jpg",
     alt: "Walmart low",
-    layer: "mid",
+    layer: "deep",
     drift: 0.8,
     style: {
       top: "58%",
@@ -316,7 +316,7 @@ const tiles: Tile[] = [
     id: "c18",
     src: "/sites/zalando.jpg",
     alt: "Zalando high",
-    layer: "mid",
+    layer: "deep",
     drift: 0.7,
     style: {
       top: "-4%",
@@ -372,7 +372,7 @@ const tiles: Tile[] = [
     id: "c26",
     src: "/sites/homedepot.jpg",
     alt: "Home Depot high",
-    layer: "mid",
+    layer: "deep",
     drift: 1.05,
     style: {
       top: "12%",
@@ -400,7 +400,7 @@ const tiles: Tile[] = [
     id: "c28",
     src: "/sites/princesspolly.jpg",
     alt: "Polly low",
-    layer: "mid",
+    layer: "deep",
     drift: 1.2,
     style: {
       bottom: "14%",
@@ -414,7 +414,7 @@ const tiles: Tile[] = [
     id: "c30",
     src: "/sites/bestbuy.jpg",
     alt: "Best Buy high",
-    layer: "mid",
+    layer: "deep",
     drift: 1.1,
     style: {
       top: "-1%",
@@ -428,7 +428,7 @@ const tiles: Tile[] = [
     id: "c32",
     src: "/sites/zalando.jpg",
     alt: "Zalando low",
-    layer: "mid",
+    layer: "deep",
     drift: 1.25,
     style: {
       bottom: "-3%",
@@ -537,12 +537,13 @@ const tiles: Tile[] = [
 /** Spread each layer across a unique Z band so tiles don't share one plane. */
 function withStaggeredDepth(list: Tile[]): Tile[] {
   const bands: Record<Layer, [number, number]> = {
-    far: [0.12, 0.42],
+    deep: [0.02, 0.14],
+    far: [0.18, 0.4],
     mid: [0.45, 0.7],
     near: [0.78, 0.97],
   };
 
-  const byLayer: Record<Layer, Tile[]> = { far: [], mid: [], near: [] };
+  const byLayer: Record<Layer, Tile[]> = { deep: [], far: [], mid: [], near: [] };
   for (const tile of list) byLayer[tile.layer].push(tile);
 
   const depthOf = new Map<string, number>();

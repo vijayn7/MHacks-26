@@ -91,7 +91,7 @@ export function Mascot({
     const motion = Animated.loop(
       Animated.timing(flicker, {
         toValue: 1,
-        duration: (calm ? 6500 : low ? 4900 : 3600) * (excited ? 0.4 : 1) * tempo,
+        duration: (calm ? 4200 : low ? 2900 : 1950) * (excited ? 0.55 : 1) * tempo,
         easing: Easing.linear,
         useNativeDriver: false,
         isInteraction: false,
@@ -108,13 +108,13 @@ export function Mascot({
       Animated.sequence([
         Animated.timing(breath, {
           toValue: 1,
-          duration: calm ? 4200 : low ? 3400 : 2600,
+          duration: calm ? 3000 : low ? 2100 : 1500,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(breath, {
           toValue: 0,
-          duration: calm ? 4800 : low ? 3900 : 3100,
+          duration: calm ? 3300 : low ? 2400 : 1800,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: Platform.OS !== 'web',
         }),
@@ -123,7 +123,7 @@ export function Mascot({
     const rise = Animated.loop(
       Animated.timing(drift, {
         toValue: 1,
-        duration: excited ? 1500 : 4600,
+        duration: excited ? 1000 : 2600,
         easing: Easing.linear,
         useNativeDriver: Platform.OS !== 'web',
       }),
@@ -217,7 +217,7 @@ export function Mascot({
             {
               scale: pet.reducedMotion
                 ? 1
-                : pet.warmth.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] }),
+                : pet.warmth.interpolate({ inputRange: [0, 1], outputRange: [1, 1.45] }),
             },
           ],
         }}
@@ -246,7 +246,7 @@ export function Mascot({
             {
               scale: pet.reducedMotion
                 ? 1
-                : pet.pulse.interpolate({ inputRange: [0, 1], outputRange: [0.72, 1.55] }),
+                : pet.pulse.interpolate({ inputRange: [0, 1], outputRange: [0.68, 1.8] }),
             },
           ],
         }}
@@ -271,13 +271,15 @@ export function Mascot({
             {
               translateX: pet.x.interpolate({
                 inputRange: [-1, 1],
-                outputRange: [-size * 0.035, size * 0.035],
+                outputRange: [-size * 0.05, size * 0.05],
               }),
             },
             { translateY: pet.y },
-            { rotate: pet.x.interpolate({ inputRange: [-1, 1], outputRange: ['-7deg', '7deg'] }) },
-            { scaleX: pet.squish.interpolate({ inputRange: [0, 1], outputRange: [1, 1.055] }) },
-            { scaleY: pet.squish.interpolate({ inputRange: [0, 1], outputRange: [1, 0.93] }) },
+            {
+              rotate: pet.x.interpolate({ inputRange: [-1, 1], outputRange: ['-11deg', '11deg'] }),
+            },
+            { scaleX: pet.squish.interpolate({ inputRange: [0, 1], outputRange: [1, 1.09] }) },
+            { scaleY: pet.squish.interpolate({ inputRange: [0, 1], outputRange: [1, 0.88] }) },
           ],
         }}
       >
@@ -287,10 +289,10 @@ export function Mascot({
               {
                 translateY: breath.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, (-4 * size * pet.energy) / 240],
+                  outputRange: [0, (-8 * size * pet.energy) / 240],
                 }),
               },
-              { scale: breath.interpolate({ inputRange: [0, 1], outputRange: [1, 1.018] }) },
+              { scale: breath.interpolate({ inputRange: [0, 1], outputRange: [1, 1.035] }) },
               {
                 scaleY: progress
                   ? Animated.multiply(
@@ -331,10 +333,10 @@ export function Mascot({
                 {
                   translateX: breath.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [(-2 * size) / 240, (2 * size) / 240],
+                    outputRange: [(-7 * size) / 240, (7 * size) / 240],
                   }),
                 },
-                { scaleY: breath.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1.04] }) },
+                { scaleY: breath.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.13] }) },
               ],
             }}
           >
@@ -503,13 +505,13 @@ export function Mascot({
                   {
                     translateY: drift.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [(7 * size) / 240, (-16 * size) / 240],
+                      outputRange: [(12 * size) / 240, (-30 * size) / 240],
                     }),
                   },
                   {
                     translateX: drift.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [(-2 * size) / 240, (4 * size) / 240],
+                      outputRange: [(-6 * size) / 240, (9 * size) / 240],
                     }),
                   },
                 ],

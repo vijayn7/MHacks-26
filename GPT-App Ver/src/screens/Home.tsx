@@ -18,8 +18,8 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { level } = useCompanion();
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
-  const textSize = width < 360 ? 23 : 28;
-  const textLineHeight = width < 360 ? 31 : 36;
+  const textSize = width < 360 ? 21 : 25;
+  const textLineHeight = width < 360 ? 28 : 33;
   const pill = (value: string) => (
     <LinearGradient
       colors={[p.body + '22', p.mid + '10']}
@@ -63,7 +63,7 @@ export default function Home() {
           <View style={{ alignItems: 'center', gap: 4, marginTop: 8, marginBottom: 22 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
-                you’ve saved
+                you saved
               </T>
               {pill(money(state.savings))}
             </View>

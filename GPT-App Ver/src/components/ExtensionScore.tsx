@@ -63,7 +63,7 @@ export function ExtensionScore() {
       testID="extension-score"
       style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
     >
-      <T variant="title" color={palettes[state.hue].body} style={{ fontSize: 54, lineHeight: 62 }}>
+      <T variant="title" color={palettes[state.hue].body} style={{ fontSize: 68, lineHeight: 76 }}>
         {state.extensionOptOutIds.length * 10}
       </T>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 34 }}>

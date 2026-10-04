@@ -20,13 +20,12 @@ import { ArchiveObject } from '../components/ArchiveObject';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
-/** Colton lens-scroll approximation + slow infinite ticker. */
+/** Colton lens-scroll approximation + single-pass carousel. */
 const step = 200;
 const tile = 128;
 const focusScale = 2.72;
-/** Pixels per second — one row every ~8s. */
-const tickerSpeed = 24;
-const copies = 3;
+/** Pixels per second — one row every ~3s. */
+const tickerSpeed = 66;
 
 export default function Archive() {
   const { state, dispatch, openNudge } = useStore();
@@ -36,7 +35,12 @@ export default function Archive() {
   const preview = showPreview && state.archive.length === 0;
   const focused = useIsFocused();
   const [samples] = useState(() => archiveSamples());
-  const items = preview ? samples : state.archive;
+  const items = (preview ? samples : state.archive).filter(
+    (item, index, all) =>
+      all.findIndex(
+        (other) => other.name.trim().toLowerCase() === item.name.trim().toLowerCase(),
+      ) === index,
+  );
   const [scrollIndex, setSelected] = useState(0);
   const selected = items.length ? ((scrollIndex % items.length) + items.length) % items.length : 0;
   const [activeRow, setActiveRow] = useState(0);
@@ -51,18 +55,14 @@ export default function Archive() {
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const labelClearance = Math.min(118, Math.max(72, (tile * focusScale) / 2 + 18));
   const sideWidth = Math.max(64, Math.min(96, width / 2 - labelClearance - 8));
-  const loopHeight = items.length * step;
+  const loopHeight = Math.max(0, items.length - 1) * step;
   const padY = Math.max(0, (viewport - step) / 2);
-  const rows = Array.from({ length: copies * items.length }, (_, index) => {
-    const item = items[index % items.length];
-    const lane = Math.floor(index / Math.max(1, items.length));
-    return {
-      item,
-      key: `${item.id}-lane-${lane}-${index}`,
-      index,
-      testID: lane === 1 ? `archive-card-${item.id}` : `archive-card-${item.id}-L${lane}`,
-    };
-  });
+  const rows = items.map((item, index) => ({
+    item,
+    index,
+    key: item.id,
+    testID: `archive-card-${item.id}`,
+  }));
 
   useEffect(() => {
     let active = true;
@@ -78,7 +78,7 @@ export default function Archive() {
 
   const syncSelection = (y: number) => {
     if (!items.length) return;
-    const row = Math.round(y / step);
+    const row = Math.max(0, Math.min(items.length - 1, Math.round(y / step)));
     setActiveRow(row);
     setSelected(((row % items.length) + items.length) % items.length);
   };
@@ -90,18 +90,11 @@ export default function Archive() {
     syncSelection(y);
   };
 
-  const wrapY = (y: number) => {
-    if (!loopHeight) return y;
-    // Keep the playhead inside the middle copy for a seamless loop.
-    let next = y;
-    while (next >= loopHeight * 2) next -= loopHeight;
-    while (next < loopHeight) next += loopHeight;
-    return next;
-  };
+  const wrapY = (y: number) => Math.max(0, Math.min(loopHeight, y));
 
   useEffect(() => {
     if (!items.length) return;
-    const startRow = (preview ? 2 : 0) + items.length; // middle lane
+    const startRow = 0;
     const frame = requestAnimationFrame(() => jumpTo(startRow * step, false));
     return () => cancelAnimationFrame(frame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,7 +131,7 @@ export default function Archive() {
           syncSelection(next);
         }
       }
-      raf = requestAnimationFrame(tick);
+      if (yRef.current < loopHeight) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -149,15 +142,8 @@ export default function Archive() {
     if (!items.length) return;
     tap();
     pauseTicker(2800);
-    const targetLogical = ((logicalIndex % items.length) + items.length) % items.length;
-    // Prefer the copy of that item nearest the current playhead in the middle lane.
-    const base = items.length + targetLogical;
-    const candidates = [base - items.length, base, base + items.length];
-    const current = yRef.current / step;
-    const best = candidates.reduce((a, b) =>
-      Math.abs(b - current) < Math.abs(a - current) ? b : a,
-    );
-    jumpTo(best * step, !reduce);
+    const targetLogical = Math.max(0, Math.min(items.length - 1, logicalIndex));
+    jumpTo(targetLogical * step, !reduce);
   };
 
   const revisit = (item: SavedItem) => {

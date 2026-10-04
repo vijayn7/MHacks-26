@@ -451,3 +451,19 @@ test('purchase rules match exact thresholds, categories, either/both and survive
   });
   assert.equal(s.nudges.length, before + 1);
 });
+
+test('extension score is deduplicated, persists, and is not awarded by local pauses', () => {
+  let s = reducer(initialState(), { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'one', 'two'] });
+  assert.deepEqual(s.extensionOptOutIds, ['one', 'two']);
+  s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: ['two', 'three'] });
+  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  s = reducer(s, { type: 'PAUSE' });
+  s = reducer(s, { type: 'SNUFF_NUDGE', id: 'headphones' });
+  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(s))).extensionOptOutIds, [
+    'one',
+    'two',
+    'three',
+  ]);
+  assert.deepEqual(migrate({ version: 2 }).extensionOptOutIds, []);
+});

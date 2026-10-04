@@ -30,6 +30,7 @@ export type Nudge = {
 };
 export type AppState = {
   version: 2;
+  extensionOptOutIds: string[];
   wearable: Wearable;
   onboardingComplete: boolean;
   spendingCategories: string[];
@@ -51,6 +52,7 @@ export type AppState = {
   archive: SavedItem[];
 };
 export type Action =
+  | { type: 'SYNC_EXTENSION_SCORE'; ids: string[] }
   | { type: 'RENAME_FRIEND'; id: string; name: string }
   | { type: 'REMOVE_FRIEND'; id: string }
   | { type: 'DEMO_PURCHASE'; id: string }
@@ -84,6 +86,7 @@ export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e
 export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
+    extensionOptOutIds: [],
     wearable: freshWearable(),
     onboardingComplete: false,
     spendingCategories: [],
@@ -126,6 +129,15 @@ export function migrate(raw: unknown): AppState {
       ...base,
       ...old,
       wearable: readWearable(old.wearable),
+      extensionOptOutIds: Array.isArray(old.extensionOptOutIds)
+        ? [
+            ...new Set<string>(
+              old.extensionOptOutIds.filter(
+                (id: unknown) => typeof id === 'string' && id.length > 0 && id.length <= 200,
+              ),
+            ),
+          ]
+        : [],
       onboardingComplete: old.onboardingComplete !== false,
       spendingCategories: Array.isArray(old.spendingCategories)
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
@@ -236,6 +248,15 @@ export function reducer(s: AppState, a: Action): AppState {
       };
     case 'DELETE_WEARABLE_DATA':
       return { ...s, wearable: freshWearable() };
+    case 'SYNC_EXTENSION_SCORE': {
+      const ids = [
+        ...new Set([
+          ...s.extensionOptOutIds,
+          ...a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
+        ]),
+      ];
+      return ids.length === s.extensionOptOutIds.length ? s : { ...s, extensionOptOutIds: ids };
+    }
     case 'INCOMING_PURCHASE':
       return matchesPurchase(s.purchaseRules, a.amount, a.category) &&
         !s.nudges.some((n) => n.id === a.id)

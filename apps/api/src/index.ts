@@ -1,3 +1,4 @@
+import { optOutIds } from "./score.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -61,6 +62,7 @@ const eventTypes = new Set([
   "checkout_detected",
   "pause_started",
   "purchase_dropped",
+  "impulse_opt_out",
   "saved_for_later",
   "continue_selected",
   "friend_ping_requested",
@@ -265,9 +267,9 @@ async function ensureDb() {
   }
 }
 
-function send(res: ServerResponse, status: number, body?: unknown) {
+function send(res: ServerResponse, status: number, body?: unknown, allowedOrigin = origin) {
   const headers: Record<string, string> = {
-    "access-control-allow-origin": origin,
+    "access-control-allow-origin": allowedOrigin,
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-headers": "Content-Type",
   };
@@ -594,6 +596,10 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   const path = url.pathname;
   if (req.method === "GET" && path === "/health") {
     send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "GET" && path === "/score") {
+    send(res, 200, { optOutIds: optOutIds(events) }, process.env.SNUFF_APP_ORIGIN || "http://localhost:8081");
     return;
   }
   if (req.method === "GET" && path === "/events") {

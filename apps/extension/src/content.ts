@@ -278,7 +278,10 @@ shadow.addEventListener("click", (event) => {
   if (!(target instanceof Element)) return;
   const action = target.closest("button")?.getAttribute("data-action");
   if (action === "ask") void askFriend();
-  else if (action === "drop") closeCard("purchase_dropped", "Purchase dropped");
+  else if (action === "drop" && !overlay.hidden && pauseId) {
+    post("impulse_opt_out", `${pauseId}:impulse_opt_out`);
+    closeCard("purchase_dropped", "Purchase dropped");
+  }
   else if (action === "save") {
     void saveItem();
     closeCard("saved_for_later", "Saved for later");

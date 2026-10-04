@@ -157,3 +157,14 @@ Onboarding uses a centered 440-point maximum content width, consistent gutters, 
 The final screen sets a per-item USD threshold (inclusive, up to two decimal places), category matching, and either/both semantics when both conditions are enabled. Each condition can be disabled independently; at least one valid condition is required. The rule summary states what will cause the pause. Reminder tone is separate: it changes popup wording and flame animation, not the amount or category rule. Rules can be edited through Profile settings → spending preferences.
 
 `src/state/purchase-rules.ts` validates/migrates rules and evaluates purchases. `useStore().receivePurchase({id,name,amount,category})` is the ingestion entry point: only matching purchases create/open a popup; repeated resolved IDs do not reopen. The reducer independently applies the same rules. Existing archive revisits and “try a nudge” remain deliberate manual previews. Real merchant checkout interception is not connected; onboarding states that boundary. No timed or irreversible payment block is implied.
+
+
+## Minimal Home and extension score
+
+Home now contains the pettable flame, savings statement, line chart with soft radial-gradient orb markers, and Snuff score. Holding the Home flame no longer dispatches a pause; ordinary petting reactions remain. The entire “a moment for you” section and its scroll hint are removed. Watch context remains in the purchase popup and settings. Current visual: `previews/snuff-home-score.png` in the design kit.
+
+Score is 10 points per explicit Chrome extension Drop action. The extension posts `impulse_opt_out` with a stable checkout-derived ID; the API exposes only deduplicated IDs at `GET /score`. Legacy `purchase_dropped` events cannot distinguish a shopper choice from a friend-triggered outcome and are deliberately excluded. Save-for-later, continuing, in-app nudges, and flame petting do not award score. No sample score is seeded.
+
+The app polls every 10 seconds while Home is active and the app is foregrounded. Confirmed IDs are cached locally and deduplicated across refresh/reload. On failure the last score remains with an offline caption. Set `EXPO_PUBLIC_EXTENSION_API_URL` to the API base URL (default `http://localhost:8787`; use a reachable host for phones). The API permits the app origin using `SNUFF_APP_ORIGIN` (default `http://localhost:8081`) on the score endpoint; the existing store origin is unchanged. Rebuild/reload the unpacked extension and restart the API for this integration.
+
+This uses the repository’s existing single-user demo event log. Production must authenticate and scope events by user before sharing a deployed API; no cross-account identity linkage is implemented here. The API stores events in Neon when configured, otherwise in memory.

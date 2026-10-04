@@ -59,14 +59,12 @@ test('notification snuffing updates the Home sentence and chart and remains idem
   await expect(page.getByRole('button', { name: 'yes, snuff this urge' })).toHaveCount(0);
   expect((await snapshot(page)).savings).toBe(433);
 });
-test('the simple Social podium opens leaderboards and adds a persistent connection', async ({
-  page,
-}) => {
+test('the Social leaderboard is inline and adds a persistent connection', async ({ page }) => {
   await page.goto('/social');
-  await expect(page.getByRole('button', { name: 'leaderboard', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'leaderboard', exact: true }).click();
-  await expect(page.getByText('little friendly fire.')).toBeVisible();
-  await page.getByRole('button', { name: 'close sheet' }).click();
+  await expect(page.getByText('leaderboard', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'leaderboard', exact: true })).toHaveCount(0);
+  await expect(page.getByTestId('leaderboard-list')).toBeVisible();
+  await expect(page.getByTestId('leaderboard-list').getByText('$284')).toBeVisible();
   await page.getByRole('button', { name: 'connect with a friend' }).click();
   await page.getByRole('textbox', { name: 'friend’s email' }).fill('bad');
   await page.getByRole('button', { name: 'connect', exact: true }).click();
@@ -88,8 +86,9 @@ test('an empty account keeps the three-flame wireframe usable on a small phone',
     empty,
   );
   await page.goto('/social');
-  await expect(page.getByTestId('flame-mascot')).toHaveCount(3);
+  await expect(page.getByTestId('flame-mascot')).toHaveCount(4);
   const connection = page.getByRole('button', { name: 'connect with a friend' });
+  await connection.scrollIntoViewIfNeeded();
   const connectBox = await connection.boundingBox();
   const dockBox = await page.getByRole('tab', { name: 'social', exact: true }).boundingBox();
   expect(connectBox!.y + connectBox!.height).toBeLessThan(dockBox!.y);

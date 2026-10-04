@@ -33,11 +33,11 @@ test('strokes soothe the same companion across screens without recording a pause
     /content/,
   );
   await page.getByRole('tab', { name: 'social', exact: true }).click();
-  await expect(page.getByRole('button', { name: /^pet your flame/ })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: /^pet your flame/ }).first()).toHaveAttribute(
     'aria-label',
     /content/,
   );
-  await page.getByRole('button', { name: 'leaderboard', exact: true }).click();
+  await expect(page.getByTestId('leaderboard-list')).toBeVisible();
   await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
     'aria-label',
     /content/,

@@ -85,3 +85,5 @@ Reusable files: `../../GPT-App Ver/src/screens/Archive.tsx`, `../../GPT-App Ver/
 `previews/snuff-contacts.png` shows the new sync-contacts row above the existing email field. Native builds request OS contact access on demand and show a searchable selection list. Keep name / email / phone only; persist selected contacts, deduplicate existing friends, and never imply that invitations were sent. Limited access, denied access with Settings, empty results, load errors, cancellation, and the browser fallback have distinct states. No background synchronization or account discovery is connected.
 
 Reuse `../../GPT-App Ver/src/components/ContactSync.tsx`, the `src/services/contacts*` adapters, and `src/state/contacts.ts`. The Expo Contacts config plugin and iOS purpose string are configured in app.json; Android contact writes are blocked. Rebuild the native app for the new module and permissions. OS dialogs and real address books require device validation; the browser preview does not access contacts.
+
+Social now shows the ranked leaderboard inline beneath the podium, with a plain text label. See `previews/snuff-leaderboard.png`.

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 import { useStore } from '../state/Store';
@@ -13,7 +13,7 @@ export default function Social() {
   const { state, dispatch } = useStore();
   const { height } = useWindowDimensions();
   const compact = height < 700;
-  const [sheet, setSheet] = useState<'leaders' | 'connect' | null>(null);
+  const [sheet, setSheet] = useState<'connect' | null>(null);
   const [contactsMode, setContactsMode] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -46,32 +46,18 @@ export default function Social() {
   };
   return (
     <Canvas>
-      <View style={{ flex: 1, paddingHorizontal: 28, paddingTop: 34 }}>
-        <View style={{ height: compact ? 300 : 380 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="leaderboard"
-            onPress={() => {
-              tap();
-              setSheet('leaders');
-            }}
-            style={{ alignSelf: 'flex-end', zIndex: 1 }}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 34, paddingBottom: 28 }}
+      >
+        <View style={{ height: compact ? 260 : 330 }}>
+          <T
+            variant="small"
+            color={colors.secondary}
+            style={{ alignSelf: 'flex-end', fontSize: 12 }}
           >
-            <LinearGradient
-              colors={['#21140D', '#100906']}
-              style={{
-                borderRadius: 99,
-                borderWidth: 1,
-                borderColor: '#FFFFFF18',
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-              }}
-            >
-              <T variant="small" style={{ fontSize: 12 }} color={colors.text}>
-                Leaderboard
-              </T>
-            </LinearGradient>
-          </Pressable>
+            leaderboard
+          </T>
           <View style={{ position: 'absolute', inset: 0, top: 38, justifyContent: 'flex-end' }}>
             <Svg
               width="100%"
@@ -160,6 +146,20 @@ export default function Social() {
             </View>
           </View>
         </View>
+        <View testID="leaderboard-list" style={{ gap: 8, marginTop: 28 }}>
+          {ranked.map((f, i) => (
+            <View key={f.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <T variant="small" style={{ width: 14 }}>
+                {i + 1}
+              </T>
+              <Mascot companionId={f.id} hue={f.hue} size={42} />
+              <T style={{ flex: 1 }}>{f.name}</T>
+              <T variant="title" color={palettes[f.hue].body} style={{ fontSize: 23 }}>
+                {money(f.savings)}
+              </T>
+            </View>
+          ))}
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="connect with a friend"
@@ -176,7 +176,7 @@ export default function Social() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 12,
-            marginTop: compact ? 32 : 42,
+            marginTop: 28,
           }}
         >
           <T variant="title" style={{ fontSize: 30 }}>
@@ -197,29 +197,6 @@ export default function Social() {
             <Icon name="user-plus" color={p.body} size={19} />
           </LinearGradient>
         </Pressable>
-        <Sheet
-          visible={sheet === 'leaders'}
-          title="Little friendly fire."
-          onClose={() => setSheet(null)}
-        >
-          <View style={{ gap: 18 }}>
-            {ranked.map((f, i) => (
-              <View key={f.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <T variant="small" style={{ width: 14 }}>
-                  {i + 1}
-                </T>
-                <Mascot companionId={f.id} hue={f.hue} size={42} />
-                <T style={{ flex: 1 }}>{f.name}</T>
-                <T variant="title" color={palettes[f.hue].body} style={{ fontSize: 23 }}>
-                  {money(f.savings)}
-                </T>
-              </View>
-            ))}
-          </View>
-          <T variant="small" style={{ marginTop: 26 }}>
-            A little more room, together.
-          </T>
-        </Sheet>
         <Sheet
           visible={sheet === 'connect'}
           title={
@@ -279,7 +256,7 @@ export default function Social() {
             </>
           )}
         </Sheet>
-      </View>
+      </ScrollView>
     </Canvas>
   );
 }

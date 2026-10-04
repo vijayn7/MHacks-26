@@ -16,7 +16,7 @@ For the phone-sized browser preview:
 ## Three screens
 
 - **Home:** pet the flame with a tap, vertical rub, or sideways stroke. A still 2.8-second hold records a pause; moving or releasing early cancels it. The savings sentence and weekly chart stay minimal.
-- **Social:** a three-flame podium, a small leaderboard control, and a connection button. Connections are local to this demo; no messages or invitations are sent.
+- **Social:** a three-flame podium, an always-visible ranked list of names and savings, and a connection button. The leaderboard label is plain text; longer lists scroll on the page. Connections are local to this demo; no messages or invitations are sent.
 - **Profile:** a large pettable flame, a mix of two colors from the six-hue palette, a luminous burn-rate slider, a row of friends’ flame avatars, and gentle notifications. Your name stays editable; **try a nudge** demonstrates a notification after five seconds.
 
 A nudge has two choices: **Snuff this urge** records the sample purchase as estimated savings, or **Tomorrow, maybe** schedules another reminder. A completed nudge is counted once.

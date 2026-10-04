@@ -60,6 +60,10 @@ async function connectSpacetime(onChange: () => void): Promise<() => void> {
   });
 }
 
+function hasPendingPause(nudges: { status: string; dueAt: number | null }[], now: number) {
+  return nudges.some((n) => n.status === 'waiting' && (n.dueAt == null || n.dueAt <= now));
+}
+
 /**
  * Opens the pause popup for new waiting nudges from checkout, and refreshes
  * sooner than the 4s store poll when a pause is live. Spacetime drives refresh
@@ -68,11 +72,10 @@ async function connectSpacetime(onChange: () => void): Promise<() => void> {
 export function LivePauses() {
   const { state, ready, refresh, openNudge, activeNudge } = useStore();
   const seen = useRef<Set<string> | null>(null);
-  const foreground = useRef(AppState.currentState === 'active');
-  const refreshRef = useRef(refresh);
-  refreshRef.current = refresh;
+  const foreground = useRef(true);
 
   useEffect(() => {
+    foreground.current = AppState.currentState === 'active';
     const onChange = (next: AppStateStatus) => {
       foreground.current = next === 'active';
     };
@@ -86,11 +89,12 @@ export function LivePauses() {
       seen.current = new Set(state.nudges.map((n) => n.id));
       return;
     }
+    const now = Date.now();
     for (const nudge of state.nudges) {
       if (seen.current.has(nudge.id)) continue;
       seen.current.add(nudge.id);
       if (nudge.status !== 'waiting') continue;
-      if (nudge.dueAt != null && nudge.dueAt > Date.now()) continue;
+      if (nudge.dueAt != null && nudge.dueAt > now) continue;
       if (!foreground.current) continue;
       if (activeNudge) continue;
       openNudge(nudge.id);
@@ -98,16 +102,12 @@ export function LivePauses() {
     }
   }, [state.nudges, ready, openNudge, activeNudge]);
 
-  const pendingLive = state.nudges.some(
-    (n) => n.status === 'waiting' && (n.dueAt == null || n.dueAt <= Date.now()),
-  );
-
   useEffect(() => {
     if (!ready || !apiEnabled) return;
     let stopSpacetime: (() => void) | undefined;
     let cancelled = false;
     void connectSpacetime(() => {
-      if (!cancelled && foreground.current) void refreshRef.current();
+      if (!cancelled && foreground.current) void refresh();
     })
       .then((stop) => {
         if (cancelled) stop();
@@ -120,15 +120,17 @@ export function LivePauses() {
       cancelled = true;
       stopSpacetime?.();
     };
-  }, [ready]);
+  }, [ready, refresh]);
 
   useEffect(() => {
-    if (!ready || !apiEnabled || !pendingLive) return;
+    if (!ready || !apiEnabled) return;
+    // Poll only while a due waiting pause exists; re-evaluate on each nudge change.
+    if (!hasPendingPause(state.nudges, Date.now())) return;
     const timer = setInterval(() => {
-      if (foreground.current) void refreshRef.current();
+      if (foreground.current) void refresh();
     }, FAST_POLL_MS);
     return () => clearInterval(timer);
-  }, [ready, pendingLive]);
+  }, [ready, refresh, state.nudges]);
 
   return null;
 }

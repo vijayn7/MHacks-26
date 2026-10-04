@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { AccessibilityInfo, Animated, AppState, Easing, Platform } from 'react-native';
-import { useIsFocused } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo, AppState } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 
 type Options = {
   value: number;
@@ -9,23 +9,8 @@ type Options = {
   enabled?: boolean;
 };
 
-/**
- * Soft count-up that replays when a screen becomes focused.
- * Returns the eased display value, a shared 0→1 progress, and a fade opacity.
- */
-export function useCountUp({ value, delay = 0, duration = 900, enabled = true }: Options) {
-  const focused = useIsFocused();
-  const [reduce, setReduce] = useState(true);
-  const [foreground, setForeground] = useState(true);
-  const [progress] = useState(() => new Animated.Value(0));
-  const [opacity] = useState(() => new Animated.Value(1));
-  const [display, setDisplay] = useState(value);
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => setForeground(state === 'active'));
-    return () => sub.remove();
-  }, []);
-
+function useReduceMotion() {
+  const [reduce, setReduce] = useState(false);
   useEffect(() => {
     let mounted = true;
     AccessibilityInfo.isReduceMotionEnabled().then((v) => {
@@ -37,64 +22,94 @@ export function useCountUp({ value, delay = 0, duration = 900, enabled = true }:
       sub.remove();
     };
   }, []);
+  return reduce;
+}
 
+function useForeground() {
+  const [foreground, setForeground] = useState(true);
   useEffect(() => {
-    if (!enabled || !focused || !foreground) {
-      progress.stopAnimation();
-      opacity.stopAnimation();
+    const sub = AppState.addEventListener('change', (state) => setForeground(state === 'active'));
+    return () => sub.remove();
+  }, []);
+  return foreground;
+}
+
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+function runCountUp({
+  delay,
+  duration,
+  onUpdate,
+  onDone,
+}: {
+  delay: number;
+  duration: number;
+  onUpdate: (progress: number, opacity: number) => void;
+  onDone: () => void;
+}) {
+  let frame = 0;
+  let start = 0;
+  const tick = (now: number) => {
+    if (!start) start = now;
+    const elapsed = now - start - delay;
+    if (elapsed < 0) {
+      onUpdate(0, 0);
+      frame = requestAnimationFrame(tick);
       return;
     }
-    if (reduce) {
-      progress.setValue(1);
-      opacity.setValue(1);
-      setDisplay(value);
-      return;
-    }
+    const t = Math.min(1, elapsed / duration);
+    const progress = easeOutCubic(t);
+    const opacity = Math.min(1, easeOutCubic(Math.min(1, elapsed / Math.max(280, duration * 0.55))));
+    onUpdate(progress, opacity);
+    if (t < 1) frame = requestAnimationFrame(tick);
+    else onDone();
+  };
+  frame = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(frame);
+}
 
-    progress.setValue(0);
-    opacity.setValue(0);
-    setDisplay(0);
-    const listener = progress.addListener(({ value: t }) => {
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(value * eased);
-    });
+/**
+ * Soft count-up that replays whenever the screen gains focus.
+ * Returns the eased display value and a fade opacity (0–1).
+ */
+export function useCountUp({ value, delay = 0, duration = 1100, enabled = true }: Options) {
+  const reduce = useReduceMotion();
+  const foreground = useForeground();
+  const [display, setDisplay] = useState(0);
+  const [opacity, setOpacity] = useState(0);
 
-    const motion = Animated.sequence([
-      Animated.delay(delay),
-      Animated.parallel([
-        Animated.timing(progress, {
-          toValue: 1,
-          duration,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-          isInteraction: false,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: Math.max(280, duration * 0.55),
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: Platform.OS !== 'web',
-          isInteraction: false,
-        }),
-      ]),
-    ]);
-    motion.start(({ finished }) => {
-      if (finished) setDisplay(value);
-    });
+  useFocusEffect(
+    useCallback(() => {
+      if (!enabled || !foreground) return;
+      if (reduce) {
+        setDisplay(value);
+        setOpacity(1);
+        return;
+      }
+      setDisplay(0);
+      setOpacity(0);
+      return runCountUp({
+        delay,
+        duration,
+        onUpdate: (progress, nextOpacity) => {
+          setDisplay(value * progress);
+          setOpacity(nextOpacity);
+        },
+        onDone: () => {
+          setDisplay(value);
+          setOpacity(1);
+        },
+      });
+    }, [value, delay, duration, enabled, foreground, reduce]),
+  );
 
-    return () => {
-      progress.removeListener(listener);
-      motion.stop();
-    };
-  }, [value, delay, duration, enabled, focused, foreground, reduce, progress, opacity]);
-
-  return { display, progress, opacity };
+  return { display, opacity };
 }
 
 /** One shared progress/fade for a group of values that should animate together. */
 export function useSharedCountUp({
   delay = 0,
-  duration = 1100,
+  duration = 1300,
   enabled = true,
   replayKey = 0,
 }: {
@@ -103,78 +118,35 @@ export function useSharedCountUp({
   enabled?: boolean;
   replayKey?: string | number;
 }) {
-  const focused = useIsFocused();
-  const [reduce, setReduce] = useState(true);
-  const [foreground, setForeground] = useState(true);
-  const [progress] = useState(() => new Animated.Value(0));
-  const [opacity] = useState(() => new Animated.Value(1));
-  const [amount, setAmount] = useState(1);
+  const reduce = useReduceMotion();
+  const foreground = useForeground();
+  const [amount, setAmount] = useState(0);
+  const [opacity, setOpacity] = useState(0);
 
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => setForeground(state === 'active'));
-    return () => sub.remove();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (!enabled || !foreground) return;
+      if (reduce) {
+        setAmount(1);
+        setOpacity(1);
+        return;
+      }
+      setAmount(0);
+      setOpacity(0);
+      return runCountUp({
+        delay,
+        duration,
+        onUpdate: (progress, nextOpacity) => {
+          setAmount(progress);
+          setOpacity(nextOpacity);
+        },
+        onDone: () => {
+          setAmount(1);
+          setOpacity(1);
+        },
+      });
+    }, [delay, duration, enabled, foreground, reduce, replayKey]),
+  );
 
-  useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((v) => {
-      if (mounted) setReduce(v);
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
-    return () => {
-      mounted = false;
-      sub.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || !focused || !foreground) {
-      progress.stopAnimation();
-      opacity.stopAnimation();
-      return;
-    }
-    if (reduce) {
-      progress.setValue(1);
-      opacity.setValue(1);
-      setAmount(1);
-      return;
-    }
-
-    progress.setValue(0);
-    opacity.setValue(0);
-    setAmount(0);
-    const listener = progress.addListener(({ value: t }) => {
-      setAmount(1 - Math.pow(1 - t, 3));
-    });
-
-    const motion = Animated.sequence([
-      Animated.delay(delay),
-      Animated.parallel([
-        Animated.timing(progress, {
-          toValue: 1,
-          duration,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-          isInteraction: false,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: Math.max(320, duration * 0.5),
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: Platform.OS !== 'web',
-          isInteraction: false,
-        }),
-      ]),
-    ]);
-    motion.start(({ finished }) => {
-      if (finished) setAmount(1);
-    });
-
-    return () => {
-      progress.removeListener(listener);
-      motion.stop();
-    };
-  }, [delay, duration, enabled, focused, foreground, reduce, progress, opacity, replayKey]);
-
-  return { amount, progress, opacity };
+  return { amount, opacity };
 }

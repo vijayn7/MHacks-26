@@ -1,10 +1,10 @@
 import React from 'react';
-import { Animated, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { View, type TextStyle, type ViewStyle, type StyleProp } from 'react-native';
 import { T } from './ui';
 
 type Props = {
   children: React.ReactNode;
-  opacity: Animated.Value;
+  opacity: number;
   style?: StyleProp<ViewStyle>;
   textStyle?: TextStyle | TextStyle[];
   color?: string;
@@ -23,10 +23,10 @@ export function CountUpText({
   testID,
 }: Props) {
   return (
-    <Animated.View testID={testID} style={[{ opacity }, style]}>
+    <View testID={testID} style={[{ opacity }, style]}>
       <T variant={variant} color={color} style={textStyle}>
         {children}
       </T>
-    </Animated.View>
+    </View>
   );
 }

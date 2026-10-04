@@ -11,7 +11,7 @@ import { SoftPressable } from './SoftPressable';
 
 export function ExtensionScore({
   delay = 0,
-  duration = 900,
+  duration = 1100,
 }: {
   delay?: number;
   duration?: number;

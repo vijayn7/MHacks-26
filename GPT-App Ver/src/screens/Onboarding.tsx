@@ -1,10 +1,11 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mascot } from '../components/Mascot';
 import { GlowSlider } from '../components/GlowSlider';
-import { Icon, Input, QuietButton, Sheet, T } from '../components/ui';
+import { Icon, Input, QuietButton, T } from '../components/ui';
 import { colors, palettes } from '../design/tokens';
 import { spendingCategories, supportLevel } from '../design/onboarding';
 import { validEmail } from '../state/model';
@@ -64,7 +65,6 @@ export default function Onboarding() {
       </View>
     </Pressable>
   );
-  const [provider, setProvider] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState(
     state.onboardingComplete ? state.name.split(' ')[0] : '',
@@ -102,8 +102,16 @@ export default function Onboarding() {
           paddingBottom: insets.bottom,
         }}
       >
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Mascot hue={state.hue} size={Math.min(300, width - 40, height * 0.48)} />
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 100 }}
+        >
+          <Mascot hue={state.hue} size={Math.min(300, width - 40, height * 0.42)} />
+          <T variant="title" style={{ fontSize: 48, lineHeight: 58, marginTop: 16 }}>
+            snuffed
+          </T>
+          <T variant="small" style={{ marginTop: 8, textAlign: 'center' }}>
+            snuff your impulse spending.
+          </T>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -179,7 +187,7 @@ export default function Onboarding() {
         </T>
         <T variant="small" style={{ textAlign: 'center', marginTop: 12, marginBottom: 24 }}>
           {step === 0
-            ? 'sign in to snuff.'
+            ? 'sign in to snuffed.'
             : step === 1
               ? 'which purchases need a little more space?'
               : 'snuff interrupts matching purchases with a moment to reconsider.'}
@@ -206,15 +214,53 @@ export default function Onboarding() {
                 />
               </View>
             </View>
-            {['google', 'apple', 'email'].map((name) => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Input
+                  email
+                  label="email address"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="email address"
+                />
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="continue with email"
+                disabled={!named || !validEmail(email)}
+                onPress={() => setStep(1)}
+                style={({ pressed }) => ({
+                  width: 44,
+                  height: 44,
+                  marginBottom: 14,
+                  borderRadius: 22,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: p.body,
+                  opacity: !named || !validEmail(email) ? 0.3 : pressed ? 0.65 : 1,
+                })}
+              >
+                <Icon name="arrow-right" size={18} color={p.wash} />
+              </Pressable>
+            </View>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginVertical: 10 }}
+            >
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+              <T variant="small">or</T>
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+            </View>
+            {(['google', 'apple', 'guest'] as const).map((name) => (
               <Pressable
                 key={name}
                 accessibilityRole="button"
-                accessibilityLabel={`continue with ${name}`}
+                accessibilityLabel={
+                  name === 'guest' ? 'continue as guest' : `continue with ${name}`
+                }
                 disabled={!named}
-                onPress={() => (name === 'email' ? setProvider(name) : setStep(1))}
-                style={{
-                  opacity: named ? 1 : 0.4,
+                onPress={() => setStep(1)}
+                style={({ pressed }) => ({
+                  opacity: !named ? 0.4 : pressed ? 0.65 : 1,
                   minHeight: 50,
                   borderRadius: 28,
                   borderWidth: 1,
@@ -223,18 +269,21 @@ export default function Onboarding() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 12,
-                }}
+                  paddingHorizontal: 44,
+                })}
               >
-                <T style={{ fontSize: 15 }}>continue with {name}</T>
+                <View style={{ position: 'absolute', left: 20, width: 22, alignItems: 'center' }}>
+                  {name === 'guest' ? (
+                    <Icon name="user" size={18} color={colors.text} />
+                  ) : (
+                    <FontAwesome name={name} size={18} color={colors.text} />
+                  )}
+                </View>
+                <T style={{ fontSize: 15 }}>
+                  {name === 'guest' ? 'continue as guest' : `continue with ${name}`}
+                </T>
               </Pressable>
             ))}
-            <QuietButton secondary disabled={!named} onPress={() => setStep(1)}>
-              continue as guest
-            </QuietButton>
-            <T variant="small" style={{ textAlign: 'center', fontSize: 10 }}>
-              demo sign-in
-            </T>
           </View>
         ) : step === 1 ? (
           <>
@@ -432,29 +481,6 @@ export default function Onboarding() {
           </>
         )}
       </ScrollView>
-      <Sheet
-        visible={!!provider}
-        title={`continue with ${provider || 'an account'}`}
-        onClose={() => setProvider(null)}
-      >
-        <Input
-          email
-          label="email address"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@example.com"
-        />
-        <T variant="small">demo only. no email is sent or saved.</T>
-        <QuietButton
-          disabled={!validEmail(email)}
-          onPress={() => {
-            setProvider(null);
-            setStep(1);
-          }}
-        >
-          continue
-        </QuietButton>
-      </Sheet>
     </View>
   );
 }

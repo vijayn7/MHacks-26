@@ -145,3 +145,6 @@ Archive uses a bookmark navigation icon. A muted source label appears below the 
 
 
 Profile removes the “try a nudge” action and its scheduling handler. “Gentle reminders” now has the description “weekly recaps of your score and the money you saved.” This is the settings copy; a weekly recap delivery job is not implemented by this interface change.
+
+
+Onboarding’s welcome now reads “snuffed” and “snuff your impulse spending.” Sign-in places an inline email field with a validated arrow action above an “or” divider, followed by Google, Apple, and guest buttons with aligned icons. First and last name remain required. The demo caption and separate email sheet are removed; authentication remains the intentionally local placeholder flow.

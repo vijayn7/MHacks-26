@@ -1,6 +1,7 @@
 import React, { useId, useState } from 'react';
 import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSliderCompanion } from '../hooks/useSliderCompanion';
 import { sliderGlow } from '../design/slider';
 import Slider from '@react-native-community/slider';
 import Svg, { Defs, RadialGradient, Stop, Circle } from 'react-native-svg';
@@ -25,7 +26,11 @@ export function GlowSlider({
 }) {
   const [width, setWidth] = useState(0);
   const id = useId().replace(/[^a-z0-9]/gi, '');
-  const change = (next: number) => onChange(Math.round(Math.max(0, Math.min(100, next))));
+  const change = (next: number) => {
+    companion.change();
+    onChange(Math.round(Math.max(0, Math.min(100, next))));
+  };
+  const companion = useSliderCompanion();
   const light = sliderGlow(value);
   return (
     <View
@@ -64,7 +69,12 @@ export function GlowSlider({
         maximumValue={100}
         step={1}
         onValueChange={change}
-        onSlidingComplete={change}
+        onSlidingStart={companion.start}
+        onTouchCancel={companion.end}
+        onSlidingComplete={(next) => {
+          change(next);
+          companion.end();
+        }}
         minimumTrackTintColor="transparent"
         maximumTrackTintColor="transparent"
         thumbTintColor={glow ? 'transparent' : colors.text}

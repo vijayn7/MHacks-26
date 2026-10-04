@@ -87,3 +87,5 @@ Reusable files: `../../GPT-App Ver/src/screens/Archive.tsx`, `../../GPT-App Ver/
 Reuse `../../GPT-App Ver/src/components/ContactSync.tsx`, the `src/services/contacts*` adapters, and `src/state/contacts.ts`. The Expo Contacts config plugin and iOS purpose string are configured in app.json; Android contact writes are blocked. Rebuild the native app for the new module and permissions. OS dialogs and real address books require device validation; the browser preview does not access contacts.
 
 Social now shows the ranked leaderboard inline beneath the podium, with a plain text label. See `previews/snuff-leaderboard.png`.
+
+Slider feedback: all GlowSlider controls temporarily give the user’s flame happy eyes, faster crown flickering, and an extra rising spark. Releasing, canceling, leaving the screen, or backgrounding ends the reaction without changing the saved face or flame status. Keyboard/accessibility changes give a brief response. Reduced motion keeps the face and a static spark. Shared implementation: `../../GPT-App Ver/src/hooks/useSliderCompanion.ts`.

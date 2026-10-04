@@ -1,4 +1,5 @@
 import React, { useId } from 'react';
+import { useSliderCompanion } from '../hooks/useSliderCompanion';
 import { sliderGlow } from '../design/slider';
 import { colors, palettes } from '../design/tokens';
 
@@ -21,6 +22,7 @@ export function GlowSlider({
   endTint?: string;
 }) {
   const id = 'range' + useId().replace(/[^a-z0-9]/gi, '');
+  const companion = useSliderCompanion();
   const light = sliderGlow(value);
   const track = glow ? '#ffffff12' : `linear-gradient(90deg, ${startTint}, ${endTint})`;
   return (
@@ -52,7 +54,18 @@ export function GlowSlider({
         aria-label={label}
         aria-valuenow={value}
         aria-valuetext={`${value}%`}
-        onChange={(e) => onChange(Number(e.currentTarget.value))}
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          companion.start();
+        }}
+        onPointerUp={companion.end}
+        onPointerCancel={companion.end}
+        onLostPointerCapture={companion.end}
+        onBlur={companion.end}
+        onChange={(e) => {
+          companion.change();
+          onChange(Number(e.currentTarget.value));
+        }}
       />
       {glow && (
         <div

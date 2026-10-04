@@ -121,3 +121,5 @@ The config plugin supplies the iOS usage description, and Android blocks WRITE_C
 ## Designer handoff
 
 See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.
+
+Slider feedback: all GlowSlider controls temporarily give the user’s flame happy eyes, faster crown flickering, and an extra rising spark. Releasing, canceling, leaving the screen, or backgrounding ends the reaction without changing the saved face or flame status. Keyboard/accessibility changes give a brief response. Reduced motion keeps the face and a static spark. Shared implementation: `src/hooks/useSliderCompanion.ts`.

@@ -20,7 +20,7 @@ import { FlameFace } from './FlameFace';
 import { Flame } from './Flame';
 import { usePetting } from '../hooks/usePetting';
 import { flamePoses } from '../design/flame-motion';
-import type { FlameLevel } from '../state/Companion';
+import { useCompanion, type FlameLevel } from '../state/Companion';
 
 // Keep Snuff's original outline and face. Light dissolves toward the tips,
 // while feathered gradient strokes create soft trails on both native and web.
@@ -72,7 +72,9 @@ export function Mascot({
   );
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const { state } = useStore();
-  const face = expression ?? (companionId === 'you' ? state.face : 'classic');
+  const { adjusting } = useCompanion(companionId);
+  const excited = adjusting && companionId === 'you';
+  const face = excited ? 'happy' : (expression ?? (companionId === 'you' ? state.face : 'classic'));
   const p = calm
     ? palettes.Ash
     : companionId === 'you'
@@ -88,7 +90,7 @@ export function Mascot({
     const motion = Animated.loop(
       Animated.timing(flicker, {
         toValue: 1,
-        duration: calm ? 6500 : low ? 4900 : 3600,
+        duration: (calm ? 6500 : low ? 4900 : 3600) * (excited ? 0.4 : 1),
         easing: Easing.linear,
         useNativeDriver: false,
         isInteraction: false,
@@ -96,7 +98,7 @@ export function Mascot({
     );
     motion.start();
     return () => motion.stop();
-  }, [animate, pet.awake, calm, low, flicker]);
+  }, [animate, pet.awake, calm, low, flicker, excited]);
   const [breath] = useState(() => new Animated.Value(0));
   const [drift] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -120,7 +122,7 @@ export function Mascot({
     const rise = Animated.loop(
       Animated.timing(drift, {
         toValue: 1,
-        duration: 4600,
+        duration: excited ? 1500 : 4600,
         easing: Easing.linear,
         useNativeDriver: Platform.OS !== 'web',
       }),
@@ -131,7 +133,7 @@ export function Mascot({
       breathe.stop();
       rise.stop();
     };
-  }, [animate, calm, low, pet.awake, breath, drift]);
+  }, [animate, calm, low, pet.awake, breath, drift, excited]);
   const url = (name: string) => 'url(#' + name + id + ')';
   const height = (size * 270) / 240;
   return (
@@ -316,12 +318,14 @@ export function Mascot({
           <Animated.View
             style={{
               ...StyleSheet.absoluteFill,
-              opacity: calm
-                ? 0.12
-                : breath.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: low ? [0.35, 0.52] : [0.78, 1],
-                  }),
+              opacity: excited
+                ? 1
+                : calm
+                  ? 0.12
+                  : breath.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: low ? [0.35, 0.52] : [0.78, 1],
+                    }),
               transform: [
                 {
                   translateX: breath.interpolate({
@@ -450,11 +454,20 @@ export function Mascot({
               top: (height * 150) / 270,
               width: size,
               height: (height * 30) / 270,
-              opacity: calm
-                ? 0
-                : contentment.interpolate({ inputRange: [0, 0.65, 1], outputRange: [1, 0.65, 0] }),
+              opacity: excited
+                ? 1
+                : calm
+                  ? 0
+                  : contentment.interpolate({
+                      inputRange: [0, 0.65, 1],
+                      outputRange: [1, 0.65, 0],
+                    }),
               transform: [
-                { scaleY: contentment.interpolate({ inputRange: [0, 1], outputRange: [1, 0.12] }) },
+                {
+                  scaleY: excited
+                    ? 1
+                    : contentment.interpolate({ inputRange: [0, 1], outputRange: [1, 0.12] }),
+                },
               ],
             }}
           >
@@ -470,9 +483,11 @@ export function Mascot({
           <Animated.View
             style={{
               ...StyleSheet.absoluteFill,
-              opacity: calm
-                ? 1
-                : contentment.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 0, 1] }),
+              opacity: excited
+                ? 0
+                : calm
+                  ? 1
+                  : contentment.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 0, 1] }),
             }}
           >
             <Svg width={size} height={height} viewBox="0 0 240 270">
@@ -497,10 +512,13 @@ export function Mascot({
                     }),
                   },
                 ],
-                opacity: drift.interpolate({
-                  inputRange: [0, 0.3, 0.65, 1],
-                  outputRange: [0, 0.8, 0.5, 0],
-                }),
+                opacity:
+                  excited && pet.reducedMotion
+                    ? 0.8
+                    : drift.interpolate({
+                        inputRange: [0, 0.3, 0.65, 1],
+                        outputRange: [0, 0.8, 0.5, 0],
+                      }),
               }}
             >
               <Svg width={size} height={height} viewBox="0 0 240 270">
@@ -511,6 +529,15 @@ export function Mascot({
                     <Stop offset="1" stopColor={p.mid} stopOpacity="0" />
                   </RadialGradient>
                 </Defs>
+                {excited && (
+                  <G testID="slider-spark">
+                    <Circle cx="123" cy="42" r="12" fill={url('ember')} />
+                    <Path
+                      d="M 123 34 L 125 40 L 130 42 L 125 44 L 123 50 L 121 44 L 116 42 L 121 40 Z"
+                      fill={p.core}
+                    />
+                  </G>
+                )}
                 {[
                   { x: 78, y: 67, r: 4 },
                   { x: 153, y: 28, r: 3.3 },

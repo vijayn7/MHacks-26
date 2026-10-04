@@ -14,6 +14,12 @@ export type FlameLevel = 'High' | 'Low' | 'Out';
 class CompanionMood {
   readonly warmth = new Animated.Value(0);
   level: FlameLevel = 'High';
+  readonly sliders = new Set<string>();
+  setSlider(id: string, active: boolean) {
+    if (active) this.sliders.add(id);
+    else this.sliders.delete(id);
+    this.publish();
+  }
   private amount = 0;
   private listeners = new Set<() => void>();
   private cooling?: ReturnType<typeof setTimeout>;
@@ -25,7 +31,7 @@ class CompanionMood {
       this.listeners.delete(listener);
     };
   };
-  snapshot = () => `${this.level}:${Math.floor(this.amount * 4)}`;
+  snapshot = () => `${this.level}:${Math.floor(this.amount * 4)}:${this.sliders.size > 0}`;
   private publish() {
     this.listeners.forEach((listener) => listener());
   }
@@ -97,5 +103,6 @@ export function useCompanion(id = 'you') {
     mood,
     level: snapshot.split(':')[0] as FlameLevel,
     relaxed: Number(snapshot.split(':')[1]) >= 2,
+    adjusting: snapshot.split(':')[2] === 'true',
   };
 }

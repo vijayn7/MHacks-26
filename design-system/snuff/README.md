@@ -148,3 +148,10 @@ Profile removes the “try a nudge” action and its scheduling handler. “Gent
 
 
 Onboarding’s welcome now reads “snuffed” and “snuff your impulse spending.” Sign-in places an inline email field with a validated arrow action above an “or” divider, followed by Google, Apple, and guest buttons with aligned icons. First and last name remain required. The demo caption and separate email sheet are removed; authentication remains the intentionally local placeholder flow.
+
+
+## Conversational onboarding and suggested levels
+
+After welcome and sign-in, the third page is a chat-style conversation asking what brought the user to Snuffed. Four quick replies cover shopping, sports betting, impulse purchases, and saving more. Users can also type a reply. The current local adapter provides supportive scripted responses and suggests categories without uploading or persisting the free-text conversation; it is not a connected AI service or diagnostic model. Replace the adapter only with an explicitly configured backend.
+
+The fourth page offers light ($150, gentle), balanced ($75, balanced), and strong ($25, firm) starting points. Each has an expandable adjustment panel containing an amount input, tone dropdown, category choices, and an either/both dropdown. Each card retains its own edits while comparing levels. Only the selected level’s rules and tone are persisted on Start. Light defaults to both conditions; balanced and strong default to either. Without categories, only amount applies. Amount validation, local persistence, and the existing purchase matcher remain in use.

@@ -32,7 +32,7 @@
 
 :root {
   /* Snuff design-system tokens (commit 2a76a12) */
-  --bg: #1c100d;
+  --bg: #000000;
   --ink: #f2eae4;
   --muted: #9a918b;
   --ember-core: #fff3d6;
@@ -94,9 +94,7 @@ button {
   overflow: hidden;
   perspective: 1400px;
   perspective-origin: var(--pox) var(--poy);
-  background:
-    radial-gradient(70% 55% at 50% 45%, #2a221c 0%, transparent 62%),
-    var(--bg);
+  background: var(--bg);
   cursor: none;
 }
 
@@ -282,9 +280,9 @@ button {
   /* Tight vignette so mid windows read behind the brand */
   background: radial-gradient(
     ellipse 30% 22% at 50% 48%,
-    rgb(26 20 16 / 0.96) 0%,
-    rgb(26 20 16 / 0.7) 38%,
-    rgb(26 20 16 / 0.2) 62%,
+    rgb(0 0 0 / 0.96) 0%,
+    rgb(0 0 0 / 0.7) 38%,
+    rgb(0 0 0 / 0.2) 62%,
     transparent 78%
   );
 }
@@ -367,7 +365,7 @@ button {
 
 /* Quiet secondary / profile outline chip */
 .cta--secondary {
-  background: var(--surface);
+  background: #000000;
   border-color: color-mix(in srgb, var(--ember-body) 55%, transparent);
   color: var(--ink);
 }

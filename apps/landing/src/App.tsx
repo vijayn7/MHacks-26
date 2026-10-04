@@ -421,24 +421,12 @@ function withStaggeredDepth(list: Tile[]): Tile[] {
 
 const fieldTiles = withStaggeredDepth(tiles);
 
-function AppleIcon() {
+function ChromeIcon() {
   return (
     <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M16.37 12.29c-.02-2.16 1.76-3.2 1.84-3.25-1-1.47-2.57-1.67-3.12-1.69-1.33-.14-2.6.79-3.27.79-.68 0-1.72-.77-2.83-.75-1.46.02-2.8.85-3.55 2.16-1.52 2.63-.39 6.53 1.09 8.67.72 1.05 1.59 2.22 2.72 2.18 1.1-.05 1.51-.7 2.83-.7 1.32 0 1.69.7 2.84.68 1.17-.02 1.92-1.07 2.64-2.13.83-1.21 1.17-2.38 1.19-2.44-.03-.01-2.28-.87-2.3-3.47zm-2.15-6.35c.6-.73 1.01-1.75.9-2.77-.87.04-1.92.58-2.54 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.56-1.22z"
-      />
-    </svg>
-  );
-}
-
-function WindowsIcon() {
-  return (
-    <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
-      {/* Flat Windows 11 mark — axis-aligned 2×2 panes */}
-      <path
-        fill="currentColor"
-        d="M3 3h8.2v8.2H3V3zm9.8 0H21v8.2h-8.2V3zM3 12.8h8.2V21H3v-8.2zm9.8 0H21V21h-8.2v-8.2z"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 2.2c1.92 0 3.68.7 5.04 1.86L14.7 10.4A3.8 3.8 0 0 0 12 9.5c-.5 0-.98.1-1.42.27L8.7 5.5A7.76 7.76 0 0 1 12 4.2zm-4.9 2.55 2.05 3.55A3.8 3.8 0 0 0 8.2 12c0 .78.24 1.5.64 2.1L5.6 16.7A7.78 7.78 0 0 1 4.2 12c0-2.05.8-3.92 2.1-5.25zM12 14.2a2.2 2.2 0 1 1 0-4.4 2.2 2.2 0 0 1 0 4.4zm1.55 1.35 2.55 4.4A7.78 7.78 0 0 1 12 19.8a7.76 7.76 0 0 1-5.55-2.3l2.9-2.55c.75.45 1.64.7 2.6.7.55 0 1.08-.1 1.6-.3zm3.2-1.1.95 1.65A7.76 7.76 0 0 0 19.8 12c0-.9-.15-1.76-.45-2.55h-4.35c.4.7.65 1.5.65 2.35 0 .95-.3 1.82-.8 2.55z"
       />
     </svg>
   );
@@ -810,13 +798,9 @@ export function App() {
         <h1 className="snuff__brand">snuffed</h1>
         <p className="snuff__tag">snuff the spend. save the flame.</p>
         <div className="snuff__ctas">
-          <a className="cta cta--primary" href="#mac">
-            <AppleIcon />
-            add to mac
-          </a>
-          <a className="cta cta--secondary" href="#windows">
-            <WindowsIcon />
-            add to windows
+          <a className="cta cta--primary" href="#chrome">
+            <ChromeIcon />
+            add chrome extension
           </a>
           <a className="cta cta--secondary" href="#mobile">
             <DownloadIcon />

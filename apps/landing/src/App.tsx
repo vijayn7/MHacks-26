@@ -719,7 +719,14 @@ export function App() {
                 interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined
               }
             >
-              <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
+              <img
+                src={tile.src}
+                alt={interactive ? tile.alt : ""}
+                draggable={false}
+                loading={tile.layer === "near" ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={interactive ? "high" : "low"}
+              />
               {interactive ? <PausePopup site={tile.alt} /> : null}
             </figure>
           );

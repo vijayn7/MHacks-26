@@ -1,3 +1,5 @@
+import { blendPalette } from '../../design/blend';
+import { useCompanion } from '../../state/Companion';
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
@@ -11,7 +13,8 @@ import { Icon, tap } from '../../components/ui';
 function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { state: app } = useStore();
-  const p = palettes[app.hue];
+  const { level } = useCompanion();
+  const p = level === 'Out' ? palettes.Ash : blendPalette(app.hue, app.blendHue, app.blend);
   return (
     <View
       style={{
@@ -22,7 +25,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
       }}
     >
       <LinearGradient
-        colors={['#21160FF0', '#100B08F5']}
+        colors={[p.wash + 'F0', '#100B08F5']}
         style={{
           flexDirection: 'row',
           justifyContent: 'space-around',

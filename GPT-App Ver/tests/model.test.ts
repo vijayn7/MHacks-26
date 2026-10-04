@@ -7,13 +7,14 @@ import {
 } from '../src/state/blocking';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dayKey, initialState, migrate, reducer } from '../src/state/model';
+import { dayKey, initialState, migrate, reducer, snuffScore } from '../src/state/model';
 
 test('the app starts with a minimal schema and coherent sample savings', () => {
   const s = initialState();
   assert.equal(s.version, 2);
   assert.equal(s.savings, 284);
   assert.equal(s.pauses, 11);
+  assert.equal(snuffScore(s.extensionOptOutIds), 110);
   assert.equal(
     Object.values(s.dailySavings).reduce((sum, n) => sum + n, 0),
     284,
@@ -96,12 +97,14 @@ test('empty prototypes receive the Home sample once while retaining preferences'
     savings: 0,
     pauses: 2,
     dailySavings: {},
+    extensionOptOutIds: [],
     name: 'Nico',
     hue: 'Azure',
   };
   const seeded = migrate(empty);
   assert.equal(seeded.savings, 284);
   assert.equal(seeded.pauses, 13);
+  assert.equal(snuffScore(seeded.extensionOptOutIds), 110);
   assert.equal(seeded.name, 'Nico');
   assert.equal(seeded.hue, 'Azure');
   assert.equal(
@@ -397,10 +400,10 @@ test('extension score is deduplicated, persists, and is not awarded by local pau
   let s = reducer(initialState(), { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'one', 'two'] });
   assert.deepEqual(s.extensionOptOutIds, ['one', 'two']);
   s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: ['one', 'two', 'three'] });
-  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  assert.equal(snuffScore(s.extensionOptOutIds), 30);
   s = reducer(s, { type: 'PAUSE' });
   s = reducer(s, { type: 'SNUFF_NUDGE', id: 'headphones' });
-  assert.equal(s.extensionOptOutIds.length * 10, 30);
+  assert.equal(snuffScore(s.extensionOptOutIds), 30);
   assert.deepEqual(migrate(JSON.parse(JSON.stringify(s))).extensionOptOutIds, [
     'one',
     'two',
@@ -408,7 +411,19 @@ test('extension score is deduplicated, persists, and is not awarded by local pau
   ]);
   s = reducer(s, { type: 'SYNC_EXTENSION_SCORE', ids: [] });
   assert.equal(s.extensionOptOutIds.length, 0);
-  assert.deepEqual(migrate({ version: 2 }).extensionOptOutIds, []);
+  // Missing score fields inherit the seeded sample; explicit empty arrays stay empty unless
+  // savings still match the Home demo sample (then the demo score is restored).
+  assert.equal(snuffScore(migrate({ version: 2 }).extensionOptOutIds), 110);
+  assert.equal(
+    snuffScore(migrate({ version: 2, savings: 10, extensionOptOutIds: [] }).extensionOptOutIds),
+    0,
+  );
+  assert.equal(
+    snuffScore(
+      migrate({ version: 2, savings: 284, pauses: 11, extensionOptOutIds: [] }).extensionOptOutIds,
+    ),
+    110,
+  );
 });
 
 test('archive retains the incoming save source through persistence and revisits', () => {

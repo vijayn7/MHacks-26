@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AppState, View } from 'react-native';
 import { useIsFocused } from 'expo-router';
 import { useStore } from '../state/Store';
+import { snuffScore } from '../state/model';
 import { palettes } from '../design/tokens';
 import { T, Icon, Sheet } from './ui';
 import { SoftPressable } from './SoftPressable';
@@ -11,6 +12,7 @@ export function ExtensionScore() {
   const focused = useIsFocused();
   const [info, setInfo] = useState(false);
   const [status, setStatus] = useState<'loading' | 'connected' | 'offline'>('loading');
+  const score = snuffScore(state.extensionOptOutIds);
   useEffect(() => {
     if (!focused || !state.onboardingComplete) return;
     let active = true;
@@ -64,7 +66,7 @@ export function ExtensionScore() {
       style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
     >
       <T variant="title" color={palettes[state.hue].body} style={{ fontSize: 68, lineHeight: 76 }}>
-        {state.extensionOptOutIds.length * 10}
+        {score}
       </T>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 34 }}>
         <T variant="small">snuff score</T>

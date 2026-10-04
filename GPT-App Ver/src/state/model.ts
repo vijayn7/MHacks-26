@@ -88,10 +88,14 @@ export const dayKey = (at: number) => new Date(at).toLocaleDateString('en-CA');
 export const money = (amount: number) =>
   '$' + amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
 export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+/** 10 points per explicit Chrome Drop; demo seeds one ID per sample pause. */
+export const snuffScore = (ids: readonly string[]) => ids.length * 10;
+export const sampleOptOutIds = (count = 11) =>
+  Array.from({ length: count }, (_, i) => `demo-pause-${i + 1}:impulse_opt_out`);
 export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
-    extensionOptOutIds: [],
+    extensionOptOutIds: sampleOptOutIds(11),
     onboardingComplete: false,
     spendingCategories: [],
     plan: null,
@@ -142,7 +146,7 @@ export function migrate(raw: unknown): AppState {
               ),
             ),
           ]
-        : [],
+        : base.extensionOptOutIds,
       onboardingComplete: old.onboardingComplete !== false,
       spendingCategories: Array.isArray(old.spendingCategories)
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
@@ -178,8 +182,13 @@ export function migrate(raw: unknown): AppState {
             savings: base.savings,
             pauses: base.pauses + (old.pauses || 0),
             dailySavings: base.dailySavings,
+            extensionOptOutIds: base.extensionOptOutIds,
           }
-        : {}),
+        : Array.isArray(old.extensionOptOutIds) &&
+            old.extensionOptOutIds.length === 0 &&
+            Number(old.savings) === base.savings
+          ? { extensionOptOutIds: base.extensionOptOutIds }
+          : {}),
     };
   if (old.version !== 1 || !old.user) return base;
   const purchases = Array.isArray(old.purchases) ? old.purchases : [];

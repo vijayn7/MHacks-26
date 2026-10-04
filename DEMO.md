@@ -46,48 +46,46 @@ The price is over $40 on purpose so the seeded rule matches.
 
 Package: `@secondthought/extension`. Manifest V3. One content script, `apps/extension/src/content.ts`, bundled with esbuild to `dist/content.js`. No React in the extension. The pause card is a shadow DOM overlay so store CSS cannot restyle it.
 
-The script does not use `chrome.*`. It can be injected into the store page for a check, but the real demo is the unpacked extension.
+The script does not use `chrome.*` for the pause itself. It can be injected into a page for a check; the real demo is the unpacked extension.
 
 ### Rule match
 
-Hardcoded in the content script. Not loaded from the API and not decided by Gemini.
+Loads `GET /rules/active` on startup and falls back to the seeded rule when that fails:
 
 ```ts
 { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 }
 ```
 
-On a click of `#checkout`, in the capture phase:
+The content script classifies the page with `checkout-analyzer` (checkout stage + total ≥ minAmount). When it matches, it opens the pause card. The card text says the pause is 15 minutes. Nothing in the extension starts a timer.
 
-- Read `[data-total]`. If it is missing or below 40, let the click through.
-- Otherwise `preventDefault` and `stopPropagation`, then open the pause card.
-- A one-shot `bypass` flag lets the next checkout click through. Continue, and a friend YES, set that flag and click `#checkout` again. That second click is the one that runs the store purchase handler and creates the Nessie purchase.
+### Two-surface pause (Chrome ↔ phone)
 
-The card text says the pause is 15 minutes. Nothing in the extension starts a timer.
+Opening the card:
 
-### Pause card actions
+1. Posts `checkout_detected` and `pause_started` to `POST /events` (network failures ignored).
+2. `POST /pauses` with `{ id, name, amount }` so the demo user’s waiting nudge appears in `GET /app/state` for the phone app.
+3. Watches resolution: Spacetime `pause_status` for that session id when `/spacetime` is configured, plus `GET /pauses?id=` every 2 seconds as fallback.
 
 | Action | What the shopper sees | What happens |
 | --- | --- | --- |
-| Drop | “Purchase dropped” | Cart stays. Event `purchase_dropped`. |
-| Save for later | “Saved for later” | Cart stays. Event `saved_for_later`. Also `POST /saved` with the product name and amount. |
-| Continue | Store posts the purchase, then shows the Nessie purchase id and balance. | Event `continue_selected`. The second checkout click is allowed through. |
-| Ask my friend | “Text sent. Waiting for YES or NO.” | `POST /check-in`. The card stays open and polls. |
+| Drop | “Purchase dropped” | `POST /app/actions` `SNUFF_NUDGE` with stable id `{pauseId}:SNUFF_NUDGE`. Event `purchase_dropped`. |
+| Save for later | “Saved for later” | `POST /app/actions` `SAVE_FOR_LATER` (archives via the pauses slice; no separate `POST /saved`). Event `saved_for_later`. |
+| Continue | Card closes; shopper can place the order. | `POST /app/actions` `KEEP_NUDGE`. Event `continue_selected`. |
+| Ask my friend | Friend check-in copy on the card. | `POST /check-in`. Card stays open and polls. |
 
-Opening the card posts `pause_started`. Event posts go to `POST http://localhost:8787/events` and ignore network failure, so the pause still works if the API is down. Save and the friend check-in do need the API.
+A decision made first on either surface wins. If the phone resolves the nudge (`snuffed` / `kept` / `saved`), the card applies that outcome once and does not post a second action. Applied `/app/actions` also mirror to Spacetime via the API so the other surface updates live when Spacetime is configured.
 
 ### Friend decision
 
-Ask my friend is an explicit click. The extension sends the product name and the cart total. The API writes the iMessage. The text names the item and price and asks for YES or NO.
+Ask my friend is an explicit click. The extension sends the product name and the cart total. The API writes the iMessage.
 
-The card polls `GET /check-in?id=` every 2 seconds.
+The card polls `GET /check-in?id=` every 2 seconds (and can also see friend states on the Spacetime row).
 
-- `approved`: the card says the friend approved, then after 1.5 seconds it continues checkout.
-- `rejected`: the card says the friend rejected, then it drops the purchase.
-- `waiting: true`: Photon refused another outbound text because one is already on the friend’s phone. The card says to reply YES or NO on that thread and keeps polling. This is not a failed pause.
+- `approved`: the card says the friend approved, then after 1.5 seconds it continues.
+- `rejected`: the card says the friend rejected, then it drops and may close the tab.
+- `waiting: true`: Photon refused another outbound text because one is already on the friend’s phone. The card says to reply on that thread and keeps polling.
 
-Any other friend text does not decide the purchase. The API asks them again to reply YES or NO.
-
-Drop, Save for later, and Continue stay available while the card waits. A friend decision that arrives first is what the extension applies.
+Drop, Save for later, and Continue stay available while the card waits. Whichever decision arrives first is what the extension applies.
 
 ## Store contract the extension depends on
 

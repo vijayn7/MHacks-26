@@ -180,7 +180,7 @@ describe('onboarding', () => {
 
 describe('ember', () => {
   it('cools as the hold completes', () => {
-    expect(emberColor(0).toLowerCase()).toBe('#e23b1f')
+    expect(emberColor(0).toLowerCase()).toBe('#ed7014')
     expect(emberColor(1).toLowerCase()).toBe('#8c857c')
   })
 })

@@ -1,58 +1,60 @@
 import { StyleSheet } from 'react-native'
+import { snuff } from '@impulse/shared'
 
-/** Snuff Color tokens (Lit / Ember) — keep names close to Figma. */
+/** Snuff Color + Type tokens mirrored from Figma. */
 export const colors = {
-  bg: '#000000',
-  surface: '#050505',
-  ink: '#F6EFE6',
-  muted: '#8C857C',
-  line: 'rgba(255, 243, 214, 0.14)',
-  core: '#FFF3D6',
-  mid: '#F5A524',
-  edge: '#ED7014',
-  deep: '#8E1F02',
-  // legacy aliases used by older screens
-  paper: '#000000',
-  ash: '#8C857C',
-  card: '#050505',
-  ember: '#ED7014',
+  bg: snuff.bg.base,
+  surface: snuff.bg.surface,
+  ink: snuff.text.primary,
+  muted: snuff.text.secondary,
+  line: snuff.border.hair,
+  core: snuff.flame.core,
+  body: snuff.flame.body,
+  mid: snuff.flame.mid,
+  edge: snuff.flame.edge,
+  deep: snuff.flame.deep,
+  // legacy aliases
+  paper: snuff.bg.base,
+  ash: snuff.smoke.muted,
+  card: snuff.bg.surface,
+  ember: snuff.flame.edge,
   cool: '#6E7C74',
 }
 
 export const fonts = {
-  display: 'Neco',
-  sans: 'Satoshi',
+  display: snuff.font.display,
+  sans: snuff.font.sans,
 }
 
 export const type = StyleSheet.create({
   display: {
     fontFamily: fonts.display,
-    fontSize: 36,
-    lineHeight: 42,
+    fontSize: snuff.type.displayL.size,
+    lineHeight: snuff.type.displayL.line,
     fontWeight: '400',
-    letterSpacing: -0.8,
+    letterSpacing: snuff.type.displayL.track,
     color: colors.ink,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: snuff.type.headingM.size,
+    lineHeight: snuff.type.headingM.line,
     fontWeight: '400',
-    letterSpacing: -0.6,
+    letterSpacing: snuff.type.headingM.track,
     color: colors.ink,
   },
   body: {
     fontFamily: fonts.sans,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: snuff.type.bodyL.size,
+    lineHeight: snuff.type.bodyL.line,
     fontWeight: '400',
-    letterSpacing: -0.2,
+    letterSpacing: snuff.type.bodyL.track,
     color: colors.ink,
   },
   ash: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: snuff.type.bodyS.size,
+    lineHeight: snuff.type.bodyS.line,
     fontWeight: '400',
     color: colors.muted,
     letterSpacing: 0.3,

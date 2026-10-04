@@ -47,12 +47,12 @@ function mount(domain: string, seconds: number, amountCents: number | null) {
   root.innerHTML = `
     <style>
       @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=neco@400,500&display=swap');
-      .panel { position: fixed; right: 24px; bottom: 24px; width: 320px; background: #050505; color: #f6efe6; padding: 20px; font: 16px/1.4 "Satoshi", Helvetica, Arial, sans-serif; letter-spacing: -0.01em; box-shadow: 0 0 0 1px rgba(255,243,214,0.14), 0 24px 48px rgba(0,0,0,.55); border-radius: 24px; }
-      h2 { font-family: "Neco", Georgia, serif; font-weight: 400; letter-spacing: -0.03em; margin: 8px 0 0; }
-      button { font: inherit; margin-right: 8px; margin-top: 8px; padding: 8px 12px; border: 0; border-radius: 999px; background: #fff3d6; color: #1c0a04; }
-      button.ghost { background: transparent; color: #f6efe6; box-shadow: inset 0 0 0 1px rgba(255,243,214,0.14); }
-      .orb { width: 88px; height: 88px; border-radius: 50%; display: grid; place-items: center; color: #fff3d6; margin: 12px 0; font-family: "Neco", Georgia, serif; }
-      .ash { color: #8c857c; font-family: "Satoshi", Helvetica, Arial, sans-serif; font-size: 13px; }
+      .panel { position: fixed; right: 24px; bottom: 24px; width: 320px; background: #050505; color: #f2eae4; padding: 20px; font: 17px/1.4 "Satoshi", Helvetica, Arial, sans-serif; letter-spacing: -0.01em; box-shadow: 0 0 0 1px rgba(255,255,255,0.18), 0 24px 48px rgba(0,0,0,.55); border-radius: 24px; }
+      h2 { font-family: "Neco", Georgia, serif; font-weight: 400; font-size: 28px; letter-spacing: -0.03em; margin: 8px 0 0; }
+      button { font: inherit; font-weight: 500; margin-right: 8px; margin-top: 8px; padding: 8px 12px; border: 0; border-radius: 999px; background: #fff3d6; color: #1c0a04; }
+      button.ghost { background: transparent; color: #f2eae4; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+      .orb { width: 88px; height: 88px; border-radius: 50%; display: grid; place-items: center; color: #fff3d6; margin: 12px 0; font-family: "Neco", Georgia, serif; font-size: 28px; }
+      .ash { color: #9a918b; font-family: "Satoshi", Helvetica, Arial, sans-serif; font-size: 13px; }
     </style>
     <div class="panel">
       <div class="ash">IMPULSE · ${domain}</div>

@@ -1,9 +1,23 @@
 :root {
-  color: #f6efe6;
-  background: #000000;
+  /* Snuff Figma Color (Lit) + Type */
+  --bg-base: #000000;
+  --bg-surface: #050505;
+  --text-primary: #f2eae4;
+  --text-secondary: #9a918b;
+  --text-muted: #6b625c;
+  --border-hair: rgba(255, 255, 255, 0.18);
+  --flame-core: #fff3d6;
+  --flame-body: #ffd66b;
+  --flame-mid: #f5a524;
+  --flame-edge: #ed7014;
+  --flame-deep: #8e1f02;
+  --flame-wash: #3a0f02;
   --sans: "Satoshi", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --display: "Neco", "Iowan Old Style", Georgia, serif;
   --mono: "Roboto Mono", ui-monospace, monospace;
+
+  color: var(--text-primary);
+  background: var(--bg-base);
   font-family: var(--sans);
   font-feature-settings: "ss01" on, "ss02" on;
   letter-spacing: -0.01em;
@@ -13,8 +27,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 50% -10%, rgba(237, 112, 20, 0.28), transparent 60%),
-    #000000;
+    radial-gradient(900px 500px at 50% -10%, color-mix(in srgb, var(--flame-edge) 28%, transparent), transparent 60%),
+    var(--bg-base);
 }
 
 main {
@@ -31,7 +45,9 @@ h1, h2, .display {
 
 button {
   font: inherit;
-  background: #fff3d6;
+  font-family: var(--sans);
+  font-weight: 500;
+  background: var(--flame-core);
   color: #1c0a04;
   border: 0;
   padding: 0.8rem 1rem;
@@ -41,8 +57,8 @@ button {
 
 button.secondary {
   background: transparent;
-  color: #f6efe6;
-  border: 1px solid rgba(255, 243, 214, 0.14);
+  color: var(--text-primary);
+  border: 1px solid var(--border-hair);
 }
 
 p, h1 {
@@ -50,7 +66,7 @@ p, h1 {
 }
 
 .ash {
-  color: #8c857c;
+  color: var(--text-secondary);
   font-family: var(--sans);
   font-size: 0.92rem;
 }

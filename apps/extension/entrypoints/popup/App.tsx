@@ -61,14 +61,14 @@ export function App() {
       style={{
         width: 320,
         padding: 16,
-        background: '#050505',
-        color: '#f6efe6',
+        background: '#000000',
+        color: '#f2eae4',
         fontFamily: '"Satoshi", Helvetica, Arial, sans-serif',
         letterSpacing: '-0.01em',
       }}
     >
       <style>{`@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=neco@400,500&display=swap');`}</style>
-      <p style={{ letterSpacing: 1, fontSize: 12, color: '#8c857c' }}>IMPULSE</p>
+      <p style={{ letterSpacing: 1, fontSize: 12, color: '#9a918b' }}>IMPULSE</p>
       <h1
         style={{
           fontSize: 28,
@@ -80,12 +80,12 @@ export function App() {
       >
         {boot?.settings.restrictionLevel ?? 'Not linked'}
       </h1>
-      <p style={{ color: '#8c857c' }}>
+      <p style={{ color: '#9a918b' }}>
         {boot?.extension.linked
           ? `Last seen ${boot.extension.lastSeenAt}. ${boot.extension.online ? 'Recent.' : 'Not active right now.'}`
           : 'Paste the code from the phone.'}
       </p>
-      <p style={{ color: '#8c857c', fontSize: 13 }}>{connectionLine(sync, Boolean(boot?.extension.linked))}</p>
+      <p style={{ color: '#9a918b', fontSize: 13 }}>{connectionLine(sync, Boolean(boot?.extension.linked))}</p>
       {boot ? (
         <p>
           Monitoring is {boot.settings.monitoringEnabled ? 'on' : 'off'}.{' '}
@@ -130,7 +130,7 @@ export function App() {
           </a>
         </p>
       ) : null}
-      <p style={{ color: '#8c857c', fontSize: 12 }}>
+      <p style={{ color: '#9a918b', fontSize: 12 }}>
         Pauses supported checkout pages in Chrome on sites you allowed. It does not cover native apps or every payment.
       </p>
       {note ? <p>{note}</p> : null}

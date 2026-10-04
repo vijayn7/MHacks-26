@@ -701,13 +701,13 @@ export function App() {
       for (let k = 0; k < n; k++) {
         if (smoke.length >= MAX_SMOKE) smoke.shift();
         smoke.push({
-          x: x + (Math.random() - 0.5) * 28,
-          y: y + (Math.random() - 0.5) * 16,
-          vx: (Math.random() - 0.5) * 1.6,
-          vy: -1.2 - Math.random() * 1.8 * strength,
+          x: x + (Math.random() - 0.5) * 32,
+          y: y - 12 - Math.random() * 18,
+          vx: (Math.random() - 0.5) * 1.8,
+          vy: -1.6 - Math.random() * 2.2 * strength,
           age: 0,
-          maxAge: 80 + Math.random() * 60,
-          size: 36 + Math.random() * 48,
+          maxAge: 90 + Math.random() * 70,
+          size: 42 + Math.random() * 55,
         });
       }
     };
@@ -830,54 +830,57 @@ export function App() {
       }
 
       if (!reduceMotion) {
-        // Smoke — bright ash haze so it reads on the dark page
+        // Cool smoke — drawn high and soft so it separates from the fire
         ctx.globalCompositeOperation = "source-over";
         for (const s of smoke) {
           const t = s.age / s.maxAge;
           const fade = 1 - t;
-          const a = 0.72 * fade;
-          const radius = s.size * (1.1 + t * 2.2);
-          // Warm near birth → cool gray as it rises
-          const r = Math.round(210 - t * 40);
-          const g = Math.round(200 - t * 25);
-          const b = Math.round(190 - t * 10);
+          const a = 0.5 * fade;
+          const radius = s.size * (1.2 + t * 2.4);
           const puff = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
-          puff.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
-          puff.addColorStop(0.35, `rgba(${r - 30}, ${g - 28}, ${b - 20}, ${a * 0.45})`);
-          puff.addColorStop(1, `rgba(120, 118, 115, 0)`);
+          puff.addColorStop(0, `rgba(186, 188, 196, ${a})`);
+          puff.addColorStop(0.4, `rgba(140, 142, 150, ${a * 0.4})`);
+          puff.addColorStop(1, `rgba(60, 60, 65, 0)`);
           ctx.fillStyle = puff;
           ctx.beginPath();
           ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        // Jagged fire clumps (not a continuous neon stroke)
-        ctx.globalCompositeOperation = "lighter";
+        // Fire body with source-over so overlaps stay orange/red, not white neon
+        ctx.globalCompositeOperation = "source-over";
         for (const p of ribbon) {
           const t = p.age / MAX_AGE;
+          if (t > 0.85) continue;
           const { r, g, b, a } = fireColor(t);
-          const radius = p.spread * (1.05 + t * 1.1);
+          const radiusX = p.spread * (0.85 + t * 0.5);
+          const radiusY = p.spread * (1.35 + t * 1.6);
 
-          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.scale(1, radiusY / Math.max(radiusX, 1));
+          const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, radiusX);
           glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
-          glow.addColorStop(0.25, `rgba(${r | 0}, ${(g * 0.5) | 0}, ${(b * 0.2) | 0}, ${a * 0.7})`);
-          glow.addColorStop(0.55, `rgba(200, 35, 5, ${a * 0.35})`);
-          glow.addColorStop(1, "rgba(30, 5, 0, 0)");
+          glow.addColorStop(0.35, `rgba(${r | 0}, ${(g * 0.45) | 0}, ${(b * 0.15) | 0}, ${a * 0.55})`);
+          glow.addColorStop(0.7, `rgba(160, 28, 4, ${a * 0.22})`);
+          glow.addColorStop(1, "rgba(20, 4, 0, 0)");
           ctx.fillStyle = glow;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          ctx.arc(0, 0, radiusX, 0, Math.PI * 2);
           ctx.fill();
+          ctx.restore();
         }
 
+        // Hot tip only — additive
         if (isLive) {
-          const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 34);
-          core.addColorStop(0, "rgba(255, 220, 140, 0.9)");
-          core.addColorStop(0.22, "rgba(255, 140, 30, 0.85)");
-          core.addColorStop(0.55, "rgba(220, 45, 10, 0.4)");
+          ctx.globalCompositeOperation = "lighter";
+          const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 26);
+          core.addColorStop(0, "rgba(255, 210, 120, 0.85)");
+          core.addColorStop(0.35, "rgba(255, 120, 25, 0.55)");
           core.addColorStop(1, "rgba(40, 8, 0, 0)");
           ctx.fillStyle = core;
           ctx.beginPath();
-          ctx.arc(pointerX, pointerY, 34, 0, Math.PI * 2);
+          ctx.arc(pointerX, pointerY, 26, 0, Math.PI * 2);
           ctx.fill();
         }
 

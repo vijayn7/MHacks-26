@@ -72,7 +72,7 @@ export function Hold({
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 12 },
   orb: { width: 140, height: 140, borderRadius: 70, alignItems: 'center', justifyContent: 'center' },
-  orbText: { color: colors.paper, fontSize: 28 },
-  caption: { color: colors.ink, textAlign: 'center' },
-  alt: { color: colors.ash, textDecorationLine: 'underline' },
+  orbText: { color: colors.core, fontSize: 28, fontFamily: 'Neco' },
+  caption: { color: colors.ink, textAlign: 'center', fontFamily: 'Satoshi' },
+  alt: { color: colors.ash, textDecorationLine: 'underline', fontFamily: 'Satoshi' },
 })

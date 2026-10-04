@@ -1,0 +1,9 @@
+// Keep the App Group below and both .entitlements files in sync when changing identifiers.
+PACT_BUNDLE_PREFIX = com.francisco.pact
+PACT_APP_GROUP = group.$(PACT_BUNDLE_PREFIX)
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SWIFT_VERSION = 5.0
+TARGETED_DEVICE_FAMILY = 1
+CODE_SIGN_STYLE = Automatic
+// Set your Apple Developer team in Xcode on both targets.
+DEVELOPMENT_TEAM = G57PR786X7

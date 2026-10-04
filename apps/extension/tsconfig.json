@@ -1,12 +1,12 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM"],
-    "types": ["chrome"],
-    "paths": {
-      "@impulse/shared": ["../../packages/shared/src/index.ts"]
-    }
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "wxt-shim.d.ts"]
+  "include": ["src"]
 }

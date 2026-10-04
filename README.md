@@ -1,3 +1,15 @@
+HELLO
+
+## GPT-App Ver — Snuff
+
+- [Mobile app and setup](GPT-App%20Ver/README.md)
+- [Portable design system for designers](design-system/snuff/README.md)
+- [Offline visual reference](design-system/snuff/index.html) — download the kit and open this file in a browser.
+
+Run the standalone Expo app with `cd "GPT-App Ver"`, `npm ci`, then `npm run web`. It uses local demo data and is not yet connected to the backend in this repository.
+
+---
+
 # Impulse
 
 A pause before a purchase. Impulse is a phone app, a Chrome extension, and a small API. It is a behavioral support tool for adults, not a lock on anyone’s money and not a treatment for addiction.
@@ -34,8 +46,10 @@ The extension pauses supported checkout pages in Chrome, on sites the person ena
 ## Apps
 
 - `apps/mobile` — Expo / React Native
-- `apps/extension` — WXT, React popup, Manifest V3
+- `apps/extension` — SecondThought checkout pause (esbuild) plus legacy Impulse WXT entrypoints
 - `apps/web` — Next.js API, approval links, trust consent, OAuth handoff
+- `apps/api` / `apps/store` — SecondThought demo API and mock store
+- `GPT-App Ver` — standalone Snuff Expo app
 - `packages/shared` — rules, scoring, site matching, schemas
 - `packages/db` — SQLite repository
 - `packages/api` — HTTP API used by the web server and the tests
@@ -64,7 +78,9 @@ pnpm install
 pnpm test                                  # includes the PGlite RLS test
 pnpm typecheck
 pnpm --filter @impulse/web build
-pnpm --filter @impulse/extension build
+npm run build:extension                    # SecondThought extension
+npm run dev:store
+npm run dev:api
 ```
 
 `pnpm test` runs `vitest` with `NODE_OPTIONS='--experimental-sqlite'`.

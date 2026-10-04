@@ -1,8 +1,8 @@
+.env
+.env.local
 node_modules
 .pnpm-store
 .data
-.env
-.env.local
 .next
 .expo
 .output
@@ -16,3 +16,5 @@ apps/mobile/.expo
 apps/web/.next
 supabase/.temp
 .DS_Store
+.venv
+__pycache__

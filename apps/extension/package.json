@@ -1,24 +1,14 @@
 {
-  "name": "@impulse/extension",
-  "version": "0.1.0",
+  "name": "@secondthought/extension",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "build": "wxt build",
-    "prepare:types": "wxt prepare"
+    "build": "esbuild src/content.ts --bundle --format=iife --platform=browser --target=es2022 --outfile=dist/content.js",
+    "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "@impulse/shared": "workspace:*",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "spacetimedb": "2.10.*"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.304",
-    "@types/react": "~18.3.12",
-    "@types/react-dom": "~18.3.1",
-    "@wxt-dev/module-react": "1.1.5",
-    "typescript": "^5.8.2",
-    "wxt": "^0.20.11"
+    "esbuild": "^0.25.0"
   }
 }

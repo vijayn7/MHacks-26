@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "SecondThought",
+  "version": "0.0.1",
+  "description": "Pause checkout using rules you set.",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["dist/content.js"]
+    }
+  ]
+}

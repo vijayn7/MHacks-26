@@ -57,9 +57,29 @@ export function App() {
   }
 
   return (
-    <main style={{ width: 320, padding: 16, background: '#f6f3ee', color: '#1c140f', fontFamily: 'Georgia, serif' }}>
+    <main
+      style={{
+        width: 320,
+        padding: 16,
+        background: '#050505',
+        color: '#f6efe6',
+        fontFamily: '"Satoshi", Helvetica, Arial, sans-serif',
+        letterSpacing: '-0.01em',
+      }}
+    >
+      <style>{`@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=neco@400,500&display=swap');`}</style>
       <p style={{ letterSpacing: 1, fontSize: 12, color: '#8c857c' }}>IMPULSE</p>
-      <h1 style={{ fontSize: 28, margin: '8px 0' }}>{boot?.settings.restrictionLevel ?? 'Not linked'}</h1>
+      <h1
+        style={{
+          fontSize: 28,
+          margin: '8px 0',
+          fontFamily: '"Neco", Georgia, serif',
+          fontWeight: 400,
+          letterSpacing: '-0.03em',
+        }}
+      >
+        {boot?.settings.restrictionLevel ?? 'Not linked'}
+      </h1>
       <p style={{ color: '#8c857c' }}>
         {boot?.extension.linked
           ? `Last seen ${boot.extension.lastSeenAt}. ${boot.extension.online ? 'Recent.' : 'Not active right now.'}`
@@ -105,7 +125,7 @@ export function App() {
       </ul>
       {settingsUrl ? (
         <p>
-          <a href={settingsUrl} target="_blank" rel="noreferrer" style={{ color: '#1c140f' }}>
+          <a href={settingsUrl} target="_blank" rel="noreferrer" style={{ color: '#fff3d6' }}>
             Account settings
           </a>
         </p>

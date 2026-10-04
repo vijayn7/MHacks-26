@@ -1,9 +1,10 @@
 import { blendPalette } from '../design/blend';
 import { useCompanion } from '../state/Companion';
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, {
   Circle,
+  G,
   Defs,
   LinearGradient,
   Path,
@@ -18,6 +19,9 @@ import { T } from './ui';
 import { useNow } from '../hooks/useNow';
 
 export function SavingsChart() {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const orbId = `savings-orb-${id}`;
+  const barsId = `savings-bars-${id}`;
   const { state } = useStore();
   const { level } = useCompanion();
   const p = level === 'Out' ? palettes.Ash : blendPalette(state.hue, state.blendHue, state.blend);
@@ -58,11 +62,18 @@ export function SavingsChart() {
     <View testID="savings-chart" style={{ height: 166 }}>
       <Svg width="100%" height={140} viewBox="0 0 318 140">
         <Defs>
-          <LinearGradient id="savings-bars" x1="0" y1="0" x2="0" y2="1">
+          <LinearGradient id={barsId} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={p.body} stopOpacity=".32" />
             <Stop offset="1" stopColor={p.edge} stopOpacity=".025" />
           </LinearGradient>
-          <RadialGradient id="savings-orb">
+          <RadialGradient
+            id={orbId}
+            cx="50%"
+            cy="50%"
+            rx="50%"
+            ry="50%"
+            gradientUnits="objectBoundingBox"
+          >
             <Stop offset="0" stopColor={p.core} stopOpacity="1" />
             <Stop offset=".2" stopColor={p.core} stopOpacity=".95" />
             <Stop offset=".42" stopColor={p.body} stopOpacity=".7" />
@@ -77,20 +88,23 @@ export function SavingsChart() {
             x2={pt.x}
             y1={pt.y + 6}
             y2={137}
-            stroke="url(#savings-bars)"
+            stroke={`url(#${barsId})`}
             strokeWidth="2"
           />
         ))}
         <Line x1="0" x2="318" y1="137" y2="137" stroke={p.body} strokeOpacity=".08" />
         <Path d={line} fill="none" stroke={p.body} strokeOpacity=".8" strokeWidth="1.5" />
         {[...new Set([1, 3, 5, ...(selected === null ? [] : [selected])])].map((i) => (
-          <Circle
-            key={i}
-            cx={points[i].x}
-            cy={points[i].y}
-            r={selected === i ? 17 : 13}
-            fill="url(#savings-orb)"
-          />
+          <G key={i}>
+            <Circle
+              cx={points[i].x}
+              cy={points[i].y}
+              r={selected === i ? 19 : 15}
+              fill={`url(#${orbId})`}
+            />
+            <Circle cx={points[i].x} cy={points[i].y} r={4.5} fill={p.body} opacity={0.65} />
+            <Circle cx={points[i].x} cy={points[i].y} r={2.5} fill={p.core} />
+          </G>
         ))}
       </Svg>
       <View

@@ -210,6 +210,7 @@ async def on_chat(ctx: Context, sender: str, msg: ChatMessage):
     text = " ".join(item.text for item in msg.content if isinstance(item, TextContent)).strip()
     if not text:
         return
+    ctx.logger.info(f"chat from {sender[:16]}: {text[:80]}")
     history = sessions.setdefault(sender, [])
     history.append({"role": "user", "content": text})
     try:

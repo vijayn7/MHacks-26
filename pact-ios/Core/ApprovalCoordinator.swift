@@ -127,3 +127,31 @@ enum ApprovalHTTPError: LocalizedError {
         }
     }
 }
+
+extension HTTPFriendApprovalTransport: PauseScoreTransport {
+    func recordScoreEvent(_ event: PauseEvent) async throws -> ScoreReceipt {
+        struct Payload: Encodable {
+            let id: String
+            let pauseId: UUID
+            let type: String
+            let ruleId: String
+            let source = "ios"
+            let at: Date
+        }
+        var request = makeRequest(path: "pause-events")
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        // The server assigns the configured demo price. No price OCR is added.
+        request.httpBody = try encoder.encode(Payload(id: event.id, pauseId: event.pauseID,
+            type: event.kind.rawValue, ruleId: event.ruleID, at: event.at))
+        return try JSONDecoder().decode(ScoreReceipt.self, from: await send(request))
+    }
+    func scoreSummary() async throws -> ScoreSummary {
+        var request = makeRequest(path: "score")
+        var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+        url.queryItems = [URLQueryItem(name: "source", value: "ios")]
+        request.url = url.url
+        return try JSONDecoder().decode(ScoreSummary.self, from: await send(request))
+    }
+}

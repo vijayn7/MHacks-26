@@ -34,8 +34,20 @@ enum ApprovalBackend {
         }
         return transport
     }
+    static func syncScores(_ store: InterventionStore) async throws {
+        guard let transport = makeTransport() as? any PauseScoreTransport else { return }
+        try await ScoreSyncCoordinator(store: store, transport: transport).sync()
+    }
     static func sync(_ store: InterventionStore, transport: any FriendApprovalTransport) async throws {
-        try await ApprovalCoordinator(store: store, transport: transport).sync()
-        try CheckoutBlocker.reconcile(store)
+        // Scoring never controls shielding. A scoring outage must not prevent a
+        // verified friend reply from releasing the app.
+        async let scoreSync: Void? = try? syncScores(store)
+        var approvalError: Error?
+        do {
+            try await ApprovalCoordinator(store: store, transport: transport).sync()
+            try CheckoutBlocker.reconcile(store)
+        } catch { approvalError = error }
+        _ = await scoreSync
+        if let approvalError { throw approvalError }
     }
 }

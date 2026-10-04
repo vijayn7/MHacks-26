@@ -93,6 +93,29 @@ final class ApprovalHTTPTests: XCTestCase, @unchecked Sendable {
         }
     }
 
+    func testScoreEventWireContractHasNoScreenContentOrClientChosenUserOrPrice() async throws {
+        let event = PauseEvent(pauseID: UUID(), kind: .dropSelected, at: Date())
+        let session = makeSession()
+        defer { session.invalidateAndCancel(); ApprovalURLProtocol.handler = nil }
+        ApprovalURLProtocol.handler = { incoming in
+            XCTAssertEqual(incoming.url?.path, "/pause-events")
+            XCTAssertEqual(incoming.httpMethod, "POST")
+            XCTAssertNotNil(incoming.value(forHTTPHeaderField: "Authorization"))
+            let stream = try XCTUnwrap(incoming.httpBodyStream)
+            stream.open(); defer { stream.close() }
+            var bytes = [UInt8](repeating: 0, count: 4096)
+            let count = stream.read(&bytes, maxLength: bytes.count)
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(bytes.prefix(max(0, count)))) as? [String: Any])
+            XCTAssertEqual(Set(body.keys), ["id", "pauseId", "type", "ruleId", "source", "at"])
+            XCTAssertEqual(body["type"] as? String, "drop_selected")
+            XCTAssertEqual(body["source"] as? String, "ios")
+            return (200, try JSONSerialization.data(withJSONObject: ["eventId": event.id, "score": 130, "delta": 130, "amountCents": 6499]))
+        }
+        let transport = try HTTPFriendApprovalTransport(baseURL: URL(string: "https://pact.test")!, accessToken: String(repeating: "x", count: 32), session: session)
+        let receipt = try await transport.recordScoreEvent(event)
+        XCTAssertEqual(receipt.eventId, event.id)
+    }
+
     private func makeSession() -> URLSession {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [ApprovalURLProtocol.self]

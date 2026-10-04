@@ -41,7 +41,10 @@ final class PactShieldAction: ShieldActionDelegate {
                     catch { /* Pending/error requests keep the shield. */ }
                     completionHandler(.none)
                 }
-            } else { completionHandler(.close) }
+            } else {
+                Task { try? await ApprovalBackend.syncScores(store) }
+                completionHandler(.close)
+            }
         } catch PauseError.stillHolding {
             completionHandler(.none)
         } catch {

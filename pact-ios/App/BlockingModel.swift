@@ -9,6 +9,10 @@ final class BlockingModel: ObservableObject {
     @Published private(set) var authorized = false
     @Published private(set) var busy = false
     @Published private(set) var error: String?
+    @Published private(set) var score: ScoreSummary?
+    @Published private(set) var scoreMessage: String?
+    private var scoringBusy = false
+    private var lastScoreCheck = Date.distantPast
     @Published var backendURL = ""
     @Published var pairingKey = ""
     @Published private(set) var checkingBackend = false
@@ -42,6 +46,7 @@ final class BlockingModel: ObservableObject {
             try ApprovalBackend.save(settings)
             approvalTransport = transport
             connectionStatus = health.messagingReady ? "Connected. Photon is ready; no text was sent." : "Connected, but Photon is not ready. Check the API server."
+            await syncScore()
             if !health.durableStorage { connectionStatus! += " Server history is temporary until Neon is configured." }
         } catch { connectionStatus = error.localizedDescription }
     }
@@ -138,7 +143,19 @@ final class BlockingModel: ObservableObject {
             try CheckoutBlocker.reconcile(store)
             error = nil; showingPause = decision == .continued; refresh()
             if decision == .continued { Task { await syncFriendApproval() } }
+            Task { await syncScore() }
         } catch { self.error = error.localizedDescription }
+    }
+
+    func syncScore() async {
+        guard !scoringBusy, let store, let transport = approvalTransport as? any PauseScoreTransport else { return }
+        scoringBusy = true; lastScoreCheck = Date()
+        defer { scoringBusy = false }
+        do {
+            try await ScoreSyncCoordinator(store: store, transport: transport).sync()
+            score = try await transport.scoreSummary()
+            scoreMessage = nil
+        } catch { scoreMessage = "Score updates are waiting to sync. Your choices are saved on this phone." }
     }
 
     func syncFriendApproval() async {
@@ -152,6 +169,7 @@ final class BlockingModel: ObservableObject {
     // Invoked while Pact is foreground. An active broadcast also checks the
     // backend so a reply can release the shield while the other app is open.
     func pollFriendReplyIfNeeded() async {
+        if Date().timeIntervalSince(lastScoreCheck) >= 10 { Task { await syncScore() } }
         guard messagingConnected, let approval = state.activePause?.approval,
               approval.status == .pending, Date() < approval.expiresAt,
               Date().timeIntervalSince(lastApprovalCheck) >= 5 else { return }

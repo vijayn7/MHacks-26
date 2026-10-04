@@ -21,7 +21,7 @@ The API listens on port 8787. On the Mac, `scutil --get LocalHostName` gives the
 
 1. In Monitor, scroll to **Friend messaging**.
 2. Enter the Mac backend URL and the value of `PACT_IOS_TOKEN`.
-3. Tap **Save and check connection** and allow Local Network access if prompted. This calls only `/native/health`; it sends no message. It reports whether Photon initialized and whether Neon is configured, not proof of delivery to the friend.
+3. Tap **Save and check connection** and allow Local Network access if prompted. This checks `/native/health` and syncs queued score events; it sends no message. It reports whether Photon initialized and whether Neon is configured, not proof of delivery to the friend.
 4. Configure Screen Time and select one shopping app. This requires a signing team supporting Family Controls; a free Personal Team cannot install the blocker build.
 5. Enable checkout blocking, then **Test blocker on selected app**. Open that app to verify the system shield.
 6. With Xcode 26.0's fallback shield, return to Pact and open **Open pause choices**. Wait 15 seconds and choose **Continue · ask my friend**. The selected app stays blocked.
@@ -81,3 +81,7 @@ Backend fixtures cover concurrent submissions, wrong senders/conversations, ambi
 Actual Photon delivery, device shield appearance and background release must still be tested on a properly signed physical phone. Successful unit tests or unsigned builds do not prove these device behaviors.
 
 References: [Photon SDK](https://github.com/photon-hq/spectrum-ts), [Apple local networking](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsallowslocalnetworking), [Apple Family Controls](https://developer.apple.com/documentation/xcode/configuring-family-controls).
+
+## Score synchronization
+
+The native approval contract above is unchanged. Separately, the app and extensions upload queued fixed event labels to `/pause-events`, authenticated with the same Pact pairing key. Neon assigns the configured demo amount and updates the user’s score; no shopping price is extracted from the screen. Score syncing does not authorize or release a shield and does not gate a friend confirmation. See [scoring](../../docs/SCORING.md).

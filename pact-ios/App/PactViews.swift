@@ -93,6 +93,7 @@ struct PactRootView: View {
             monitoringCard
             CheckoutBlockingCard(model: blocker)
             FriendMessagingCard(model: blocker)
+            PauseScoreCard(score: blocker.score, message: blocker.scoreMessage)
             Button("Preview pause UI") { pausePreviewPresented = true }
                 .buttonStyle(PactButtonStyle()).accessibilityIdentifier("preview-pause")
             if let message = model.snapshot.interventionMessage {
@@ -230,7 +231,7 @@ struct PactRootView: View {
             title("Built around trust.", subtitle: "You decide when your screen is shared.")
             VStack(alignment: .leading, spacing: 20) {
                 Label("Local by design", systemImage: "lock.shield").font(.system(size: 23, weight: .semibold, design: .serif))
-                privacyRow("Friend confirmation is optional to set up", "When you choose Continue, Pact sends only request IDs and times to your configured backend. Photon messages your linked friend. Their matching confirmation releases your pause. Screen content, item details and prices stay off the network.")
+                privacyRow("Friend confirmation is optional to set up", "When you choose Continue, Pact sends request IDs and times to your configured backend. Pause choices also sync to calculate your score using a demo price. Photon messages your linked friend. Their matching confirmation releases your pause. Screen content, item details and prices stay off the network.")
                 privacyRow("No screen archive", "Frames and recognized text are discarded. Pact stores fixed signals, pause times, choices and an opaque Screen Time token for your selected app. Saved reminders contain no product details.")
                 privacyRow("Audio is ignored", "Pact doesn't analyze microphone or app audio. Leave the microphone off in the system broadcast control.")
                 privacyRow("A visible, voluntary session", "The iPhone recording indicator stays visible. Stop there at any time. Monitoring never starts automatically.")

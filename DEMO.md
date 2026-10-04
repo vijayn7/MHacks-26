@@ -73,7 +73,11 @@ The card text says the pause is 15 minutes. Nothing in the extension starts a ti
 | Continue | Store posts the purchase, then shows the Nessie purchase id and balance. | Event `continue_selected`. The second checkout click is allowed through. |
 | Ask my friend | “Text sent. Waiting for YES or NO.” | `POST /check-in`. The card stays open and polls. |
 
-Opening the card posts `pause_started`. Event posts go to `POST http://localhost:8787/events` and ignore network failure, so the pause still works if the API is down. Save and the friend check-in do need the API.
+Opening the card snapshots `data-total` as integer cents and posts `pause_started`. Scored event posts go to `POST http://localhost:8787/pause-events`; a localStorage outbox retries failures without interrupting the pause. The backend persists the amount, event, and per-user score in Neon. Save and the friend check-in still need the API.
+
+### Persistent score demo
+
+With `npm run dev:api` running and `DATABASE_URL` configured in the root `.env`, run `npm run demo:scoring`. It sends labeled simulated decisions through the same scoring endpoint and reads Neon directly after each action. For $64.99, check-in subtracts 32, Drop adds 130, retrying Drop adds 0, and Save on a different pause adds 16. A fresh run adds 114 net points to the existing demo score. It leaves rows for inspection and does not send an iMessage or make a Nessie purchase. Repeating the same run is deduplicated. See [the scoring guide](docs/SCORING.md#persistent-demo-in-neon) for individual steps and SQL queries.
 
 ### Friend decision
 

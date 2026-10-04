@@ -68,6 +68,16 @@ struct InterventionState: Codable, Equatable, Sendable {
     private(set) var blockedPauseID: UUID?
     private(set) var pauses: [CheckoutPause] = []
     private(set) var events: [PauseEvent] = []
+    // Optional for decoding files created before score synchronization shipped.
+    // Kept independently of the 100-pause UI history until the server commits.
+    private var scoreOutbox: [PauseEvent]?
+    var pendingScoreEvents: [PauseEvent] { scoreOutbox ?? [] }
+    mutating func acknowledgeScoreEvent(_ id: String) { scoreOutbox?.removeAll { $0.id == id } }
+    private mutating func record(_ event: PauseEvent) {
+        events.append(event)
+        if scoreOutbox == nil { scoreOutbox = [] }
+        scoreOutbox?.append(event)
+    }
     private var gateSessionID: UUID?
     private var checkoutArmed = true
     private var nonCheckoutObservations = 0
@@ -105,7 +115,7 @@ struct InterventionState: Codable, Equatable, Sendable {
                                   sessionID: sessionID, candidateNumber: candidateNumber)
         pauses.append(pause)
         blockedPauseID = pause.id
-        events.append(PauseEvent(pauseID: pause.id, kind: .pauseStarted, at: now))
+        record(PauseEvent(pauseID: pause.id, kind: .pauseStarted, at: now))
         // Bounded, on-device history; always retain the new active pause.
         pauses = Array(pauses.suffix(100))
         let retained = Set(pauses.map(\.id))
@@ -118,7 +128,7 @@ struct InterventionState: Codable, Equatable, Sendable {
         if pauses[index].openedAt == nil {
             pauses[index].openedAt = now
             pauses[index].endsAt = now.addingTimeInterval(CheckoutPause.demoDuration)
-            events.append(PauseEvent(pauseID: id, kind: .pauseOpened, at: now))
+            record(PauseEvent(pauseID: id, kind: .pauseOpened, at: now))
         }
         return pauses[index]
     }
@@ -137,7 +147,7 @@ struct InterventionState: Codable, Equatable, Sendable {
             if pauses[index].approval != nil { return pauses[index] }
             guard pauses[index].canContinue(at: now) else { throw PauseError.stillHolding }
             pauses[index].approval = FriendApprovalRequest(pauseID: id, at: now)
-            events.append(PauseEvent(pauseID: id, kind: .continueSelected, at: now))
+            record(PauseEvent(pauseID: id, kind: .continueSelected, at: now))
             return pauses[index]
         }
         pauses[index].decision = decision
@@ -147,7 +157,7 @@ struct InterventionState: Codable, Equatable, Sendable {
         case .saved: .savedForLater
         case .continued: .continueSelected
         }
-        events.append(PauseEvent(pauseID: id, kind: kind, at: now))
+        record(PauseEvent(pauseID: id, kind: kind, at: now))
         return pauses[index]
     }
 
@@ -158,7 +168,7 @@ struct InterventionState: Codable, Equatable, Sendable {
         guard let approval = pauses[index].approval, now < approval.expiresAt else { throw FriendApprovalError.expired }
         if approval.submittedAt != nil { return }
         pauses[index].approval?.submittedAt = now
-        events.append(PauseEvent(pauseID: request.pauseID, kind: .friendRequestAccepted, at: now))
+        record(PauseEvent(pauseID: request.pauseID, kind: .friendRequestAccepted, at: now))
     }
 
     // Responses must come from our authenticated backend, which validates the
@@ -177,7 +187,7 @@ struct InterventionState: Codable, Equatable, Sendable {
         guard reply.status != .pending else { return }
         pauses[index].approval?.status = reply.status
         let approved = reply.status == .approved
-        events.append(PauseEvent(pauseID: reply.pauseID, kind: approved ? .friendApproved : .friendDenied, at: now))
+        record(PauseEvent(pauseID: reply.pauseID, kind: approved ? .friendApproved : .friendDenied, at: now))
         if approved {
             pauses[index].decision = .continued
             pauses[index].resolvedAt = now
@@ -195,7 +205,7 @@ struct InterventionState: Codable, Equatable, Sendable {
     mutating func releaseBlock(at now: Date) {
         if let id = blockedPauseID, let index = pauses.firstIndex(where: { $0.id == id }) {
             pauses[index].releasedAt = now
-            events.append(PauseEvent(pauseID: id, kind: .blockReleased, at: now))
+            record(PauseEvent(pauseID: id, kind: .blockReleased, at: now))
         }
         blockedPauseID = nil
     }

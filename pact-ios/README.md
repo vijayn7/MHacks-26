@@ -83,7 +83,7 @@ User starts ReplayKit → local Vision OCR → unchanged classifier/stabilizer
 - `ShieldActionExtension/`: action mapping and authoritative deadline checks.
 - `App/`: authorization, app picker, recovery controls, history and replaceable SwiftUI.
 
-No screenshots, audio, recognized text, amounts, addresses, product names or URLs are persisted or sent to the approval service. The approval client sends only request/pause IDs and timestamps; friend identity and Photon secrets belong to the backend. Shared metadata contains fixed signal labels, timestamps, session/candidate IDs, choice events and a Screen Time opaque app token. Save stores a reminder, not an item bookmark. History is capped at 100 pauses; clearing completed history retains an outstanding block so it can still be resolved. App Group files use complete file protection and are excluded from backup.
+No screenshots, audio, recognized text, addresses, product names or URLs are persisted or sent to the approval service. Pause-event scoring now stores a backend-assigned demo amount in Neon; the iPhone does not recognize or upload real prices. The approval client sends only request/pause IDs and timestamps; friend identity and Photon secrets belong to the backend. Shared metadata contains fixed signal labels, timestamps, session/candidate IDs, choice events and a Screen Time opaque app token. Save stores a reminder, not an item bookmark. History is capped at 100 pauses; clearing completed history retains an outstanding block so it can still be resolved. App Group files use complete file protection and are excluded from backup.
 
 After resolving a checkout, Pact suppresses another pause for the same apparent checkout visit. Two browsing/cart/confirmation readings rearm the intervention; Pact’s own screen and unknown frames do not. This is duplicate suppression, not a change to the recognition phrases or candidate thresholds. A new broadcast session can arm a new pause.
 
@@ -134,3 +134,9 @@ Drop/Save can close the shopping app from a shield action, but cannot navigate t
 - [Individual Screen Time authorization and shared settings stores](https://developer.apple.com/videos/play/wwdc2022/110336/)
 - [System broadcast picker](https://developer.apple.com/documentation/replaykit/rpsystembroadcastpickerview)
 - [Broadcast sample handler](https://developer.apple.com/documentation/replaykit/rpbroadcastsamplehandler)
+
+## Price-based scoring
+
+Pause metadata and choices are queued separately from local UI history and retried after connection failures. The backend assigns a demo price (default $64.99), records the event and updates the paired demo user’s score atomically in Neon. Asking the friend deducts points; Drop earns 2 points per dollar and Save earns 0.25. The check-in penalty is 0.5 points per dollar. Each action is counted once, and Drop/Save are mutually exclusive rewards for a pause. Whole points are rounded by the backend.
+
+`PauseScoreCard` shows the synced total; its display is independent of the scoring service. UI previews never send scoring events. See [shared scoring design and API](../docs/SCORING.md) for schema, configuration and tests.

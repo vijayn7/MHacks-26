@@ -7,7 +7,8 @@
   "scripts": {
     "dev:store": "npm run dev -w @secondthought/store",
     "dev:api": "npm run dev -w @secondthought/api",
-    "build:extension": "npm run build -w @secondthought/extension"
+    "build:extension": "npm run build -w @secondthought/extension",
+    "demo:scoring": "npm run demo:scoring -w @secondthought/api --"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

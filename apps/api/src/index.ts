@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
+import { ScoreService, ScoreError, ensureScoreSchema, scoreEvent, DEFAULT_DEMO_AMOUNT_CENTS } from "./scoring.js";
 import { NativeApprovals, NativeApprovalError, MemoryNativeRepository, authorizedNative, nativeRequest, type NativeRepository, type NativeRow, type Delivery } from "./native-approvals.js";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
@@ -46,6 +47,8 @@ if (!spacetimeOn) {
 }
 const projectId = process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.SPECTRUM_PROJECT_SECRET;
+// Replace this server-owned identity with the signed-in account when login ships.
+const scoreUserId = process.env.PACT_DEMO_USER_ID?.trim() || "demo";
 const nativeToken = process.env.PACT_IOS_TOKEN?.trim() ?? "";
 const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
 const askAgain = "Reply YES to approve the purchase or NO to reject it.";
@@ -149,6 +152,8 @@ function decisionOf(text: string): Decision | null {
 const sql = process.env.DATABASE_URL
   ? postgres(process.env.DATABASE_URL, { onnotice: () => {} })
   : null;
+
+const scores = sql ? new ScoreService(sql, process.env.PACT_DEMO_AMOUNT_CENTS === undefined ? DEFAULT_DEMO_AMOUNT_CENTS : Number(process.env.PACT_DEMO_AMOUNT_CENTS)) : null;
 
 // Kept separate from legacy browser rows so its YES/NO matching cannot resolve
 // a native pause. Neon persists receipts and terminal decisions across restarts.
@@ -261,6 +266,7 @@ async function ensureDb() {
   await sql`create table if not exists native_check_ins (
     id text primary key, code text not null unique, payload jsonb not null
   )`;
+  await ensureScoreSchema(sql);
   await sql`alter table saved_items add column if not exists name text`;
   await sql`alter table saved_items add column if not exists amount numeric`;
   await sql`
@@ -629,6 +635,24 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (req.method === "GET" && path === "/native/health") {
     if (!authorizedNative(req.headers.authorization, nativeToken)) { send(res, 401, { error: "unauthorized" }); return; }
     send(res, 200, { ok: true, nativeApprovalVersion: 1, messagingReady: deliver !== null, durableStorage: sql !== null });
+    return;
+  }
+  if ((req.method === "POST" && path === "/pause-events") ||
+      (req.method === "GET" && (path === "/score" || path === "/score/events"))) {
+    try {
+      const input = req.method === "POST" ? scoreEvent(await readJson(req)) : null;
+      const source = input?.source ?? url.searchParams.get("source") ?? "web";
+      if (source !== "web" && source !== "ios") { send(res, 400, { error: "invalid_source" }); return; }
+      if (source === "ios" && !authorizedNative(req.headers.authorization, nativeToken)) { send(res, 401, { error: "unauthorized" }); return; }
+      if (!scores) { send(res, 503, { error: "no_database" }); return; }
+      if (input) send(res, 200, await scores.record(scoreUserId, input));
+      else if (path === "/score/events") send(res, 200, { userId: scoreUserId, events: await scores.history(scoreUserId) });
+      else send(res, 200, await scores.summary(scoreUserId));
+    } catch (error) {
+      if (error instanceof ScoreError) send(res, error.status, { error: error.code });
+      else if (error instanceof SyntaxError || (error instanceof Error && error.message === "too_large")) send(res, 400, { error: "invalid" });
+      else throw error;
+    }
     return;
   }
   if (req.method === "GET" && path === "/events") {

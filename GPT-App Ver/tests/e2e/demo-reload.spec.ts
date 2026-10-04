@@ -13,11 +13,7 @@ test('reload restarts onboarding, archive stays populated, and Home replaces goa
   await page.goto('/');
   await onboard(page);
   await expect(page.getByRole('button', { name: 'set a goal' })).toHaveCount(0);
-  await page
-    .getByTestId('home-rhythm')
-    .getByRole('checkbox', { name: 'calm', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'save check-in', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'save check-in', exact: true })).toHaveCount(0);
   await page.getByRole('tab', { name: 'archive', exact: true }).click();
   await expect(page.getByTestId('archive-scroll')).toBeVisible();
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
@@ -27,7 +23,7 @@ test('reload restarts onboarding, archive stays populated, and Home replaces goa
   await onboard(page);
   const after = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
   expect(after.archive.length).toBe(before.archive.length);
-  expect(after.wearable.moments[0].before).toEqual(['calm']);
+  expect(after.purchaseRules).toEqual(before.purchaseRules);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.getByRole('button', { name: 'open settings' }).click();
   await page.getByRole('button', { name: 'apple watch', exact: true }).click();

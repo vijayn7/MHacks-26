@@ -1,3 +1,4 @@
+import { matchesPurchase } from './purchase-rules';
 import React, { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
 import { AppState as NativeAppState } from 'react-native';
 import { sampleWatchReading } from '../services/watch-feed';
@@ -13,6 +14,12 @@ const Store = createContext<{
   storageError: string | null;
   activeNudge: string | null;
   openNudge: (id: string | null) => void;
+  receivePurchase: (purchase: {
+    id: string;
+    name: string;
+    amount: number;
+    category?: string;
+  }) => boolean;
 }>({
   state: initialState(),
   dispatch: () => {},
@@ -20,6 +27,7 @@ const Store = createContext<{
   storageError: null,
   activeNudge: null,
   openNudge: () => {},
+  receivePurchase: () => false,
 });
 export function StoreProvider({ children }: React.PropsWithChildren) {
   const [state, dispatch] = useReducer(
@@ -90,8 +98,23 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
         setStorageError('Your progress is active, but could not be saved on this device.'),
       );
   }, [state, ready]);
+  const receivePurchase = (purchase: {
+    id: string;
+    name: string;
+    amount: number;
+    category?: string;
+  }) => {
+    if (!matchesPurchase(state.purchaseRules, purchase.amount, purchase.category)) return false;
+    const existing = state.nudges.find((n) => n.id === purchase.id);
+    if (existing && existing.status !== 'waiting') return false;
+    dispatch({ type: 'INCOMING_PURCHASE', ...purchase });
+    openNudge(purchase.id);
+    return true;
+  };
   return (
-    <Store.Provider value={{ state, dispatch, ready, storageError, activeNudge, openNudge }}>
+    <Store.Provider
+      value={{ state, dispatch, ready, storageError, activeNudge, openNudge, receivePurchase }}
+    >
       {children}
     </Store.Provider>
   );

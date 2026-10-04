@@ -1,3 +1,9 @@
+import {
+  defaultPurchaseRules,
+  readPurchaseRules,
+  matchesPurchase,
+  type PurchaseRules,
+} from './purchase-rules';
 import { freshWearable, readWearable, type Wearable, type Moment } from './wearable';
 import { spendingCategories } from '../design/onboarding';
 import { addContacts, type ContactCandidate } from './contacts';
@@ -28,6 +34,7 @@ export type AppState = {
   onboardingComplete: boolean;
   spendingCategories: string[];
   plan: BlockPlan | null;
+  purchaseRules: PurchaseRules;
   name: string;
   hue: Hue;
   face: Face;
@@ -50,7 +57,8 @@ export type Action =
   | { type: 'WEARABLE'; settings: Partial<Omit<Wearable, 'moments'>> }
   | { type: 'SAVE_MOMENT'; moment: Moment }
   | { type: 'DELETE_WEARABLE_DATA' }
-  | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number }
+  | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number; rules?: PurchaseRules }
+  | { type: 'INCOMING_PURCHASE'; id: string; name: string; amount: number; category?: string }
   | { type: 'SAVE_PLAN'; plan: BlockPlan }
   | { type: 'PLAN_ENABLED'; enabled: boolean }
   | { type: 'PAUSE'; at?: number }
@@ -80,6 +88,7 @@ export function initialState(now = Date.now()): AppState {
     onboardingComplete: false,
     spendingCategories: [],
     plan: null,
+    purchaseRules: defaultPurchaseRules(),
     archive: [],
     name: 'Alex',
     hue: 'Ember',
@@ -122,6 +131,7 @@ export function migrate(raw: unknown): AppState {
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
         : [],
       plan: readPlan(old.plan),
+      purchaseRules: readPurchaseRules(old.purchaseRules),
       archive: readArchive(old.archive),
       name: typeof old.name === 'string' ? old.name : base.name,
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
@@ -226,10 +236,22 @@ export function reducer(s: AppState, a: Action): AppState {
       };
     case 'DELETE_WEARABLE_DATA':
       return { ...s, wearable: freshWearable() };
+    case 'INCOMING_PURCHASE':
+      return matchesPurchase(s.purchaseRules, a.amount, a.category) &&
+        !s.nudges.some((n) => n.id === a.id)
+        ? {
+            ...s,
+            nudges: [
+              ...s.nudges,
+              { id: a.id, name: a.name, amount: a.amount, status: 'waiting', dueAt: null },
+            ],
+          }
+        : s;
     case 'COMPLETE_ONBOARDING':
       return {
         ...s,
         onboardingComplete: true,
+        purchaseRules: a.rules ? readPurchaseRules(a.rules) : s.purchaseRules,
         spendingCategories: [...new Set(a.categories)].filter((v) =>
           spendingCategories.includes(v as (typeof spendingCategories)[number]),
         ),

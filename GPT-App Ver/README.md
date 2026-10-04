@@ -78,7 +78,7 @@ The burn-rate handle expands from a small dim light to a broad bright glow as it
 
 ## Home rhythm
 
-Home’s goal-setting interface has been removed. Scroll beneath the savings chart for the interactive emotion orb, feeling choices, heart-rate context, and a private daily check-in. Legacy blocking state remains compatible with saved installations.
+Home’s goal-setting interface has been removed. Scroll beneath the savings chart for the interactive emotion orb, feeling choices, heart-rate context, and a quiet emotion display. Legacy blocking state remains compatible with saved installations.
 
 Flame crowns continuously interpolate between organic SVG silhouettes, keeping the eyes and rounded base anchored. Motion slows with the flame’s status and continues while resting; it stops when the screen is inactive, the app is backgrounded, or reduced motion is enabled.
 
@@ -124,7 +124,7 @@ Slider feedback: all GlowSlider controls temporarily give the user’s flame hap
 
 ## Minimal onboarding
 
-A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; optional spending categories; and a gentle-to-firm strength slider with a live popup preview. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. Every reload restarts onboarding from the flame welcome while retaining saved preferences, archive items, and check-ins. Completion is session-only; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
+A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; purchase categories; and explicit amount/category rules with a separate reminder-tone slider. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. Every reload restarts onboarding from the flame welcome while retaining saved preferences, archive items, and check-ins. Completion is session-only; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
 
 Authentication is deliberately fake, as requested. Google and Apple advance locally; email validates syntax, then discards the address without sending or storing it. No account, session, or identity is established. Backend entry point: `src/screens/Onboarding.tsx` provider button callbacks and the email sheet. Replace these with the authentication provider and advance only on success; retain cancellation and guest entry. Google sign-in should not request Gmail inbox access. Preference completion dispatches `COMPLETE_ONBOARDING` in `src/state/model.ts`. Popup tone lives in `src/design/onboarding.ts`. No notification permission is requested during onboarding.
 
@@ -134,7 +134,7 @@ Interface cleanup: Social has no leaderboard heading. Archive removes its headin
 
 ## Integrated watch context
 
-Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home replaces goal setup with a spacious interactive emotion orb, feeling choices, a heart-rate scale, and a private daily check-in. Dragging the orb adjusts intensity. Saving updates one check-in per local day without changing spending totals; purchase BPM averages exclude daily check-ins. The popup always shows a compact emotion-gradient orb beside current BPM and an estimated emotion label. It has no manual emotion input. The shared watch feed updates both together while the popup is waiting; purchase actions remain in place. The latest reading and estimated feelings are saved locally once when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
+Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home replaces goal setup with a spacious interactive emotion orb, feeling choices, a heart-rate scale, and a quiet emotion display. Dragging the orb adjusts intensity. The Home save-check-in action has been removed; purchase BPM averages exclude previously saved daily check-ins. The popup always shows a compact emotion-gradient orb beside current BPM and an estimated emotion label. It has no manual emotion input. The shared watch feed updates both together while the popup is waiting; purchase actions remain in place. The latest reading and estimated feelings are saved locally once when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
 
 Profile settings → apple watch contains connect/disconnect, insights on/off, refresh reading, baseline, data clearing, and the display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
 
@@ -148,3 +148,12 @@ Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 ge
 `src/services/watch-feed.ts` supplies a scripted sample every two seconds while a connected watch’s purchase popup is open and the app is foregrounded. Closing, resolving, or disconnecting stops the stream. The display expires readings after five minutes and shows a neutral orb for missing emotion data. Daily self-reported feelings are never used as watch estimates.
 
 Backend handoff: replace the sample adapter with consented native sample events that dispatch `WEARABLE` with `reading: { bpm, at, emotions, intensity }`. BPM and emotion data share one timestamp. Emotions are optional estimates from an upstream model, not a capability to infer a known emotion directly from heart rate. No Apple Health or native watch transport is implemented. The simulated-data disclosure remains in settings. This live view is the in-app notification/block popup; OS notification banners retain their native behavior.
+
+
+### Explicit purchase rules
+
+Onboarding uses a centered 440-point maximum content width, consistent gutters, a responsive mascot, labeled name fields, and a two-column category grid. On narrow phones name fields stack. Each step resets scroll position; all controls remain reachable by scrolling.
+
+The final screen sets a per-item USD threshold (inclusive, up to two decimal places), category matching, and either/both semantics when both conditions are enabled. Each condition can be disabled independently; at least one valid condition is required. The rule summary states what will cause the pause. Reminder tone is separate: it changes popup wording and flame animation, not the amount or category rule. Rules can be edited through Profile settings → spending preferences.
+
+`src/state/purchase-rules.ts` validates/migrates rules and evaluates purchases. `useStore().receivePurchase({id,name,amount,category})` is the ingestion entry point: only matching purchases create/open a popup; repeated resolved IDs do not reopen. The reducer independently applies the same rules. Existing archive revisits and “try a nudge” remain deliberate manual previews. Real merchant checkout interception is not connected; onboarding states that boundary. No timed or irreversible payment block is implied.

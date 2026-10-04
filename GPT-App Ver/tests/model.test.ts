@@ -401,3 +401,53 @@ test('watch emotion samples validate independently of heart rate and stay in syn
   assert.equal(invalid.reading?.intensity, 100);
   assert.deepEqual(readWearable({ reading: { bpm: 80, at: 1 } }).reading?.emotions, []);
 });
+
+test('purchase rules match exact thresholds, categories, either/both and survive reload', async () => {
+  const { matchesPurchase, defaultPurchaseRules } = await import('../src/state/purchase-rules');
+  const rules = {
+    ...defaultPurchaseRules(),
+    minAmount: 100,
+    categoryEnabled: true,
+    categories: ['sports betting'],
+  };
+  assert.equal(matchesPurchase(rules, 100, 'other'), true);
+  assert.equal(matchesPurchase(rules, 99.99, 'other'), false);
+  assert.equal(matchesPurchase(rules, 5, 'sports betting'), true);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 5, 'sports betting'), false);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 100, 'sports betting'), true);
+  assert.equal(matchesPurchase({ ...rules, match: 'all' }, 100), false);
+  assert.equal(matchesPurchase(rules, NaN, 'sports betting'), false);
+  let s = reducer(initialState(), {
+    type: 'COMPLETE_ONBOARDING',
+    categories: rules.categories,
+    strength: 54,
+    rules,
+  });
+  s = migrate(JSON.parse(JSON.stringify(s)));
+  assert.deepEqual(s.purchaseRules, rules);
+  const before = s.nudges.length;
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'below',
+    name: 'book',
+    amount: 20,
+    category: 'other',
+  });
+  assert.equal(s.nudges.length, before);
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'match',
+    name: 'ticket',
+    amount: 5,
+    category: 'sports betting',
+  });
+  assert.equal(s.nudges.length, before + 1);
+  s = reducer(s, {
+    type: 'INCOMING_PURCHASE',
+    id: 'match',
+    name: 'ticket',
+    amount: 5,
+    category: 'sports betting',
+  });
+  assert.equal(s.nudges.length, before + 1);
+});

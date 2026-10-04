@@ -17,6 +17,7 @@ import { useStore } from '../state/Store';
 import { archiveSamples, savedDate, type SavedItem } from '../state/archive';
 import { money } from '../state/model';
 import { colors, palettes } from '../design/tokens';
+import { ArchiveObject } from '../components/ArchiveObject';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
@@ -156,17 +157,16 @@ export default function Archive() {
                             ],
                       }}
                     >
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}`}
+                      <ArchiveObject
+                        name={item.name}
+                        size={tile}
+                        reduce={reduce}
+                        label={`${item.name.toLowerCase()}, ${money(item.amount)}, saved ${savedDate(item.savedAt)}`}
                         onPress={() => {
                           if (selected !== index) focus(index);
                           else setDetail(item);
                         }}
-                        style={s.card}
-                      >
-                        <ItemArtwork name={item.name} size={tile} />
-                      </Pressable>
+                      />
                     </Animated.View>
                     {selected === index && (
                       <>

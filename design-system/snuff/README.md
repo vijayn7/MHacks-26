@@ -142,3 +142,6 @@ Social’s “my friends” heading sits directly above the ranked list. Adjacen
 
 
 Archive uses a bookmark navigation icon. A muted source label appears below the saved date and in item details. Save source is persisted and retained across revisits; incoming purchases accept an optional `source` (merchant or channel label). Existing Snuff saves fall back to “snuff”; seeded items use “demo collection.” Source text is normalized to lowercase and capped at 80 characters.
+
+
+Profile removes the “try a nudge” action and its scheduling handler. “Gentle reminders” now has the description “weekly recaps of your score and the money you saved.” This is the settings copy; a weekly recap delivery job is not implemented by this interface change.

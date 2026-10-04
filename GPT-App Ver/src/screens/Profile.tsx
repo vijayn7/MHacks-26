@@ -11,10 +11,10 @@ import { FriendStrip } from '../components/FriendStrip';
 import { FlameFace } from '../components/FlameFace';
 import { faces } from '../design/faces';
 import { Mascot } from '../components/Mascot';
-import { disableNudges, enableNudges, scheduleNudge } from '../services/notifications';
+import { disableNudges, enableNudges } from '../services/notifications';
 
 export default function Profile() {
-  const { state, dispatch, openNudge, storageError } = useStore();
+  const { state, dispatch, storageError } = useStore();
   const p = palettes[state.hue];
   const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | 'watch' | null>(null);
   const [name, setName] = useState(state.name);
@@ -35,30 +35,6 @@ export default function Profile() {
       dispatch({ type: 'NOTIFICATIONS', enabled });
     } catch {
       setMessage('This device couldn’t update notifications.');
-    } finally {
-      setBusy(false);
-    }
-  };
-  const test = async () => {
-    const n = state.nudges.find((n) => n.status === 'waiting') || state.nudges[0];
-    if (!n) return;
-    if (n.status !== 'waiting') {
-      openNudge(n.id);
-      return;
-    }
-    setBusy(true);
-    try {
-      const allowed = await enableNudges();
-      if (!allowed) {
-        setMessage('Allow notifications in your device settings to try this.');
-        return;
-      }
-      dispatch({ type: 'NOTIFICATIONS', enabled: true });
-      await scheduleNudge(n, 5);
-      dispatch({ type: 'SNOOZE_NUDGE', id: n.id, until: Date.now() + 5000 });
-      setMessage('A quiet nudge arrives in five seconds.');
-    } catch {
-      setMessage('This device couldn’t schedule the nudge.');
     } finally {
       setBusy(false);
     }
@@ -237,7 +213,13 @@ export default function Profile() {
         <View style={s.notifications}>
           <Icon name="bell" color={colors.text} size={21} />
           <View style={{ flex: 1, marginLeft: 13 }}>
-            <T style={{ fontSize: 13 }}>gentle notifications</T>
+            <T style={{ fontSize: 13 }}>gentle reminders</T>
+            <T
+              variant="small"
+              style={{ fontSize: 11, lineHeight: 16, marginTop: 4, marginRight: 12 }}
+            >
+              weekly recaps of your score and the money you saved.
+            </T>
           </View>
           <Pressable
             accessibilityRole="switch"
@@ -268,17 +250,6 @@ export default function Profile() {
             </View>
           </Pressable>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="try a nudge"
-          disabled={busy}
-          onPress={test}
-          style={{ alignSelf: 'center', padding: 10 }}
-        >
-          <T variant="small" style={{ fontSize: 11 }}>
-            try a nudge
-          </T>
-        </Pressable>
         {!!message && (
           <T variant="small" style={{ textAlign: 'center', marginTop: 8 }}>
             {message}

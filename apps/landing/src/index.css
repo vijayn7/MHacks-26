@@ -368,6 +368,7 @@ button {
     perspective: none;
   }
 
+  .tile--deep,
   .tile--far,
   .tile--mid,
   .tile--near,

@@ -88,6 +88,12 @@ Flame crowns continuously interpolate between organic SVG silhouettes, keeping t
 
 Profile shows connected friends as a single row of small, pettable flame icons. The row measures its width, keeps 44-point touch targets, caps itself at ten slots, and reserves a slot for an ellipsis when needed. The ellipsis opens the full named circle; an empty circle links to Social. This replaces the single-friend picker without deleting existing connections or legacy preferences.
 
+## Face customization
+
+Profile has a compact color / face toggle beneath the companion. The face view offers classic, happy, dreamy, and wink, using the same vector eyes as the live mascot. The selected expression persists locally and follows the user’s companion through Home, Social, Profile, and sheets; friends retain their own classic eyes. Petting still eases the eyes into contentment, and resting status closes them without replacing the saved preference. Existing profiles default to classic.
+
+Reuse `src/design/faces.ts` and `src/components/FlameFace.tsx` for expression choices and vector geometry; `Mascot.tsx` owns the petting transition. Controls support keyboard activation and expose their selected state.
+
 ## Designer handoff
 
-See the [portable Snuff design system](../design-system/snuff/README.md) for reusable tokens, fonts, assets, and interaction notes.
+See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.

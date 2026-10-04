@@ -15,6 +15,7 @@ import Svg, {
 import { Hue, palettes } from '../design/tokens';
 import { useStore } from '../state/Store';
 import { blendPalette } from '../design/blend';
+import { FlameFace } from './FlameFace';
 import { Flame } from './Flame';
 import { usePetting } from '../hooks/usePetting';
 import { flamePoses } from '../design/flame-motion';
@@ -68,6 +69,7 @@ export function Mascot({
   );
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const { state } = useStore();
+  const face = companionId === 'you' ? state.face : 'classic';
   const p = calm
     ? palettes.Ash
     : companionId === 'you'
@@ -453,23 +455,13 @@ export function Mascot({
               ],
             }}
           >
-            <Svg width={size} height={(height * 30) / 270} viewBox="0 150 240 30">
-              <Ellipse
-                cx="111.2"
-                cy="165.24"
-                rx="4.14"
-                ry="6.9"
-                fill={p.wash}
-                transform="rotate(22 111.2 165.24)"
-              />
-              <Ellipse
-                cx="145.24"
-                cy="163.4"
-                rx="4.14"
-                ry="6.9"
-                fill={p.wash}
-                transform="rotate(22 145.24 163.4)"
-              />
+            <Svg
+              testID={`flame-face-${face}`}
+              width={size}
+              height={(height * 30) / 270}
+              viewBox="0 150 240 30"
+            >
+              <FlameFace face={face} color={p.wash} />
             </Svg>
           </Animated.View>
           <Animated.View
@@ -481,22 +473,7 @@ export function Mascot({
             }}
           >
             <Svg width={size} height={height} viewBox="0 0 240 270">
-              <G transform="translate(10 30) scale(.92)">
-                <Path
-                  d="M 103 149 Q 110 156 117 148"
-                  fill="none"
-                  stroke={p.wash}
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                />
-                <Path
-                  d="M 140 147 Q 147 154 154 146"
-                  fill="none"
-                  stroke={p.wash}
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                />
-              </G>
+              <FlameFace face={face} color={p.wash} relaxed />
             </Svg>
           </Animated.View>
           {size >= 64 && (

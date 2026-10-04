@@ -113,3 +113,47 @@ test('an empty friend strip offers a connection without showing overflow', async
   await page.getByRole('button', { name: 'add trusted friends' }).click();
   await expect(page.getByRole('button', { name: 'connect with a friend' })).toBeVisible();
 });
+
+test('face choices persist on the same companion across screens and preserve petting', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/profile');
+  const flame = page.getByRole('button', { name: /^pet your flame/ });
+  await page.getByRole('button', { name: 'customize face', exact: true }).click();
+  await expect(page.getByRole('slider', { name: 'flame color blend' })).toHaveCount(0);
+  for (const face of ['classic', 'happy', 'dreamy', 'wink']) {
+    const choice = page.getByRole('button', { name: `${face} face`, exact: true });
+    await choice.press('Enter');
+    await expect(choice).toHaveAttribute('aria-pressed', 'true');
+    await expect(flame.getByTestId(`flame-face-${face}`)).toBeVisible();
+  }
+  await expect(page.getByTestId('friend-avatar').getByTestId('flame-face-classic')).toHaveCount(3);
+  await flame.press('Enter');
+  await expect(flame).toHaveAttribute('aria-label', /tap/);
+  await page.getByRole('button', { name: 'customize color', exact: true }).click();
+  await expect(page.getByRole('slider', { name: 'flame color blend' })).toHaveAttribute(
+    'aria-valuenow',
+    '38',
+  );
+  for (const tab of ['home', 'social']) {
+    await page.getByRole('tab', { name: tab, exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: /^pet your flame/ }).getByTestId('flame-face-wink'),
+    ).toBeVisible();
+  }
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: /^pet your flame/ }).getByTestId('flame-face-wink'),
+  ).toBeVisible();
+  await page.getByRole('tab', { name: 'profile', exact: true }).click();
+  await page.getByRole('button', { name: 'customize face', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'wink face', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
+  expect(persisted.face).toBe('wink');
+  expect(persisted.pauses).toBe(11);
+  expect(await page.locator('body').innerText()).not.toMatch(/[A-Z]/);
+});

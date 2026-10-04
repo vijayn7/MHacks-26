@@ -57,3 +57,9 @@ Rules are testable in an in-app checkout preview, including actual local countdo
 ## Friend avatar row
 
 The current profile reference is `previews/snuff-friend-strip.png`. Replace the single-friend setting with one unwrapped row of 44-point pettable flame avatars separated by 6 points. Measure the available width, cap at ten slots, and reserve the final slot for an ellipsis when the list exceeds capacity. The ellipsis opens the full named circle. Reuse `src/components/FriendStrip.tsx`; empty circles link to Social.
+
+## Face customization
+
+The latest profile reference is `previews/snuff-faces.png`. A compact color / face toggle switches between the existing gradient control and four expression buttons: classic, happy, dreamy, wink. Keep the control region the same height to avoid layout jumps. Selected buttons have a faint ivory outline and fill.
+
+Reuse `../../GPT-App Ver/src/design/faces.ts` and `../../GPT-App Ver/src/components/FlameFace.tsx`. Vector eyes stay anchored to the mascot’s original face coordinates; the same component renders the selector previews and live eyes. `Mascot.tsx` eases every expression into contented eyes when petted or resting. The locally saved face applies to the user’s companion across screens; friend expressions are unchanged. Older profiles safely default to classic.

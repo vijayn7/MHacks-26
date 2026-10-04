@@ -1,4 +1,5 @@
 import { readPlan, type BlockPlan } from './blocking';
+import { isFace, type Face } from '../design/faces';
 import type { Hue } from '../design/tokens';
 
 export type Friend = { id: string; name: string; email: string; hue: Hue; savings: number };
@@ -14,6 +15,7 @@ export type AppState = {
   plan: BlockPlan | null;
   name: string;
   hue: Hue;
+  face: Face;
   blendHue: Hue;
   blend: number;
   burnRate: number;
@@ -31,6 +33,7 @@ export type Action =
   | { type: 'PAUSE'; at?: number }
   | { type: 'NAME'; name: string }
   | { type: 'HUE'; hue: Hue }
+  | { type: 'FACE'; face: Face }
   | { type: 'BLEND_HUE'; hue: Hue }
   | { type: 'BLEND'; value: number }
   | { type: 'BURN_RATE'; value: number }
@@ -49,6 +52,7 @@ export function initialState(now = Date.now()): AppState {
     plan: null,
     name: 'Alex',
     hue: 'Ember',
+    face: 'classic',
     blendHue: 'Violet',
     blend: 38,
     burnRate: 54,
@@ -86,6 +90,7 @@ export function migrate(raw: unknown): AppState {
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
         ? old.hue
         : base.hue,
+      face: isFace(old.face) ? old.face : base.face,
       blendHue: hues.includes(old.blendHue) ? old.blendHue : base.blendHue,
       // Keep existing single-color companions unchanged until the user mixes them.
       blend: percent(old.blend, 0),
@@ -169,6 +174,8 @@ export function reducer(s: AppState, a: Action): AppState {
       return { ...s, pauses: s.pauses + 1 };
     case 'NAME':
       return a.name.trim() ? { ...s, name: a.name.trim().slice(0, 60) } : s;
+    case 'FACE':
+      return isFace(a.face) ? { ...s, face: a.face } : s;
     case 'HUE':
       return { ...s, hue: a.hue };
     case 'BLEND_HUE':

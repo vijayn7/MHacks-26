@@ -6,6 +6,8 @@ import { colors, Hue, palettes } from '../design/tokens';
 import { useStore } from '../state/Store';
 import { Canvas, Icon, Input, QuietButton, Sheet, T, tap } from '../components/ui';
 import { FriendStrip } from '../components/FriendStrip';
+import { FlameFace } from '../components/FlameFace';
+import { faces } from '../design/faces';
 import { Mascot } from '../components/Mascot';
 import { disableNudges, enableNudges, scheduleNudge } from '../services/notifications';
 
@@ -15,6 +17,7 @@ export default function Profile() {
   const [sheet, setSheet] = useState<'name' | 'flame' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
+  const [customize, setCustomize] = useState<'color' | 'face'>('color');
   const [busy, setBusy] = useState(false);
   const toggle = async (enabled: boolean) => {
     setBusy(true);
@@ -108,37 +111,96 @@ export default function Profile() {
         <View style={s.mascot}>
           <Mascot hue={state.hue} size={198} />
         </View>
-        <View style={s.colorControls}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="choose your flame"
-            onPress={() => chooseColor('base')}
-            style={s.swatchHit}
-          >
-            <View style={[s.swatch, { backgroundColor: p.mid }]} />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <GlowSlider
-              label="flame color blend"
-              value={state.blend}
-              onChange={(value) => dispatch({ type: 'BLEND', value })}
-              tint={second.body}
-              startTint={p.mid}
-              endTint={second.mid}
-            />
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="choose your blend color"
-            onPress={() => chooseColor('blend')}
-            style={s.swatchHit}
-          >
-            <View style={[s.swatch, { backgroundColor: second.mid }]} />
-          </Pressable>
+        <View style={s.customizeTabs}>
+          {(['color', 'face'] as const).map((tab) => (
+            <Pressable
+              key={tab}
+              accessibilityRole="button"
+              accessibilityLabel={`customize ${tab}`}
+              accessibilityState={{ selected: customize === tab }}
+              aria-pressed={customize === tab}
+              onPress={() => {
+                tap();
+                setCustomize(tab);
+              }}
+              style={s.customizeTabHit}
+            >
+              <View style={[s.customizeTab, customize === tab && s.selectedTab]}>
+                <T variant="small" color={customize === tab ? colors.text : colors.secondary}>
+                  {tab}
+                </T>
+              </View>
+            </Pressable>
+          ))}
         </View>
-        <View style={s.colorLabels}>
-          <T variant="small">{state.hue}</T>
-          <T variant="small">{state.blendHue}</T>
+        <View style={s.customizeControls}>
+          {customize === 'color' ? (
+            <>
+              <View style={s.colorControls}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="choose your flame"
+                  onPress={() => chooseColor('base')}
+                  style={s.swatchHit}
+                >
+                  <View style={[s.swatch, { backgroundColor: p.mid }]} />
+                </Pressable>
+                <View style={{ flex: 1 }}>
+                  <GlowSlider
+                    label="flame color blend"
+                    value={state.blend}
+                    onChange={(value) => dispatch({ type: 'BLEND', value })}
+                    tint={second.body}
+                    startTint={p.mid}
+                    endTint={second.mid}
+                  />
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="choose your blend color"
+                  onPress={() => chooseColor('blend')}
+                  style={s.swatchHit}
+                >
+                  <View style={[s.swatch, { backgroundColor: second.mid }]} />
+                </Pressable>
+              </View>
+              <View style={s.colorLabels}>
+                <T variant="small">{state.hue}</T>
+                <T variant="small">{state.blendHue}</T>
+              </View>
+            </>
+          ) : (
+            <View style={s.faces}>
+              {faces.map((face) => (
+                <Pressable
+                  key={face}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${face} face`}
+                  accessibilityState={{ selected: state.face === face }}
+                  aria-pressed={state.face === face}
+                  onPress={() => {
+                    tap();
+                    dispatch({ type: 'FACE', face });
+                  }}
+                  style={[s.faceOption, state.face === face && s.selectedFace]}
+                >
+                  <Svg width={38} height={23} viewBox="98 152 62 30">
+                    <FlameFace
+                      face={face}
+                      color={state.face === face ? p.core : colors.secondary}
+                    />
+                  </Svg>
+                  <T
+                    variant="small"
+                    color={state.face === face ? colors.text : colors.secondary}
+                    style={{ fontSize: 11 }}
+                  >
+                    {face}
+                  </T>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={s.burnCard}>
@@ -276,6 +338,23 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   name: { maxWidth: 90, paddingVertical: 12 },
   mascot: { alignItems: 'center', marginTop: 2, marginBottom: 4 },
+  customizeTabs: { flexDirection: 'row', alignSelf: 'center', marginBottom: 8 },
+  customizeTabHit: { minHeight: 44, justifyContent: 'center' },
+  customizeTab: { paddingHorizontal: 20, paddingVertical: 6, borderRadius: 99 },
+  selectedTab: { backgroundColor: 'rgba(255,245,226,.07)' },
+  customizeControls: { height: 70, justifyContent: 'center' },
+  faces: { flexDirection: 'row', gap: 6 },
+  faceOption: {
+    flex: 1,
+    minHeight: 64,
+    borderRadius: 18,
+    gap: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  selectedFace: { backgroundColor: 'rgba(255,245,226,.04)', borderColor: 'rgba(255,245,226,.16)' },
   colorControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   colorLabels: {
     flexDirection: 'row',
@@ -286,7 +365,7 @@ const s = StyleSheet.create({
   swatchHit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   swatch: { width: 18, height: 18, borderRadius: 9 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  burnCard: { marginTop: 32, paddingBottom: 12 },
+  burnCard: { marginTop: 22, paddingBottom: 12 },
   notifications: {
     flexDirection: 'row',
     alignItems: 'center',

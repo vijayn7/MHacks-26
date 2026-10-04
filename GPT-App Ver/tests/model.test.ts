@@ -177,3 +177,15 @@ test('overnight quiet hours belong to their start day and end exactly on time', 
     true,
   );
 });
+
+test('face preferences survive reload and older or invalid preferences keep classic eyes', () => {
+  const original = initialState();
+  for (const face of ['classic', 'happy', 'dreamy', 'wink'] as const) {
+    const saved = reducer(original, { type: 'FACE', face });
+    assert.equal(migrate(JSON.parse(JSON.stringify(saved))).face, face);
+    assert.equal(saved.savings, original.savings);
+    assert.deepEqual(saved.friends, original.friends);
+  }
+  assert.equal(migrate({ ...original, face: undefined }).face, 'classic');
+  assert.equal(migrate({ ...original, face: 'unknown' }).face, 'classic');
+});

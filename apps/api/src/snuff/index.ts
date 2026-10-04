@@ -11,6 +11,8 @@ export const userId = "demo";
 
 type Send = (res: ServerResponse, status: number, body?: unknown) => void;
 type ReadJson = (req: IncomingMessage) => Promise<unknown>;
+/** Fired after a successfully applied /app/actions write (not on duplicate action ids). */
+export type OnSnuffAction = (action: Record<string, unknown>) => void;
 
 export async function setupSnuff(sql: Sql) {
   await sql`
@@ -40,6 +42,7 @@ export async function handleSnuff(
   sql: Sql | null,
   send: Send,
   readJson: ReadJson,
+  onAction?: OnSnuffAction,
 ) {
   if (!sql) return send(res, 503, { error: "no_database" });
   if (req.method === "GET" && path === "/app/state") return send(res, 200, await snuffState(sql));
@@ -62,7 +65,10 @@ export async function handleSnuff(
       values (${id}, ${userId}, ${action.type}, ${sql.json(action as never)})
       on conflict (id) do nothing
       returning id`;
-    if (fresh.length) await handler(sql, userId, action);
+    if (fresh.length) {
+      await handler(sql, userId, action);
+      onAction?.(action);
+    }
     return send(res, 200, { ok: true, applied: fresh.length > 0 });
   }
   if (req.method === "POST" && path === "/app/reset") {

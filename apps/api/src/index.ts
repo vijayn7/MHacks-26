@@ -6,7 +6,9 @@ import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { DbConnection } from "../../extension/src/module_bindings/index.js";
-import { handleSnuff, setupSnuff } from "./snuff/index";
+import { pauseBodyFrom, statusForNudgeAction } from "./pause-bridge";
+import { handleSnuff, setupSnuff, userId } from "./snuff/index";
+import { createNudge, nudgeStatus } from "./snuff/pauses";
 
 function loadEnv(file: string) {
   let text: string;
@@ -595,11 +597,57 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
   if (path.startsWith("/app/")) {
-    await handleSnuff(req, res, path, url, sql, send, readJson);
+    await handleSnuff(req, res, path, url, sql, send, readJson, (action) => {
+      const pauseId = action.id;
+      if (typeof pauseId !== "string" || !pauseId || typeof action.type !== "string") return;
+      const state = statusForNudgeAction(action.type);
+      if (state) upsertPause(pauseId, state);
+    });
     return;
   }
   if (req.method === "GET" && path === "/health") {
     send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "GET" && path === "/pauses") {
+    const id = url.searchParams.get("id") ?? "";
+    if (!id) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    const status = await nudgeStatus(sql, userId, id);
+    if (!status) {
+      send(res, 404, { error: "missing" });
+      return;
+    }
+    send(res, 200, { id, status });
+    return;
+  }
+  if (req.method === "POST" && path === "/pauses") {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    const input = pauseBodyFrom(body);
+    if (!input) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    await createNudge(sql, userId, input);
+    upsertPause(input.id, "waiting");
+    const status = (await nudgeStatus(sql, userId, input.id)) ?? "waiting";
+    send(res, 200, { id: input.id, status });
     return;
   }
   if (req.method === "GET" && path === "/events") {

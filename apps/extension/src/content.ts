@@ -11,6 +11,7 @@ function pauseCopy() {
 let shown = false;
 let pauseId = "";
 let poll: ReturnType<typeof setInterval> | undefined;
+let pausePoll: ReturnType<typeof setInterval> | undefined;
 let decided = false;
 let live: { id: string; conn: DbConnection; sub?: SubscriptionHandle } | undefined;
 
@@ -118,6 +119,38 @@ function post(type: string, id: string = crypto.randomUUID()): Promise<void> {
   );
 }
 
+function postAction(type: "SNUFF_NUDGE" | "KEEP_NUDGE" | "SAVE_FOR_LATER"): Promise<void> {
+  if (!pauseId) return Promise.resolve();
+  const action: Record<string, unknown> = { type, id: pauseId };
+  if (type === "SAVE_FOR_LATER" || type === "SNUFF_NUDGE") action.at = Date.now();
+  return fetch("http://localhost:8787/app/actions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: `${pauseId}:${type}`, action }),
+  }).then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
+function cartInfo() {
+  const name = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
+  const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
+  return { name, amount: Number.isFinite(amount) ? amount : 0 };
+}
+
+function createPause(): Promise<void> {
+  const { name, amount } = cartInfo();
+  return fetch("http://localhost:8787/pauses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: pauseId, name, amount }),
+  }).then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
 function stopLive() {
   const current = live;
   live = undefined;
@@ -134,9 +167,15 @@ function stopLive() {
   }
 }
 
+function stopPauseWatch() {
+  if (pausePoll) clearInterval(pausePoll);
+  pausePoll = undefined;
+}
+
 function openCard() {
   if (!overlay.hidden) return;
   stopLive();
+  stopPauseWatch();
   decided = false;
   pauseId = crypto.randomUUID();
   friendEl.hidden = true;
@@ -146,11 +185,17 @@ function openCard() {
   post("checkout_detected", `${pauseId}:checkout_detected`);
   overlay.hidden = false;
   post("pause_started");
+  void createPause();
+  pausePoll = setInterval(() => {
+    void pullPauseStatus();
+  }, 2000);
+  void subscribeLive();
 }
 
 function closeCard(type: string, status?: string): Promise<void> {
   if (poll) clearInterval(poll);
   poll = undefined;
+  stopPauseWatch();
   stopLive();
   overlay.hidden = true;
   const writes = [post(type)];
@@ -197,14 +242,51 @@ async function pullReply() {
   showFriendDecision(row.status);
 }
 
+function applyRemoteStatus(status: "snuffed" | "kept" | "saved") {
+  if (decided || overlay.hidden) return;
+  decided = true;
+  if (poll) clearInterval(poll);
+  poll = undefined;
+  stopPauseWatch();
+  if (status === "kept") {
+    void closeCard("continue_selected", "Continued on phone");
+    return;
+  }
+  if (status === "saved") {
+    void closeCard("saved_for_later", "Saved on phone");
+    return;
+  }
+  void closeCard("purchase_dropped", "Dropped on phone");
+}
+
+async function pullPauseStatus() {
+  if (!pauseId || decided || overlay.hidden) return;
+  try {
+    const res = await fetch(`http://localhost:8787/pauses?id=${encodeURIComponent(pauseId)}`);
+    if (!res.ok) return;
+    const row = (await res.json()) as { status?: string };
+    if (row.status === "snuffed" || row.status === "kept" || row.status === "saved") {
+      applyRemoteStatus(row.status);
+    }
+  } catch {
+    /* API down; keep the local card usable */
+  }
+}
+
 function onPauseRow(id: string, row: { sessionId: string; state: string }) {
   if (live?.id !== id || row.sessionId !== id || overlay.hidden) return;
-  if (row.state === "sent") return;
+  if (row.state === "waiting" || row.state === "sent") return;
+  if (row.state === "snuffed" || row.state === "kept" || row.state === "saved") {
+    applyRemoteStatus(row.state);
+    return;
+  }
   if (row.state === "approved" || row.state === "rejected") showFriendDecision(row.state);
 }
 
 async function subscribeLive() {
   const id = pauseId;
+  if (!id || live?.id === id) return;
+  stopLive();
   let res: Response;
   try {
     res = await fetch("http://localhost:8787/spacetime");
@@ -272,27 +354,27 @@ async function askFriend() {
   }
 }
 
-function saveItem() {
-  const name = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
-  const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
-  return fetch("http://localhost:8787/saved", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: crypto.randomUUID(), ruleId: rule.id, name, amount }),
-  }).catch(() => {});
-}
-
 shadow.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const action = target.closest("button")?.getAttribute("data-action");
   if (action === "ask") void askFriend();
-  else if (action === "drop") closeCard("purchase_dropped", "Purchase dropped");
-  else if (action === "save") {
-    void saveItem();
-    closeCard("saved_for_later", "Saved for later");
+  else if (action === "drop") {
+    if (decided) return;
+    decided = true;
+    void postAction("SNUFF_NUDGE");
+    void closeCard("purchase_dropped", "Purchase dropped");
+  } else if (action === "save") {
+    if (decided) return;
+    decided = true;
+    void postAction("SAVE_FOR_LATER");
+    void closeCard("saved_for_later", "Saved for later");
+  } else if (action === "continue") {
+    if (decided) return;
+    decided = true;
+    void postAction("KEEP_NUDGE");
+    void closeCard("continue_selected");
   }
-  else if (action === "continue") void closeCard("continue_selected");
 });
 
 function markedTotal(): number | undefined {

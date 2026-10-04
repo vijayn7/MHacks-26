@@ -10,6 +10,7 @@ import { colors, palettes } from '../design/tokens';
 import { NudgeSheet } from '../components/Nudge';
 import { CompanionProvider } from '../state/Companion';
 import { NotificationBridge } from '../components/NotificationBridge';
+import { LivePauses } from '../components/LivePauses';
 
 function Navigation() {
   const { ready, state } = useStore();
@@ -43,6 +44,7 @@ function Navigation() {
       {state.onboardingComplete && (
         <>
           <NotificationBridge />
+          <LivePauses />
           <NudgeSheet />
         </>
       )}

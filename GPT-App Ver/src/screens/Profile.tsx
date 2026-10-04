@@ -5,13 +5,14 @@ import { GlowSlider } from '../components/GlowSlider';
 import { colors, Hue, palettes } from '../design/tokens';
 import { useStore } from '../state/Store';
 import { Canvas, Icon, Input, QuietButton, Sheet, T, tap } from '../components/ui';
+import { FriendStrip } from '../components/FriendStrip';
 import { Mascot } from '../components/Mascot';
 import { disableNudges, enableNudges, scheduleNudge } from '../services/notifications';
 
 export default function Profile() {
   const { state, dispatch, openNudge, storageError } = useStore();
   const p = palettes[state.hue];
-  const [sheet, setSheet] = useState<'name' | 'flame' | 'friend' | null>(null);
+  const [sheet, setSheet] = useState<'name' | 'flame' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -57,7 +58,6 @@ export default function Profile() {
       setBusy(false);
     }
   };
-  const friend = state.friends.find((item) => item.id === state.trustedFriendId);
   const second = palettes[state.blendHue];
   const restriction = state.burnRate < 34 ? 'gentle' : state.burnRate < 67 ? 'balanced' : 'mindful';
   const [colorTarget, setColorTarget] = useState<'base' | 'blend'>('base');
@@ -160,25 +160,7 @@ export default function Profile() {
           />
         </View>
 
-        <View style={s.friendCard}>
-          <View style={s.avatar}>
-            {friend ? (
-              <Mascot hue={friend.hue} size={44} companionId={friend.id} />
-            ) : (
-              <Icon name="users" size={18} />
-            )}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="choose trusted friend"
-            onPress={() => setSheet('friend')}
-            style={s.friendDetails}
-          >
-            <T style={{ flex: 1, fontSize: 13 }}>trusted friend</T>
-            <T variant="small">{friend?.name ?? 'choose'}</T>
-            <Icon name="chevron-right" size={14} />
-          </Pressable>
-        </View>
+        <FriendStrip />
 
         <View style={s.notifications}>
           <Icon name="bell" color={colors.text} size={21} />
@@ -286,50 +268,6 @@ export default function Profile() {
           ))}
         </View>
       </Sheet>
-      <Sheet visible={sheet === 'friend'} title="your quiet circle." onClose={() => setSheet(null)}>
-        <T variant="small" style={{ marginBottom: 18 }}>
-          someone to pause with. the choice is always yours.
-        </T>
-        {state.friends.map((item) => (
-          <Pressable
-            key={item.id}
-            accessibilityRole="button"
-            accessibilityLabel={'trust ' + item.name.toLowerCase()}
-            accessibilityState={{ selected: state.trustedFriendId === item.id }}
-            onPress={() => {
-              tap();
-              dispatch({ type: 'TRUSTED_FRIEND', id: item.id });
-              setSheet(null);
-            }}
-            style={s.option}
-          >
-            <View
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 6,
-                backgroundColor: palettes[item.hue].body,
-              }}
-            />
-            <T style={{ flex: 1 }}>{item.name}</T>
-            {state.trustedFriendId === item.id && (
-              <Icon name="check" color={palettes.Ember.body} size={17} />
-            )}
-          </Pressable>
-        ))}
-        {!state.friends.length && (
-          <T variant="small">add a friend in social to bring them into your circle.</T>
-        )}
-        <QuietButton
-          secondary
-          onPress={() => {
-            dispatch({ type: 'TRUSTED_FRIEND', id: null });
-            setSheet(null);
-          }}
-        >
-          just me for now
-        </QuietButton>
-      </Sheet>
     </Canvas>
   );
 }
@@ -349,22 +287,6 @@ const s = StyleSheet.create({
   swatch: { width: 18, height: 18, borderRadius: 9 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   burnCard: { marginTop: 32, paddingBottom: 12 },
-  friendCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 64,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  avatar: { width: 32, height: 50, alignItems: 'center', justifyContent: 'center' },
-  friendDetails: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 18,
-    paddingLeft: 8,
-  },
   notifications: {
     flexDirection: 'row',
     alignItems: 'center',

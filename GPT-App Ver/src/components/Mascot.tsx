@@ -43,6 +43,7 @@ export function Mascot({
   progress: suppliedProgress,
   intensity,
   companionId = 'you',
+  companionName,
   onLongPress,
   animate = true,
 }: {
@@ -51,6 +52,7 @@ export function Mascot({
   calm?: boolean;
   intensity?: FlameLevel;
   companionId?: string;
+  companionName?: string;
   onLongPress?: () => void;
   progress?: Animated.Value;
   animate?: boolean;
@@ -134,7 +136,7 @@ export function Mascot({
       accessible
       focusable
       accessibilityRole="button"
-      accessibilityLabel={`${companionId === 'you' ? 'pet your flame' : 'pet this flame'}. ${pet.reaction === 'idle' ? (pet.relaxed ? 'content' : 'peaceful') : pet.reaction}, ${calm ? 'resting' : low ? 'low' : 'bright'} flame`}
+      accessibilityLabel={`${companionId === 'you' ? 'pet your flame' : companionName ? `pet ${companionName.toLowerCase()}’s flame` : 'pet this flame'}. ${pet.reaction === 'idle' ? (pet.relaxed ? 'content' : 'peaceful') : pet.reaction}, ${calm ? 'resting' : low ? 'low' : 'bright'} flame`}
       accessibilityHint={
         onLongPress
           ? 'rub or swipe to pet. hold still for three seconds to pause.'

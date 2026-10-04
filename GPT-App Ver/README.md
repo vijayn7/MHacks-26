@@ -17,7 +17,7 @@ For the phone-sized browser preview:
 
 - **Home:** pet the flame with a tap, vertical rub, or sideways stroke. A still 2.8-second hold records a pause; moving or releasing early cancels it. The savings sentence and weekly chart stay minimal.
 - **Social:** a three-flame podium, a small leaderboard control, and a connection button. Connections are local to this demo; no messages or invitations are sent.
-- **Profile:** a large pettable flame, a mix of two colors from the six-hue palette, a luminous burn-rate slider, a trusted-friend picker, and gentle notifications. Your name stays editable; **try a nudge** demonstrates a notification after five seconds.
+- **Profile:** a large pettable flame, a mix of two colors from the six-hue palette, a luminous burn-rate slider, a row of friends’ flame avatars, and gentle notifications. Your name stays editable; **try a nudge** demonstrates a notification after five seconds.
 
 A nudge has two choices: **Snuff this urge** records the sample purchase as estimated savings, or **Tomorrow, maybe** schedules another reminder. A completed nudge is counted once.
 
@@ -83,6 +83,10 @@ Scroll beneath the Home chart to set a savings goal and configure a five-step pl
 The saved plan can be edited, paused, and tested in an in-app checkout preview. Preview decisions use the actual saved rule evaluator; a timed pause counts down, and early continuation follows the chosen settings. No checkout, notification, message, or financial event is created by the preview. Browser-extension / operating-system enforcement outside Snuff is not connected; the UI explicitly identifies this boundary.
 
 Flame crowns continuously interpolate between organic SVG silhouettes, keeping the eyes and rounded base anchored. Motion slows with the flame’s status and continues while resting; it stops when the screen is inactive, the app is backgrounded, or reduced motion is enabled.
+
+## Friend strip
+
+Profile shows connected friends as a single row of small, pettable flame icons. The row measures its width, keeps 44-point touch targets, caps itself at ten slots, and reserves a slot for an ellipsis when needed. The ellipsis opens the full named circle; an empty circle links to Social. This replaces the single-friend picker without deleting existing connections or legacy preferences.
 
 ## Designer handoff
 

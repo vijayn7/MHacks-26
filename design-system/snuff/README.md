@@ -53,3 +53,7 @@ The companion’s crown now morphs continuously between organic outlines while i
 Home scrolls below the weekly graph into a quiet goal component (`previews/snuff-home-goal.png`). `src/components/GoalFlow.tsx` presents five steps in bottom sheets: goal, websites and purchase limits, schedule, response, review. A setup reference is in `previews/snuff-goal-block-setup.png`. Keep typography, chips, fields, and actions aligned with the existing tokens. Saved plans and rules are handled by `src/state/blocking.ts` and `src/state/model.ts`.
 
 Rules are testable in an in-app checkout preview, including actual local countdowns and optional early-continuation reasons. External blocking is not connected. Preview activity never creates real purchases, savings, or messages.
+
+## Friend avatar row
+
+The current profile reference is `previews/snuff-friend-strip.png`. Replace the single-friend setting with one unwrapped row of 44-point pettable flame avatars separated by 6 points. Measure the available width, cap at ten slots, and reserve the final slot for an ellipsis when the list exceeds capacity. The ellipsis opens the full named circle. Reuse `src/components/FriendStrip.tsx`; empty circles link to Social.

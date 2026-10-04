@@ -1,8 +1,7 @@
+import { initialState } from '../../src/state/model';
 import { test, expect } from '@playwright/test';
 
-test('profile color, burn rate, and trusted friend settings persist across screens and reload', async ({
-  page,
-}) => {
+test('profile color and burn rate persist across screens and reload', async ({ page }) => {
   await page.goto('/profile');
   await expect(page.getByText('make it yours.')).toBeVisible();
   await page.getByRole('button', { name: 'choose your blend color' }).click();
@@ -32,15 +31,13 @@ test('profile color, burn rate, and trusted friend settings persist across scree
   await burn.press('ArrowLeft');
   await expect(burn).toHaveAttribute('aria-valuenow', '99');
   await expect(page.getByText('mindful', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'choose trusted friend' }).click();
-  await page.getByRole('button', { name: 'trust ria', exact: true }).click();
   await page.getByRole('tab', { name: 'home', exact: true }).click();
   await expect(page.getByText('$284', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.reload();
   await expect(blend).toHaveAttribute('aria-valuenow', '1');
   await expect(burn).toHaveAttribute('aria-valuenow', '99');
-  await expect(page.getByRole('button', { name: 'choose trusted friend' })).toContainText('ria');
+  await expect(page.getByTestId('friend-avatar')).toHaveCount(3);
   expect(await page.locator('body').innerText()).not.toMatch(/[A-Z]/);
   const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
   expect(persisted.blendHue).toBe('Crimson');
@@ -67,4 +64,52 @@ test('profile remains usable on a small phone and sliders respond to dragging', 
     scroll: document.documentElement.scrollWidth,
   }));
   expect(dimensions.scroll).toBe(dimensions.width);
+});
+
+for (const width of [320, 390]) {
+  test(`friend icons stay on one row at ${width}px and overflow opens the full circle`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const state = initialState();
+    state.friends = Array.from({ length: 13 }, (_, i) => ({
+      id: `friend-${i}`,
+      name: `friend ${i + 1}`,
+      email: `friend${i}@example.com`,
+      hue: 'Ember',
+      savings: 0,
+    }));
+    await page.addInitScript(
+      (s) => localStorage.setItem('snuff.mobile.v2', JSON.stringify(s)),
+      state,
+    );
+    await page.goto('/profile');
+    const avatars = page.getByTestId('friend-avatar');
+    const rects = await avatars.evaluateAll((elements) =>
+      elements.map((e) => ({
+        y: e.getBoundingClientRect().y,
+        right: e.getBoundingClientRect().right,
+      })),
+    );
+    expect(rects.length).toBeGreaterThan(0);
+    expect(rects.length).toBeLessThan(10);
+    expect(new Set(rects.map((r) => r.y)).size).toBe(1);
+    expect(Math.max(...rects.map((r) => r.right))).toBeLessThan(width);
+    await page.getByRole('button', { name: /show all trusted friends/ }).click();
+    await expect(page.getByText('your quiet circle.', { exact: true })).toBeVisible();
+    await page.getByText('friend 13', { exact: true }).scrollIntoViewIfNeeded();
+    await expect(page.getByText('friend 13', { exact: true })).toBeVisible();
+  });
+}
+
+test('an empty friend strip offers a connection without showing overflow', async ({ page }) => {
+  await page.addInitScript((s) => localStorage.setItem('snuff.mobile.v2', JSON.stringify(s)), {
+    ...initialState(),
+    friends: [],
+  });
+  await page.goto('/profile');
+  await expect(page.getByTestId('friend-avatar')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /show all trusted friends/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'add trusted friends' }).click();
+  await expect(page.getByRole('button', { name: 'connect with a friend' })).toBeVisible();
 });

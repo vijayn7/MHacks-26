@@ -11,8 +11,7 @@ echo 'export PATH="/opt/homebrew/opt/node@22/bin:$PATH"' >> ~/.zprofile
 source ~/.zprofile
 
 git clone https://github.com/vijayn7/MHacks-26.git
-cd MHacks-26
-git checkout cursor/impulse-spending-app-70f2
+cd MHacks-26/"GPT-App Ver"
 
 bash scripts/setup.sh          # enables pnpm, installs deps, copies .env
 pnpm dev:web                   # http://localhost:3000
@@ -20,7 +19,7 @@ pnpm dev:web                   # http://localhost:3000
 
 `scripts/setup.sh` refuses to run if you are in the wrong folder, and it tells you if Node or pnpm is missing.
 
-Then, in other terminals still inside `MHacks-26`:
+Then, in other terminals still inside `MHacks-26/"GPT-App Ver"`:
 
 ```bash
 bash scripts/demo.sh           # after the server is up

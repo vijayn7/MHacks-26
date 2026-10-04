@@ -7,8 +7,7 @@ if [[ ! -f package.json || ! -f .env.example || ! -d apps/web ]]; then
   echo "This is not the Impulse repo. Clone it first, then run this script from that folder:"
   echo
   echo "  git clone https://github.com/vijayn7/MHacks-26.git"
-  echo "  cd MHacks-26"
-  echo "  git checkout cursor/impulse-spending-app-70f2"
+  echo "  cd MHacks-26/\"GPT-App Ver\""
   echo "  bash scripts/setup.sh"
   exit 1
 fi

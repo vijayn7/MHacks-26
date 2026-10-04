@@ -798,12 +798,12 @@ export function App() {
       const ty = -fy;
       const px = -ty;
       const py = tx;
-      const count = Math.min(4, 1 + Math.floor(speed / 12));
+      const count = Math.min(5, 1 + Math.floor(speed / 11));
 
       for (let i = 0; i < count; i++) {
-        if (embers.length > 100) embers.shift();
-        const along = 0.55 + Math.random() * (1.4 + speed * 0.045);
-        const side = (Math.random() - 0.5) * 1.35;
+        if (embers.length > 140) embers.shift();
+        const along = 0.5 + Math.random() * (1.25 + speed * 0.04);
+        const side = (Math.random() - 0.5) * 1.5;
         // Emit from the flame body / mid, slightly behind the tip
         const back = 6 + Math.random() * 10;
         const lateral = (Math.random() - 0.5) * 5;
@@ -812,12 +812,13 @@ export function App() {
           y: y + ty * back + py * lateral + 8,
           vx: tx * along + px * side * 0.55 + (Math.random() - 0.5) * 0.25,
           // Gentle rise only — trail direction dominates
-          vy: ty * along + py * side * 0.55 - 0.08 - Math.random() * 0.12,
+          vy: ty * along + py * side * 0.55 - 0.06 - Math.random() * 0.1,
           life: 0,
-          maxLife: 36 + Math.random() * 42,
-          size: 1.8 + Math.random() * 2.6,
-          wobble: (Math.random() - 0.5) * 0.08,
-          stretch: 1.6 + Math.min(speed / 18, 1.8),
+          // Linger longer so the trail hangs behind the cursor
+          maxLife: 58 + Math.random() * 72,
+          size: 2.1 + Math.random() * 3.2,
+          wobble: (Math.random() - 0.5) * 0.07,
+          stretch: 1.5 + Math.min(speed / 18, 1.6),
         });
       }
     };
@@ -842,11 +843,11 @@ export function App() {
         e.y += e.vy;
         // Soft curl + fade of velocity into a lingering trail
         e.vx += e.wobble;
-        e.vy -= 0.012;
-        e.vx *= 0.96;
-        e.vy *= 0.965;
-        e.size *= 1.008;
-        e.stretch *= 0.992;
+        e.vy -= 0.01;
+        e.vx *= 0.972;
+        e.vy *= 0.978;
+        e.size *= 1.014;
+        e.stretch *= 0.994;
 
         const t = e.life / e.maxLife;
         if (t >= 1) {
@@ -854,35 +855,36 @@ export function App() {
           continue;
         }
 
-        // Fire (hot) → smoke (cool gray) over lifetime
+        // Short hot core → longer, denser ash smoke hang
         let r: number;
         let g: number;
         let b: number;
         let a: number;
-        if (t < 0.22) {
-          const u = t / 0.22;
+        if (t < 0.14) {
+          const u = t / 0.14;
           r = 255;
           g = 230 - u * 90;
           b = 140 - u * 100;
-          a = 0.9 - u * 0.2;
-        } else if (t < 0.5) {
-          const u = (t - 0.22) / 0.28;
-          r = 255 - u * 100;
-          g = 140 - u * 70;
-          b = 40 + u * 50;
-          a = 0.7 - u * 0.28;
+          a = 0.88 - u * 0.18;
+        } else if (t < 0.34) {
+          const u = (t - 0.14) / 0.2;
+          r = 255 - u * 110;
+          g = 140 - u * 55;
+          b = 40 + u * 70;
+          a = 0.7 - u * 0.22;
         } else {
-          const u = (t - 0.5) / 0.5;
-          r = 155 - u * 45;
-          g = 145 - u * 35;
-          b = 140 - u * 20;
-          a = 0.38 * (1 - u) * (1 - u);
+          const u = (t - 0.34) / 0.66;
+          // Cooler, ashier smoke that stays readable longer
+          r = 172 - u * 38;
+          g = 166 - u * 30;
+          b = 162 - u * 22;
+          a = 0.5 * Math.pow(1 - u, 1.05);
         }
 
-        const radius = e.size * (0.75 + t * 1.35);
+        const radius = e.size * (0.85 + t * 1.95);
         const spd = Math.hypot(e.vx, e.vy);
         const ang = spd > 0.05 ? Math.atan2(e.vy, e.vx) : 0;
-        const stretch = Math.max(1, e.stretch * (0.85 + Math.min(spd, 2) * 0.35));
+        const stretch = Math.max(1, e.stretch * (0.8 + Math.min(spd, 2) * 0.3));
 
         ctx.save();
         ctx.translate(e.x, e.y);
@@ -890,9 +892,9 @@ export function App() {
         ctx.scale(stretch, 1);
         const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
         glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
-        glow.addColorStop(0.5, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.4})`);
+        glow.addColorStop(0.45, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.42})`);
         glow.addColorStop(1, `rgba(${r | 0}, ${g | 0}, ${b | 0}, 0)`);
-        ctx.globalCompositeOperation = t < 0.45 ? "lighter" : "source-over";
+        ctx.globalCompositeOperation = t < 0.3 ? "lighter" : "source-over";
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 2);

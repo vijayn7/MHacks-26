@@ -110,6 +110,8 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
       if (apiEnabled) await sendCheckIn(n.id, friend.name);
       setSentTo(friend.name);
       setCheckInStatus('sent');
+      onClose();
+      router.replace('/');
     } catch {
       setCheckInStatus('error');
     }
@@ -205,7 +207,10 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                         <QuietButton
                           secondary
                           disabled={checkInStatus === 'sending'}
-                          onPress={() => setFriendId(null)}
+                          onPress={() => {
+                            onClose();
+                            router.replace('/');
+                          }}
                         >
                           no, go back
                         </QuietButton>
@@ -346,10 +351,18 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                           tap();
                           setFriendsOpen(true);
                         }}
-                        style={[s.choice, s.yes, { flexDirection: 'row', gap: 7 }]}
+                        style={[
+                          s.choice,
+                          {
+                            flexDirection: 'row',
+                            gap: 9,
+                            borderWidth: 1,
+                            borderColor: '#FFFFFF1A',
+                          },
+                        ]}
                       >
-                        <Icon name="users" size={16} color={colors.secondary} />
-                        <T variant="small">ask a friend</T>
+                        <Icon name="users" size={16} color={colors.text} />
+                        <T color={colors.text}>ask a friend</T>
                       </Pressable>
                     </View>
                     <Pressable

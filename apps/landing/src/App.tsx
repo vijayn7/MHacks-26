@@ -21,7 +21,6 @@ type Tile = {
  * Void sits behind everything (near-black). Extra mid-field windows live in void.
  */
 const tiles: Tile[] = [
-  // Far atmosphere — same count as before, hung just past the edges
   {
     id: "t1",
     src: "/sites/amazon.jpg",
@@ -110,8 +109,6 @@ const tiles: Tile[] = [
       ["--focus" as string]: "left center",
     },
   },
-
-  // Mid scatter — thin readable ring; most former mid + extras live in void
   {
     id: "c1",
     src: "/sites/walmart.jpg",
@@ -149,14 +146,6 @@ const tiles: Tile[] = [
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
-  },
-  {
-    id: "c5",
-    src: "/sites/etsy.jpg",
-    alt: "Etsy mid",
-    layer: "far",
-    drift: 0.65,
-    style: { top: "10%", left: "48%", width: "11%", aspectRatio: "16 / 10" },
   },
   {
     id: "c6",
@@ -229,20 +218,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c11",
-    src: "/sites/nike.jpg",
-    alt: "Nike mid",
-    layer: "mid",
-    drift: 1.25,
-    style: {
-      top: "34%",
-      right: "32%",
-      width: "11%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left center",
-    },
-  },
-  {
     id: "c12",
     src: "/sites/ebay.jpg",
     alt: "eBay mid",
@@ -254,34 +229,6 @@ const tiles: Tile[] = [
       width: "13%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
-    },
-  },
-  {
-    id: "c13",
-    src: "/sites/princesspolly.jpg",
-    alt: "Polly mid",
-    layer: "far",
-    drift: 1.05,
-    style: {
-      top: "16%",
-      right: "36%",
-      width: "10%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
-    },
-  },
-  {
-    id: "c14",
-    src: "/sites/walmart.jpg",
-    alt: "Walmart low",
-    layer: "mid",
-    drift: 0.8,
-    style: {
-      top: "58%",
-      right: "16%",
-      width: "14%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
     },
   },
   {
@@ -310,20 +257,6 @@ const tiles: Tile[] = [
       width: "12%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
-    },
-  },
-  {
-    id: "c18",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando high",
-    layer: "void",
-    drift: 0.7,
-    style: {
-      top: "-4%",
-      right: "18%",
-      width: "13%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
     },
   },
   {
@@ -369,20 +302,6 @@ const tiles: Tile[] = [
     },
   },
   {
-    id: "c26",
-    src: "/sites/homedepot.jpg",
-    alt: "Home Depot high",
-    layer: "mid",
-    drift: 1.05,
-    style: {
-      top: "12%",
-      left: "28%",
-      width: "10%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
     id: "c27",
     src: "/sites/polymarket.jpg",
     alt: "Polymarket high",
@@ -394,20 +313,6 @@ const tiles: Tile[] = [
       width: "11%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
-    },
-  },
-  {
-    id: "c28",
-    src: "/sites/princesspolly.jpg",
-    alt: "Polly low",
-    layer: "mid",
-    drift: 1.2,
-    style: {
-      bottom: "14%",
-      right: "28%",
-      width: "11%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
     },
   },
   {
@@ -452,8 +357,6 @@ const tiles: Tile[] = [
       ["--focus" as string]: "center top",
     },
   },
-
-  // Interactive front windows — organic ring, slightly larger
   {
     id: "i1",
     src: "/sites/princesspolly.jpg",

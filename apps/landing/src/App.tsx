@@ -2,6 +2,15 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type Layer = "void" | "far" | "mid" | "near";
 
+type FlamePalette = {
+  tip: string;
+  mid: string;
+  base: string;
+  core: string;
+  button: string;
+  glow: string;
+};
+
 type Tile = {
   id: string;
   src: string;
@@ -11,12 +20,65 @@ type Tile = {
   interactive?: boolean;
   /** Product line shown in the desktop hover overlay */
   product?: string;
+  /** Sleeping-flame colors for this screen’s overlay */
+  flame?: FlamePalette;
   /** Parallax intensity within the layer (default 1) */
   drift?: number;
   /** 0 = farthest, 1 = closest — unique per tile for Z stagger */
   depth?: number;
   style: CSSProperties;
 };
+
+const FLAMES = {
+  peach: {
+    tip: "#E48A78",
+    mid: "#F0B0A0",
+    base: "#F8D4C8",
+    core: "#FFE8E0",
+    button: "#F7D0C6",
+    glow: "232 155 138",
+  },
+  ember: {
+    tip: "#ED7014",
+    mid: "#F5A524",
+    base: "#FFD66B",
+    core: "#FFF3D6",
+    button: "#FFD66B",
+    glow: "245 165 36",
+  },
+  violet: {
+    tip: "#8B5CF6",
+    mid: "#A78BFA",
+    base: "#DDD6FE",
+    core: "#F5F3FF",
+    button: "#DDD6FE",
+    glow: "167 139 250",
+  },
+  teal: {
+    tip: "#0D9488",
+    mid: "#2DD4BF",
+    base: "#99F6E4",
+    core: "#ECFDF5",
+    button: "#99F6E4",
+    glow: "45 212 191",
+  },
+  sky: {
+    tip: "#2563EB",
+    mid: "#60A5FA",
+    base: "#BFDBFE",
+    core: "#EFF6FF",
+    button: "#BFDBFE",
+    glow: "96 165 250",
+  },
+  rose: {
+    tip: "#E11D48",
+    mid: "#FB7185",
+    base: "#FECDD3",
+    core: "#FFF1F2",
+    button: "#FECDD3",
+    glow: "251 113 133",
+  },
+} as const satisfies Record<string, FlamePalette>;
 
 /**
  * Dense organic scatter — roughly balanced, intentionally irregular.
@@ -114,6 +176,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "linen blazer • $89",
+    flame: FLAMES.violet,
     drift: 1.1,
     style: {
       top: "-3%",
@@ -326,6 +389,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "vintage camera • $220",
+    flame: FLAMES.ember,
     drift: 1.2,
     style: { top: "-4%", left: "-3%", width: "26%", aspectRatio: "16 / 10" },
   },
@@ -336,6 +400,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "satin mini dress • $68",
+    flame: FLAMES.rose,
     drift: 1.0,
     style: {
       top: "38%",
@@ -352,6 +417,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "studio headphones • $149",
+    flame: FLAMES.peach,
     drift: 1.15,
     style: {
       top: "32%",
@@ -368,6 +434,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "yes shares • $42",
+    flame: FLAMES.sky,
     drift: 0.9,
     style: {
       bottom: "4%",
@@ -384,6 +451,7 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     product: "event contract • $18",
+    flame: FLAMES.teal,
     drift: 1.1,
     depth: 0.97,
     style: {
@@ -476,7 +544,7 @@ function BookmarkIcon() {
 }
 
 /** Peaceful sleeping flame for the desktop urge overlay */
-function SleepingFlame({ uid }: { uid: string }) {
+function SleepingFlame({ uid, flame }: { uid: string; flame: FlamePalette }) {
   const body = `${uid}-body`;
   const core = `${uid}-core`;
   const smoke = `${uid}-smoke`;
@@ -487,14 +555,14 @@ function SleepingFlame({ uid }: { uid: string }) {
           <feGaussianBlur stdDeviation="7" />
         </filter>
         <linearGradient id={body} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#E48A78" />
-          <stop offset="42%" stopColor="#F0B0A0" />
-          <stop offset="100%" stopColor="#F8D4C8" />
+          <stop offset="0%" stopColor={flame.tip} />
+          <stop offset="42%" stopColor={flame.mid} />
+          <stop offset="100%" stopColor={flame.base} />
         </linearGradient>
         <radialGradient id={core} cx="48%" cy="72%" r="55%">
-          <stop offset="0%" stopColor="#FFE8E0" stopOpacity="0.95" />
-          <stop offset="55%" stopColor="#F8D4C8" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#F8D4C8" stopOpacity="0" />
+          <stop offset="0%" stopColor={flame.core} stopOpacity="0.95" />
+          <stop offset="55%" stopColor={flame.base} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={flame.base} stopOpacity="0" />
         </radialGradient>
       </defs>
       {/* Soft trailing smoke — drifts up and aside, not tip secretion */}
@@ -530,45 +598,59 @@ function UrgeOverlay({
   site,
   product,
   uid,
+  flame,
 }: {
   site: string;
   product: string;
   uid: string;
+  flame: FlamePalette;
 }) {
   return (
-    <div className="tile__block urge" role="dialog" aria-label={`Snuff urge on ${site}`}>
-      <span className="urge__close" aria-hidden="true">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M6.2 6.2a1 1 0 0 1 1.4 0L12 10.6l4.4-4.4a1 1 0 1 1 1.4 1.4L13.4 12l4.4 4.4a1 1 0 0 1-1.4 1.4L12 13.4l-4.4 4.4a1 1 0 0 1-1.4-1.4L10.6 12 6.2 7.6a1 1 0 0 1 0-1.4Z"
-            fill="currentColor"
-          />
-        </svg>
-      </span>
+    <div
+      className="tile__block"
+      role="dialog"
+      aria-label={`Snuff urge on ${site}`}
+      style={
+        {
+          ["--urge-accent" as string]: flame.button,
+          ["--urge-glow" as string]: flame.glow,
+        } as CSSProperties
+      }
+    >
+      <div className="urge">
+        <span className="urge__close" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M6.2 6.2a1 1 0 0 1 1.4 0L12 10.6l4.4-4.4a1 1 0 1 1 1.4 1.4L13.4 12l4.4 4.4a1 1 0 0 1-1.4 1.4L12 13.4l-4.4 4.4a1 1 0 0 1-1.4-1.4L10.6 12 6.2 7.6a1 1 0 0 1 0-1.4Z"
+              fill="currentColor"
+            />
+          </svg>
+        </span>
 
-      <div className="urge__panel">
-        <SleepingFlame uid={uid} />
-        <h2 className="urge__title">snuff this urge?</h2>
-        <p className="urge__product">{product}</p>
-        <p className="urge__copy">let this purchase go. keep the money for what matters.</p>
+        <div className="urge__panel">
+          <SleepingFlame uid={uid} flame={flame} />
+          <h2 className="urge__title">snuff this urge?</h2>
+          <p className="urge__product">{product}</p>
+          <p className="urge__copy">let this purchase go. keep the money for what matters.</p>
 
-        <div className="urge__actions">
-          <div className="urge__row">
-            <button type="button" className="urge__btn urge__btn--yes">
-              yes
+          <div className="urge__actions">
+            <div className="urge__row">
+              <button type="button" className="urge__btn urge__btn--yes">
+                yes
+              </button>
+              <button type="button" className="urge__btn urge__btn--ghost">
+                <FriendIcon />
+                ask a friend
+              </button>
+            </div>
+            <button type="button" className="urge__btn urge__btn--ghost urge__btn--wide">
+              <BookmarkIcon />
+              save for later
             </button>
-            <button type="button" className="urge__btn urge__btn--ghost">
-              <FriendIcon />
-              ask a friend
+            <button type="button" className="urge__continue">
+              no, continue purchase
             </button>
           </div>
-          <button type="button" className="urge__btn urge__btn--ghost urge__btn--wide">
-            <BookmarkIcon />
-            save for later
-          </button>
-          <button type="button" className="urge__continue">
-            no, continue purchase
-          </button>
         </div>
       </div>
     </div>
@@ -917,6 +999,7 @@ export function App() {
                   site={tile.alt}
                   product={tile.product ?? "this item"}
                   uid={tile.id}
+                  flame={tile.flame ?? FLAMES.peach}
                 />
               ) : null}
             </figure>

@@ -470,6 +470,11 @@ button {
   flex-shrink: 0;
 }
 
+.cta__icon--chrome {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .cta:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
@@ -480,15 +485,15 @@ button {
   outline-offset: 3px;
 }
 
-/* QuietButton primary: ember core → body → mid */
+/* QuietButton primary: deeper ember so white Chrome mark + label read clearly */
 .cta--primary {
   background: linear-gradient(
     135deg,
-    var(--ember-core) 0%,
-    var(--ember-body) 48%,
-    var(--ember-mid) 100%
+    var(--ember-body) 0%,
+    var(--ember-mid) 48%,
+    var(--ember-edge) 100%
   );
-  color: var(--ember-wash);
+  color: #fff;
 }
 
 /* Quiet secondary / profile outline chip */

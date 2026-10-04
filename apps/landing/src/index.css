@@ -103,7 +103,7 @@ button {
 .tile--mid {
   z-index: 2;
   opacity: 1;
-  filter: saturate(0.9) brightness(0.62);
+  filter: saturate(0.88) brightness(0.52);
   box-shadow: 0 16px 36px rgb(0 0 0 / 0.48);
   transform:
     translate3d(
@@ -246,11 +246,13 @@ button {
   padding: 1.5rem;
   text-align: center;
   pointer-events: none;
+  /* Tight vignette so mid windows read behind the brand */
   background: radial-gradient(
-    ellipse 48% 36% at 50% 48%,
-    rgb(26 20 16 / 0.96) 0%,
-    rgb(26 20 16 / 0.7) 48%,
-    transparent 76%
+    ellipse 36% 28% at 50% 48%,
+    rgb(26 20 16 / 0.97) 0%,
+    rgb(26 20 16 / 0.78) 40%,
+    rgb(26 20 16 / 0.28) 68%,
+    transparent 82%
   );
 }
 

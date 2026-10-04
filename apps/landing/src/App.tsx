@@ -13,11 +13,11 @@ type Tile = {
 };
 
 /**
- * Far/mid frames are darkened edge atmosphere.
- * Interactive near frames sit fully inside the viewport at normal brightness.
+ * Far/mid frames are darkened atmosphere (including behind the brand).
+ * Interactive near frames are larger, fully on-screen, normal brightness.
  */
 const tiles: Tile[] = [
-  // Far atmosphere — large, darkened, mostly off-edge
+  // Far edge bleeders
   {
     id: "t1",
     src: "/sites/amazon.jpg",
@@ -51,14 +51,14 @@ const tiles: Tile[] = [
     src: "/sites/nike.jpg",
     alt: "Nike",
     layer: "far",
-    style: { top: "24%", left: "-12%", width: "34%", aspectRatio: "16 / 10" },
+    style: { top: "22%", left: "-14%", width: "36%", aspectRatio: "16 / 10" },
   },
   {
     id: "t6",
     src: "/sites/edikted.jpg",
     alt: "Edikted",
     layer: "far",
-    style: { top: "28%", right: "-13%", width: "35%", aspectRatio: "16 / 10" },
+    style: { top: "26%", right: "-15%", width: "37%", aspectRatio: "16 / 10" },
   },
   {
     id: "t7",
@@ -66,9 +66,9 @@ const tiles: Tile[] = [
     alt: "Best Buy",
     layer: "far",
     style: {
-      top: "52%",
-      left: "-10%",
-      width: "28%",
+      top: "54%",
+      left: "-12%",
+      width: "30%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center top",
     },
@@ -79,102 +79,130 @@ const tiles: Tile[] = [
     alt: "Home Depot",
     layer: "far",
     style: {
-      top: "56%",
-      right: "-11%",
-      width: "29%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "left top",
-    },
-  },
-  {
-    id: "t9",
-    src: "/sites/etsy.jpg",
-    alt: "Etsy",
-    layer: "far",
-    style: { top: "-6%", left: "32%", width: "16%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t10",
-    src: "/sites/walmart.jpg",
-    alt: "Walmart",
-    layer: "far",
-    style: { top: "-4%", left: "50%", width: "14%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t11",
-    src: "/sites/costco.jpg",
-    alt: "Costco",
-    layer: "mid",
-    style: { top: "6%", right: "-8%", width: "22%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t12",
-    src: "/sites/zalando.jpg",
-    alt: "Zalando",
-    layer: "far",
-    style: { top: "42%", left: "6%", width: "13%", aspectRatio: "16 / 10" },
-  },
-  {
-    id: "t13",
-    src: "/sites/asos.jpg",
-    alt: "ASOS sale",
-    layer: "far",
-    style: {
-      top: "48%",
-      right: "6%",
-      width: "13%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center center",
-    },
-  },
-  {
-    id: "t14",
-    src: "/sites/shein.jpg",
-    alt: "SHEIN browse",
-    layer: "mid",
-    style: {
-      bottom: "-5%",
-      left: "28%",
-      width: "18%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "center top",
-    },
-  },
-  {
-    id: "t15",
-    src: "/sites/edikted.jpg",
-    alt: "Edikted look",
-    layer: "mid",
-    style: {
-      bottom: "-5%",
-      right: "26%",
-      width: "17%",
-      aspectRatio: "16 / 10",
-      ["--focus" as string]: "right top",
-    },
-  },
-  {
-    id: "t16",
-    src: "/sites/polymarket.jpg",
-    alt: "Polymarket markets",
-    layer: "far",
-    style: {
-      bottom: "12%",
-      left: "-6%",
-      width: "20%",
+      top: "58%",
+      right: "-12%",
+      width: "31%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left top",
     },
   },
 
-  // Fully on-screen front windows — normal brightness + hover pause popup
+  // Mid field behind / around the brand — fills the empty ring
+  {
+    id: "c1",
+    src: "/sites/walmart.jpg",
+    alt: "Walmart",
+    layer: "mid",
+    style: { top: "18%", left: "28%", width: "18%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "c2",
+    src: "/sites/costco.jpg",
+    alt: "Costco",
+    layer: "mid",
+    style: { top: "16%", right: "26%", width: "19%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "c3",
+    src: "/sites/zalando.jpg",
+    alt: "Zalando",
+    layer: "mid",
+    style: { top: "34%", left: "22%", width: "16%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "c4",
+    src: "/sites/asos.jpg",
+    alt: "ASOS sale",
+    layer: "mid",
+    style: {
+      top: "32%",
+      right: "20%",
+      width: "17%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "center center",
+    },
+  },
+  {
+    id: "c5",
+    src: "/sites/shein.jpg",
+    alt: "SHEIN browse",
+    layer: "mid",
+    style: {
+      top: "48%",
+      left: "30%",
+      width: "16%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "center top",
+    },
+  },
+  {
+    id: "c6",
+    src: "/sites/edikted.jpg",
+    alt: "Edikted look",
+    layer: "mid",
+    style: {
+      top: "50%",
+      right: "28%",
+      width: "16%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "right top",
+    },
+  },
+  {
+    id: "c7",
+    src: "/sites/etsy.jpg",
+    alt: "Etsy",
+    layer: "far",
+    style: { top: "8%", left: "38%", width: "15%", aspectRatio: "16 / 10" },
+  },
+  {
+    id: "c8",
+    src: "/sites/polymarket.jpg",
+    alt: "Polymarket markets",
+    layer: "far",
+    style: {
+      bottom: "14%",
+      left: "36%",
+      width: "17%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "left top",
+    },
+  },
+  {
+    id: "c9",
+    src: "/sites/homedepot.jpg",
+    alt: "Home Depot near",
+    layer: "mid",
+    style: {
+      top: "28%",
+      left: "40%",
+      width: "14%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "left top",
+    },
+  },
+  {
+    id: "c10",
+    src: "/sites/bestbuy.jpg",
+    alt: "Best Buy mid",
+    layer: "far",
+    style: {
+      top: "44%",
+      left: "42%",
+      width: "13%",
+      aspectRatio: "16 / 10",
+      ["--focus" as string]: "center center",
+    },
+  },
+
+  // Larger fully on-screen front windows — normal brightness + hover popup
   {
     id: "i1",
     src: "/sites/princesspolly.jpg",
     alt: "Princess Polly",
     layer: "near",
     interactive: true,
-    style: { top: "14%", left: "6%", width: "16%", aspectRatio: "16 / 10" },
+    style: { top: "8%", left: "3%", width: "24%", aspectRatio: "16 / 10" },
   },
   {
     id: "i2",
@@ -182,7 +210,7 @@ const tiles: Tile[] = [
     alt: "eBay",
     layer: "near",
     interactive: true,
-    style: { top: "14%", right: "6%", width: "16%", aspectRatio: "16 / 10" },
+    style: { top: "7%", right: "3%", width: "24%", aspectRatio: "16 / 10" },
   },
   {
     id: "i3",
@@ -191,9 +219,9 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     style: {
-      top: "40%",
-      left: "5%",
-      width: "15%",
+      top: "36%",
+      left: "2%",
+      width: "22%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "left center",
     },
@@ -205,9 +233,9 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     style: {
-      top: "42%",
-      right: "5%",
-      width: "15%",
+      top: "38%",
+      right: "2%",
+      width: "22%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right center",
     },
@@ -219,9 +247,9 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     style: {
-      bottom: "9%",
-      left: "20%",
-      width: "14%",
+      bottom: "5%",
+      left: "14%",
+      width: "21%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "center center",
     },
@@ -233,9 +261,9 @@ const tiles: Tile[] = [
     layer: "near",
     interactive: true,
     style: {
-      bottom: "9%",
-      right: "18%",
-      width: "14%",
+      bottom: "5%",
+      right: "12%",
+      width: "21%",
       aspectRatio: "16 / 10",
       ["--focus" as string]: "right center",
     },
@@ -365,7 +393,9 @@ export function App() {
               style={tile.style}
               aria-hidden={interactive ? undefined : true}
               onPointerEnter={interactive ? () => setActiveId(tile.id) : undefined}
-              onPointerLeave={interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined}
+              onPointerLeave={
+                interactive ? () => setActiveId((id) => (id === tile.id ? null : id)) : undefined
+              }
             >
               <img src={tile.src} alt={interactive ? tile.alt : ""} draggable={false} />
               {interactive ? <PausePopup site={tile.alt} /> : null}

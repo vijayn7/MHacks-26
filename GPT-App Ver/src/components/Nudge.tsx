@@ -24,6 +24,8 @@ import { blendPalette } from '../design/blend';
 import { celebrate, Icon, QuietButton, T, tap } from './ui';
 import { Mascot } from './Mascot';
 import { enableNudges, scheduleNudge, cancelNudge } from '../services/notifications';
+import { apiEnabled } from '../services/api';
+import { fetchCheckIn, sendCheckIn } from '../services/checkin';
 
 export function NudgeSheet() {
   const { state, activeNudge, openNudge } = useStore();
@@ -44,6 +46,9 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
   const friend = state.friends.find((f) => f.id === friendId);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [checkInStatus, setCheckInStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [friendReply, setFriendReply] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [settled, setSettled] = useState(done);
   const [fade] = useState(() => new Animated.Value(done ? 1 : 0));
@@ -74,12 +79,43 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
       clearTimeout(timeout);
     };
   }, [done, fade, reducedMotion]);
+  useEffect(() => {
+    if (!apiEnabled || checkInStatus !== 'sent' || friendReply) return;
+    let stop = false;
+    const tick = async () => {
+      try {
+        const row = await fetchCheckIn(n.id);
+        if (!stop && row.status === 'replied' && row.reply) setFriendReply(row.reply);
+      } catch {
+        /* keep waiting quietly */
+      }
+    };
+    const timer = setInterval(() => {
+      void tick();
+    }, 2000);
+    void tick();
+    return () => {
+      stop = true;
+      clearInterval(timer);
+    };
+  }, [checkInStatus, friendReply, n.id]);
   const decide = (snuff: boolean) => {
     if (n.status !== 'waiting') return;
     dispatch({ type: snuff ? 'SNUFF_NUDGE' : 'KEEP_NUDGE', id: n.id });
     cancelNudge(n.id).catch(() => {});
     if (snuff) celebrate();
     else tap();
+  };
+  const askFriend = async () => {
+    if (!friend || !apiEnabled || checkInStatus === 'sending' || checkInStatus === 'sent') return;
+    setCheckInStatus('sending');
+    try {
+      await sendCheckIn(n.id, friend.name);
+      setSentTo(friend.name);
+      setCheckInStatus('sent');
+    } catch {
+      setCheckInStatus('error');
+    }
   };
   const later = async () => {
     setBusy(true);
@@ -162,9 +198,45 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     <T style={[s.centerText, { marginTop: 18 }]}>
                       i’m taking a moment before buying something. can you check in with me?
                     </T>
-                    <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
-                      messaging isn’t connected yet. nothing has been sent.
-                    </T>
+                    {apiEnabled ? (
+                      <>
+                        {checkInStatus === 'sent' || checkInStatus === 'sending' ? (
+                          <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
+                            {checkInStatus === 'sending'
+                              ? 'sending…'
+                              : `sent to ${sentTo ?? friend.name}.`}
+                          </T>
+                        ) : (
+                          <>
+                            <QuietButton
+                              onPress={() => {
+                                void askFriend();
+                              }}
+                            >
+                              send
+                            </QuietButton>
+                            {checkInStatus === 'error' && (
+                              <T
+                                variant="small"
+                                color={palettes.Crimson.body}
+                                style={[s.centerText, { marginTop: 12 }]}
+                              >
+                                couldn’t send right now
+                              </T>
+                            )}
+                          </>
+                        )}
+                        {!!friendReply && (
+                          <T variant="quote" style={[s.centerText, { marginTop: 22 }]}>
+                            {friendReply}
+                          </T>
+                        )}
+                      </>
+                    ) : (
+                      <T variant="small" style={[s.centerText, { marginTop: 24 }]}>
+                        messaging isn’t connected yet. nothing has been sent.
+                      </T>
+                    )}
                     <QuietButton secondary onPress={() => setFriendId(null)}>
                       choose someone else
                     </QuietButton>
@@ -259,6 +331,11 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                   </T>
                 )}
                 <PurchaseInsights nudge={n} />
+                {!!friendReply && (
+                  <T variant="quote" style={[s.centerText, { marginBottom: 18 }]}>
+                    {friendReply}
+                  </T>
+                )}
                 {!done && !kept && !saved ? (
                   <>
                     <View style={s.choices}>

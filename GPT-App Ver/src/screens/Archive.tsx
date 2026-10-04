@@ -20,8 +20,8 @@ import { colors, palettes } from '../design/tokens';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
-const step = 128,
-  tile = 104;
+const step = 140,
+  tile = 112;
 export default function Archive() {
   const { state, dispatch, openNudge } = useStore();
   const insets = useSafeAreaInsets();
@@ -147,12 +147,12 @@ export default function Archive() {
                               {
                                 rotateX: offset.interpolate({
                                   inputRange: range,
-                                  outputRange: ['-65deg', '-12deg', '0deg', '12deg', '65deg'],
+                                  outputRange: ['-48deg', '-9deg', '0deg', '9deg', '48deg'],
                                   extrapolate: 'clamp',
                                 }),
                               },
-                              { scaleX: interpolate([1.9, 1, 1, 1, 1.9]) },
-                              { scaleY: interpolate([1.4, 1, 1, 1, 1.4]) },
+                              { scaleX: interpolate([1.65, 1, 1.45, 1, 1.65]) },
+                              { scaleY: interpolate([1.1, 0.96, 1.45, 0.96, 1.1]) },
                             ],
                       }}
                     >
@@ -163,19 +163,17 @@ export default function Archive() {
                           if (selected !== index) focus(index);
                           else setDetail(item);
                         }}
-                        style={[
-                          s.card,
-                          selected === index && {
-                            boxShadow: `0px 0px 24px ${palettes[state.hue].body}18`,
-                          },
-                        ]}
+                        style={s.card}
                       >
                         <ItemArtwork name={item.name} size={tile} />
                       </Pressable>
                     </Animated.View>
                     {selected === index && (
                       <>
-                        <View pointerEvents="none" style={s.date}>
+                        <View
+                          pointerEvents="none"
+                          style={[s.date, { width: Math.min(78, width / 2 - 96) }]}
+                        >
                           <T
                             variant="mono"
                             color={colors.secondary}
@@ -191,7 +189,10 @@ export default function Archive() {
                             {savedDate(item.savedAt)}
                           </T>
                         </View>
-                        <View pointerEvents="none" style={s.label}>
+                        <View
+                          pointerEvents="none"
+                          style={[s.label, { width: Math.min(88, width / 2 - 96) }]}
+                        >
                           <T
                             variant="title"
                             color={colors.text}
@@ -322,19 +323,17 @@ const s = StyleSheet.create({
   card: {
     width: tile,
     height: tile,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-    boxShadow: '0px 8px 24px #00000066',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   date: {
     position: 'absolute',
     right: '50%',
-    marginRight: tile / 2 + 14,
+    marginRight: 84,
     width: 78,
     alignItems: 'flex-end',
   },
-  label: { position: 'absolute', left: '50%', marginLeft: tile / 2 + 14, width: 88 },
+  label: { position: 'absolute', left: '50%', marginLeft: 84, width: 88 },
   fade: { position: 'absolute', left: 0, right: 0, height: 55 },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 14 },
   arrow: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

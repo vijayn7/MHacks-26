@@ -11,6 +11,8 @@ type Tile = {
   interactive?: boolean;
   /** Parallax intensity within the layer (default 1) */
   drift?: number;
+  /** 0 = farthest, 1 = closest — unique per tile for Z stagger */
+  depth?: number;
   style: CSSProperties;
 };
 
@@ -644,6 +646,38 @@ const tiles: Tile[] = [
   },
 ];
 
+/** Spread each layer across a unique Z band so tiles don't share one plane. */
+function withStaggeredDepth(list: Tile[]): Tile[] {
+  const bands: Record<Layer, [number, number]> = {
+    far: [0.04, 0.34],
+    mid: [0.38, 0.68],
+    near: [0.74, 0.96],
+  };
+
+  const byLayer: Record<Layer, Tile[]> = { far: [], mid: [], near: [] };
+  for (const tile of list) byLayer[tile.layer].push(tile);
+
+  const depthOf = new Map<string, number>();
+  (Object.keys(byLayer) as Layer[]).forEach((layer) => {
+    const group = byLayer[layer];
+    const [lo, hi] = bands[layer];
+    const n = group.length;
+    group.forEach((tile, i) => {
+      // Uneven steps so depths don't look like a perfect ladder
+      const t = n <= 1 ? 0.5 : i / (n - 1);
+      const wobble = ((i * 17) % 7) * 0.006 - 0.018;
+      depthOf.set(tile.id, Math.min(hi, Math.max(lo, lo + (hi - lo) * t + wobble)));
+    });
+  });
+
+  return list.map((tile) => ({
+    ...tile,
+    depth: tile.depth ?? depthOf.get(tile.id) ?? 0.5,
+  }));
+}
+
+const fieldTiles = withStaggeredDepth(tiles);
+
 function AppleIcon() {
   return (
     <svg className="cta__icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -749,7 +783,7 @@ export function App() {
   return (
     <main className="snuff" ref={rootRef}>
       <div className="snuff__field">
-        {tiles.map((tile) => {
+        {fieldTiles.map((tile) => {
           const interactive = Boolean(tile.interactive);
           const showBlock = interactive && activeId === tile.id;
 
@@ -768,6 +802,7 @@ export function App() {
                 {
                   ...tile.style,
                   ["--drift" as string]: String(tile.drift ?? 1),
+                  ["--depth" as string]: String(tile.depth ?? 0.5),
                 } as CSSProperties
               }
               aria-hidden={interactive ? undefined : true}

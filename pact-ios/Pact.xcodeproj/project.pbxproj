@@ -22,6 +22,11 @@
 		C6A2110B41ED537B57B99C72 /* App/BroadcastPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62291316236B415BDE83A3E /* App/BroadcastPicker.swift */; };
 		F6733CCA6FAAD72A3CB0BF8B /* Platform/LocalTextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */; };
 		FFCCFDE4FC90D22AB898CA55 /* App/PactViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0456B7B0D70A06454F37B69C /* App/PactViews.swift */; };
+		D0F3422DFD35DFD595B9B7CF /* App/PauseCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C7200BBA90A0BB9A98DDC8 /* App/PauseCardView.swift */; };
+		83EC73B9848FECC01FF5C951 /* App/PauseIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5BC8F8D381B1065AE4BEBD /* App/PauseIntents.swift */; };
+		92A49EE27974D985497CD2F8 /* App/PauseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16458BC47DFC6CF82C08C56 /* App/PauseModel.swift */; };
+		A0A8649D432102AE94EAAFF7 /* Core/PauseWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7067B3184633A3F1840FB5F2 /* Core/PauseWindow.swift */; };
+		EABAE2AE262E3953A968071C /* Core/PauseWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7067B3184633A3F1840FB5F2 /* Core/PauseWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +55,9 @@
 
 /* Begin PBXFileReference section */
 		0456B7B0D70A06454F37B69C /* App/PactViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PactViews.swift; sourceTree = "<group>"; };
+		45C7200BBA90A0BB9A98DDC8 /* App/PauseCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PauseCardView.swift; sourceTree = "<group>"; };
+		5B5BC8F8D381B1065AE4BEBD /* App/PauseIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PauseIntents.swift; sourceTree = "<group>"; };
+		C16458BC47DFC6CF82C08C56 /* App/PauseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PauseModel.swift; sourceTree = "<group>"; };
 		0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/MonitoringSnapshot.swift; sourceTree = "<group>"; };
 		4240854335FF54A336B99C9B /* App/PactApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/PactApp.swift; sourceTree = "<group>"; };
 		425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform/SessionStore.swift; sourceTree = "<group>"; };
@@ -64,6 +72,7 @@
 		BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
 		BF20BDD5C9007BE81C29DD66 /* BroadcastExtension/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BroadcastExtension/Info.plist; sourceTree = "<group>"; };
 		C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/ScreenAnalysis.swift; sourceTree = "<group>"; };
+		7067B3184633A3F1840FB5F2 /* Core/PauseWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/PauseWindow.swift; sourceTree = "<group>"; };
 		DC176E8AF1DD34CEAAE8410B /* PactBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = PactBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E22F3D16C14E3CEA667F4ECC /* App/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = App/Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -105,12 +114,16 @@
 				67E53CB456DB430A3959AC70 /* App/Pact.entitlements */,
 				4240854335FF54A336B99C9B /* App/PactApp.swift */,
 				0456B7B0D70A06454F37B69C /* App/PactViews.swift */,
+				45C7200BBA90A0BB9A98DDC8 /* App/PauseCardView.swift */,
+				5B5BC8F8D381B1065AE4BEBD /* App/PauseIntents.swift */,
+				C16458BC47DFC6CF82C08C56 /* App/PauseModel.swift */,
 				B7462D20A398660B97A02FDF /* BroadcastExtension/Broadcast.entitlements */,
 				BF20BDD5C9007BE81C29DD66 /* BroadcastExtension/Info.plist */,
 				725D44A6351245058DEEFA7E /* BroadcastExtension/SampleHandler.swift */,
 				BDFC0299F3D988BA46A2FF52 /* Config/Shared.xcconfig */,
 				0FF21A4912B280F8ACFC694E /* Core/MonitoringSnapshot.swift */,
 				C475D444EF4BC33E2F00C9D2 /* Core/ScreenAnalysis.swift */,
+				7067B3184633A3F1840FB5F2 /* Core/PauseWindow.swift */,
 				8DC71D198EE72B62D2B46DAF /* Platform/LocalTextReader.swift */,
 				425628C59F39BED6D03F4105 /* Platform/SessionStore.swift */,
 				0A3E27B8CA818264D75C8D81 /* Products */,
@@ -228,8 +241,12 @@
 				301AD048D16ABF5F0FE719CB /* App/MonitorModel.swift in Sources */,
 				4EC61369E0C37D5E7329FBB0 /* App/PactApp.swift in Sources */,
 				FFCCFDE4FC90D22AB898CA55 /* App/PactViews.swift in Sources */,
+				D0F3422DFD35DFD595B9B7CF /* App/PauseCardView.swift in Sources */,
+				83EC73B9848FECC01FF5C951 /* App/PauseIntents.swift in Sources */,
+				92A49EE27974D985497CD2F8 /* App/PauseModel.swift in Sources */,
 				9D755A0AB2B6B541766874AE /* Core/MonitoringSnapshot.swift in Sources */,
 				3737B909250D69FC3DD33D64 /* Core/ScreenAnalysis.swift in Sources */,
+				A0A8649D432102AE94EAAFF7 /* Core/PauseWindow.swift in Sources */,
 				ADA28C11116A5E6ADA58C583 /* Platform/LocalTextReader.swift in Sources */,
 				B5F85D4A93760778CFE63B24 /* Platform/SessionStore.swift in Sources */,
 			);
@@ -242,6 +259,7 @@
 				4816A229B3C553EFD9B67B4F /* BroadcastExtension/SampleHandler.swift in Sources */,
 				B09781EB6D9A36E6B4D07268 /* Core/MonitoringSnapshot.swift in Sources */,
 				9E8CCC2BCBA5E6CBB3C19449 /* Core/ScreenAnalysis.swift in Sources */,
+				EABAE2AE262E3953A968071C /* Core/PauseWindow.swift in Sources */,
 				F6733CCA6FAAD72A3CB0BF8B /* Platform/LocalTextReader.swift in Sources */,
 				712F6CAEDA89548EBCF65EEF /* Platform/SessionStore.swift in Sources */,
 			);

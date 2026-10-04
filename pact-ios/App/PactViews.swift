@@ -12,6 +12,7 @@ enum PactStyle {
 
 struct PactRootView: View {
     @StateObject private var model = MonitorModel()
+    @ObservedObject private var pause = PauseModel.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab = 0
     @State private var samplePresented = false
@@ -35,8 +36,16 @@ struct PactRootView: View {
         .background(PactStyle.paper)
         .foregroundStyle(PactStyle.ink)
         .preferredColorScheme(.light)
-        .onReceive(refresh) { _ in model.refresh() }
-        .onChange(of: scenePhase) { _, phase in model.setVisible(phase == .active) }
+        .onReceive(refresh) { _ in
+            model.refresh()
+            pause.reload()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            model.setVisible(phase == .active)
+            if phase == .active { pause.reload() }
+        }
+        .onOpenURL { pause.handle($0) }
+        .fullScreenCover(isPresented: $pause.presented) { PauseCardView(model: pause) }
         .sheet(isPresented: $samplePresented) { SamplePreview(model: model) }
         .task {
             if ProcessInfo.processInfo.arguments.contains("--ocr-self-test") { await model.verifyOCR() }
@@ -78,6 +87,7 @@ struct PactRootView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             monitoringCard
+            PauseSetupCard(model: pause)
             HStack(alignment: .top, spacing: 14) {
                 Image(systemName: "lock.shield").font(.system(size: 21)).foregroundStyle(PactStyle.coral)
                 VStack(alignment: .leading, spacing: 5) {
@@ -98,7 +108,7 @@ struct PactRootView: View {
                 }
                 .padding(18).background(PactStyle.paleCoral.opacity(0.65), in: RoundedRectangle(cornerRadius: 19))
             }.buttonStyle(.plain)
-            Text("EARLY PROTOTYPE  ·  RECOGNITION ONLY")
+            Text("EARLY PROTOTYPE")
                 .font(.system(size: 9, weight: .medium)).tracking(1.2).foregroundStyle(PactStyle.muted)
                 .frame(maxWidth: .infinity)
         }
@@ -210,6 +220,7 @@ struct PactRootView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Label("Local by design", systemImage: "lock.shield").font(.system(size: 23, weight: .semibold, design: .serif))
                 privacyRow("No cloud connection", "There are no accounts, analytics, or external API calls in this prototype.")
+                privacyRow("Shopping interrupt", "A Shortcut you create can open Pact when a shopping app opens. Pact does not read that app. Ask my friend opens Messages with a generic note and leaves out the item and the price.")
                 privacyRow("No screen archive", "Frames and recognized text are processed in memory and discarded. Only fixed signal labels and session counters are shared with the app.")
                 privacyRow("Audio is ignored", "Pact doesn't analyze microphone or app audio. Leave the microphone off in the system broadcast control.")
                 privacyRow("A visible, voluntary session", "The iPhone recording indicator stays visible. Stop there at any time. Monitoring never starts automatically.")

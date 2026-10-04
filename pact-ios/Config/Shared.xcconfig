@@ -5,5 +5,5 @@ IPHONEOS_DEPLOYMENT_TARGET = 17.0
 SWIFT_VERSION = 5.0
 TARGETED_DEVICE_FAMILY = 1
 CODE_SIGN_STYLE = Automatic
-// Set your Apple Developer team in Xcode on both targets.
+// Use the same Apple Developer team on the app and all three extensions.
 DEVELOPMENT_TEAM = G57PR786X7

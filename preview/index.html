@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snuff — design preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Newsreader:opsz,wght@6..72,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --core: #fff3d6;
+      --body: #ffd66b;
+      --mid: #f5a524;
+      --edge: #ed7014;
+      --deep: #8e1f02;
+      --wash: #3a0f02;
+      --ink: #f6efe6;
+      --muted: #b7a89c;
+      --line: rgba(255, 243, 214, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--ink);
+      font-family: Geist, ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(900px 500px at 50% -10%, color-mix(in srgb, var(--edge) 35%, transparent), transparent 60%),
+        radial-gradient(700px 400px at 80% 100%, color-mix(in srgb, var(--deep) 70%, #000), transparent 55%),
+        #070403;
+    }
+    header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+    }
+    .eyebrow {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 500;
+      font-size: 40px;
+      line-height: 1;
+      margin: 8px 0 0;
+    }
+    header p { margin: 8px 0 0; color: var(--muted); max-width: 36rem; font-size: 14px; line-height: 1.5; }
+    .hues { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .hues button {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font: 500 12px/1 "Roboto Mono", ui-monospace, monospace;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+    .hues button[aria-pressed="true"] {
+      background: var(--mid);
+      color: #1c0a04;
+      border-color: transparent;
+    }
+    .stage {
+      display: grid;
+      place-items: center;
+      padding: 28px 16px 64px;
+    }
+    .phone {
+      width: 390px;
+      height: 780px;
+      border-radius: 40px;
+      padding: 14px;
+      background:
+        radial-gradient(120% 80% at 50% 120%, var(--wash), transparent 50%),
+        linear-gradient(180deg, #16110e, #0a0706);
+      box-shadow: 0 0 0 1px var(--line), 0 40px 80px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+    }
+    .screen {
+      flex: 1;
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+      background:
+        radial-gradient(80% 40% at 50% 0%, color-mix(in srgb, var(--edge) 28%, transparent), transparent 70%),
+        #100c0a;
+      display: flex;
+      flex-direction: column;
+    }
+    .view { display: none; padding: 28px 20px 16px; overflow: auto; flex: 1; }
+    .view.on { display: block; }
+    .kicker { font-family: "Roboto Mono", monospace; font-size: 11px; letter-spacing: 0.16em; color: var(--muted); }
+    .display {
+      font-family: Newsreader, Georgia, serif;
+      font-size: 72px;
+      line-height: 0.9;
+      margin: 8px 0 4px;
+      background: linear-gradient(180deg, var(--core), var(--mid));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+    .card {
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      background:
+        radial-gradient(120% 80% at 0% 100%, color-mix(in srgb, var(--edge) 22%, transparent), transparent 55%),
+        linear-gradient(180deg, rgba(255,243,214,0.06), rgba(255,243,214,0.02));
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .card strong { display: block; font-weight: 500; }
+    .card span { color: var(--muted); font-size: 13px; }
+    .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    nav.tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      padding: 8px 10px 16px;
+      gap: 4px;
+    }
+    nav.tabs button {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font: 500 11px/1 Geist, sans-serif;
+      padding: 10px 0;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+    nav.tabs button.on { color: var(--core); background: color-mix(in srgb, var(--edge) 25%, transparent); }
+    .orb-wrap { display: grid; place-items: center; padding-top: 24px; text-align: center; }
+    .orb {
+      width: 210px; height: 210px; position: relative; border-radius: 50%;
+    }
+    .orb i {
+      position: absolute; inset: 0; border-radius: 50%; filter: blur(18px);
+    }
+    .orb .halo { inset: -8px; background: radial-gradient(circle, var(--deep), transparent 70%); opacity: 0.85; filter: blur(28px); animation: breathe 5s ease-in-out infinite; }
+    .orb .cool { inset: 18px 8px 22px 28px; background: var(--edge); opacity: 0.45; }
+    .orb .warm { inset: 22px 28px 18px 8px; background: var(--body); opacity: 0.45; mix-blend-mode: screen; }
+    .orb .core {
+      inset: 48px; background: radial-gradient(circle at 40% 40%, var(--core), var(--mid) 55%, transparent 72%);
+      filter: blur(8px); animation: breathe 5s ease-in-out infinite reverse;
+    }
+    .orb b {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      font-family: Newsreader, serif; font-size: 42px; font-weight: 500; color: var(--core);
+    }
+    @keyframes breathe { 50% { transform: scale(1.06); opacity: 0.75; } }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 14px; }
+    .chip {
+      border-radius: 999px; padding: 6px 12px; font-size: 13px;
+      box-shadow: inset 0 0 0 1px var(--line); color: var(--muted);
+    }
+    .chip.on { background: var(--mid); color: #1c0a04; box-shadow: none; }
+    .bar { height: 8px; border-radius: 99px; background: var(--deep); overflow: hidden; margin-top: 10px; }
+    .bar span { display: block; height: 100%; width: 66%; border-radius: 99px; background: linear-gradient(90deg, var(--edge), var(--body)); }
+    button.link {
+      background: none; border: 0; color: var(--muted); text-decoration: underline;
+      font: inherit; cursor: pointer; margin-top: 14px;
+    }
+    .pill {
+      display: inline-block; border-radius: 999px; padding: 3px 8px;
+      font-family: "Roboto Mono", monospace; font-size: 11px; letter-spacing: 0.04em;
+      background: color-mix(in srgb, var(--mid) 22%, transparent); color: var(--body);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="eyebrow">Snuff · design preview</div>
+      <h1>A pause before it burns.</h1>
+      <p>Sample screens in the Snuff system. The numbers are invented for the preview. This page is not signed in and does not talk to an account.</p>
+    </div>
+    <div class="hues" id="hues"></div>
+  </header>
+  <div class="stage">
+    <div class="phone">
+      <div class="screen">
+        <section class="view on" id="home">
+          <div class="kicker">Home</div>
+          <div class="display">35</div>
+          <p class="sub">1 day streak · sample</p>
+          <div class="card"><strong>2 pauses</strong><span>1 saved · 1 dropped · $398 left unspent</span></div>
+          <div class="card"><strong>This week</strong><span>0 continued · 1 saved · 1 dropped</span></div>
+          <div class="card row"><div><strong>Extension</strong><span>Last sync 12s ago · not a live heartbeat</span></div><span class="pill">Synced</span></div>
+          <div class="card"><strong>Sleep on it</strong><span>Defer · 2 / 3</span><div class="bar"><span></span></div></div>
+        </section>
+        <section class="view" id="hold">
+          <div class="kicker">Hold</div>
+          <div class="orb-wrap">
+            <div class="orb" id="orb"><i class="halo"></i><i class="cool"></i><i class="warm"></i><i class="core"></i><b id="pct">0</b></div>
+            <p class="sub" id="hold-copy">Hold to continue</p>
+            <button class="link" id="alt" type="button">Pause without holding</button>
+          </div>
+          <div class="card"><strong>Running shoes</strong><span>amazon.com · $149 · sample checkout</span></div>
+        </section>
+        <section class="view" id="saved">
+          <div class="kicker">Saved</div>
+          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 16px">On ice</h2>
+          <div class="card row"><div><strong>Running shoes</strong><span>amazon.com · $149 · ready tomorrow</span></div><span class="pill">Cooling</span></div>
+          <div class="card row"><div><strong>Headphones</strong><span>bestbuy.com · left behind</span></div><span class="pill">Abandoned</span></div>
+          <p class="sub">Buying never scores. Only a verified drop does. Amounts show up when the page published a price.</p>
+        </section>
+        <section class="view" id="social">
+          <div class="kicker">Social</div>
+          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 8px">Friends</h2>
+          <p class="sub">Friends join challenges. A trusted contact only answers a purchase. They are not the same person.</p>
+          <div class="card row"><div><strong>Jordan</strong><span>Friend · name and score only</span></div><span class="pill">Friend</span></div>
+          <div class="card"><strong>Sleep on it</strong><span>Defer · 2 / 3 · 5 days left</span><div class="bar"><span></span></div></div>
+        </section>
+        <section class="view" id="you">
+          <div class="kicker">You</div>
+          <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:32px;margin:8px 0 12px">Restriction</h2>
+          <div class="chips"><span class="chip">Low</span><span class="chip">Medium</span><span class="chip on">High</span></div>
+          <div class="card row"><div><strong>Monitoring</strong><span>Checkout pages you chose. Not every payment.</span></div><span class="pill">On</span></div>
+          <div class="card row"><div><strong>Sam</strong><span>Trusted contact · answers requests, no account</span></div><span class="pill">Trusted</span></div>
+          <p class="sub">A support tool, not treatment. The extension cannot block a native app.</p>
+        </section>
+        <nav class="tabs" id="tabs">
+          <button type="button" class="on" data-view="home">Home</button>
+          <button type="button" data-view="hold">Hold</button>
+          <button type="button" data-view="saved">Saved</button>
+          <button type="button" data-view="social">Social</button>
+          <button type="button" data-view="you">You</button>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    const hues = {
+      Ember: ['#fff3d6','#ffd66b','#f5a524','#ed7014','#8e1f02','#3a0f02'],
+      Azure: ['#eafbff','#9be8ff','#43b9ff','#1d6bf5','#0a1c7a','#070f2e'],
+      Verdigris: ['#f0ffe9','#b9f7a8','#52d97a','#15a05a','#05482f','#04200f'],
+      Violet: ['#fbefff','#e0bbff','#b07cff','#7a3cf0','#2e0b6b','#160530'],
+      Crimson: ['#ffedec','#ffb3ae','#ff5f62','#d41f49','#5c0426','#2a0612'],
+      Ash: ['#cfc5be','#9a918b','#6b625c','#3a3330','#1c1a19','#0b0302'],
+    }
+    const root = document.documentElement
+    const hueBar = document.getElementById('hues')
+    Object.keys(hues).forEach((name, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.textContent = name
+      b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false')
+      b.onclick = () => {
+        const [core, body, mid, edge, deep, wash] = hues[name]
+        root.style.setProperty('--core', core)
+        root.style.setProperty('--body', body)
+        root.style.setProperty('--mid', mid)
+        root.style.setProperty('--edge', edge)
+        root.style.setProperty('--deep', deep)
+        root.style.setProperty('--wash', wash)
+        hueBar.querySelectorAll('button').forEach((n) => n.setAttribute('aria-pressed', 'false'))
+        b.setAttribute('aria-pressed', 'true')
+      }
+      hueBar.appendChild(b)
+    })
+    document.getElementById('tabs').onclick = (event) => {
+      const button = event.target.closest('button')
+      if (!button) return
+      document.querySelectorAll('.view').forEach((v) => v.classList.remove('on'))
+      document.getElementById(button.dataset.view).classList.add('on')
+      document.querySelectorAll('#tabs button').forEach((n) => n.classList.remove('on'))
+      button.classList.add('on')
+    }
+    const pct = document.getElementById('pct')
+    const copy = document.getElementById('hold-copy')
+    const orb = document.getElementById('orb')
+    let timer = null
+    let value = 0
+    function paint() {
+      pct.textContent = String(value)
+      copy.textContent = value >= 100 ? 'Release to decide' : value > 0 ? 'Keep holding' : 'Hold to continue'
+    }
+    function stop(reset) {
+      clearInterval(timer)
+      timer = null
+      if (reset) { value = 0; paint() }
+    }
+    orb.onpointerdown = () => {
+      stop(false)
+      const start = Date.now() - value * 15
+      timer = setInterval(() => {
+        value = Math.min(100, Math.round((Date.now() - start) / 15))
+        paint()
+        if (value >= 100) stop(false)
+      }, 40)
+    }
+    orb.onpointerup = orb.onpointerleave = () => { if (value < 100) stop(true) }
+    document.getElementById('alt').onclick = () => {
+      stop(false)
+      value = 100
+      paint()
+    }
+  </script>
+</body>
+</html>

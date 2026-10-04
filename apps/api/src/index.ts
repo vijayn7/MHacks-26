@@ -6,6 +6,7 @@ import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { DbConnection } from "../../extension/src/module_bindings/index.js";
+import { handleSnuff, setupSnuff } from "./snuff/index";
 
 function loadEnv(file: string) {
   let text: string;
@@ -575,6 +576,7 @@ async function recordPurchase(name: string, amount: number) {
 }
 
 await ensureDb();
+if (sql) await setupSnuff(sql);
 startSpacetime();
 
 createServer((req, res) => {
@@ -592,6 +594,10 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
+  if (path.startsWith("/app/")) {
+    await handleSnuff(req, res, path, url, sql, send, readJson);
+    return;
+  }
   if (req.method === "GET" && path === "/health") {
     send(res, 200, { ok: true });
     return;

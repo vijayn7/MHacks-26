@@ -4,9 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Snuff — design preview</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Newsreader:opsz,wght@6..72,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --core: #fff3d6;
@@ -18,12 +20,15 @@
       --ink: #f6efe6;
       --muted: #b7a89c;
       --line: rgba(255, 243, 214, 0.14);
+      --sans: "Satoshi", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
     body {
       color: var(--ink);
-      font-family: Geist, ui-sans-serif, system-ui, sans-serif;
+      font-family: var(--sans);
+      font-feature-settings: "ss01" on, "ss02" on;
+      letter-spacing: -0.01em;
       background:
         radial-gradient(900px 500px at 50% -10%, color-mix(in srgb, var(--edge) 35%, transparent), transparent 60%),
         radial-gradient(700px 400px at 80% 100%, color-mix(in srgb, var(--deep) 70%, #000), transparent 55%),
@@ -133,7 +138,8 @@
       background: transparent;
       border: 0;
       color: var(--muted);
-      font: 500 11px/1 Geist, sans-serif;
+      font: 500 11px/1 var(--sans);
+      letter-spacing: 0.02em;
       padding: 10px 0;
       cursor: pointer;
       border-radius: 999px;

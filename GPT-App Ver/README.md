@@ -76,11 +76,9 @@ Burn rate currently saves a preference and displays gentle / balanced / mindful;
 
 The burn-rate handle expands from a small dim light to a broad bright glow as its value increases, using the same response curve on native and web. The color blend has one gradient track with a neutral thumb; its endpoint swatches open the color picker.
 
-## Goals and blocking preview
+## Home rhythm
 
-Scroll beneath the Home chart to set a savings goal and configure a five-step plan: goal / websites and purchase limits / schedule / response / review. Rules support custom domains and subdomains, a minimum purchase amount, selected days, overnight local-time windows, gentle nudges or timed pauses, and optional early continuation with a reason. A goal measures savings added after it was created. Editing preserves its starting balance.
-
-The saved plan can be edited, paused, and tested in an in-app checkout preview. Preview decisions use the actual saved rule evaluator; a timed pause counts down, and early continuation follows the chosen settings. No checkout, notification, message, or financial event is created by the preview. Browser-extension / operating-system enforcement outside Snuff is not connected; the UI explicitly identifies this boundary.
+Home’s goal-setting interface has been removed. Scroll beneath the savings chart for the interactive emotion orb, feeling choices, heart-rate context, and a private daily check-in. Legacy blocking state remains compatible with saved installations.
 
 Flame crowns continuously interpolate between organic SVG silhouettes, keeping the eyes and rounded base anchored. Motion slows with the flame’s status and continues while resting; it stops when the screen is inactive, the app is backgrounded, or reduced motion is enabled.
 
@@ -108,7 +106,7 @@ The fourth tab is Archive. “Save for later” in the notification popup (and t
 
 The Archive recreates the composition and scrolling behavior of [Colton Tollett’s refracting-scroll reference on Bencho](https://bencho.dev/finds/colton-lens-scroll): Snuff’s dark canvas, transparent product illustrations, cream text, and flame-colored accents, with a centered column of floating objects that enlarge smoothly on focus, side labels on the focused item, and perspective bending / widening near the viewport edges. This is a React Native approximation of the reference’s optical distortion, not its original shader. Local vector product illustrations replace the reference’s machine photographs. Reduced motion keeps the cards flat; arrow controls and accessible labels support keyboard and screen-reader use. Long lists can be scrolled to either end.
 
-Empty archives offer an explicitly labeled sample collection for viewing the effect; sample items never populate saved history. Reuse `src/screens/Archive.tsx`, `src/components/ItemArtwork.tsx`, and `src/state/archive.ts`. The original saved date includes the year and is displayed in the device’s local time zone. Real purchase ingestion, product photos, merchant URLs, and checkout integrations are not connected in this prototype.
+Every reload replenishes six demo archive items by stable ID, retaining existing saved items without duplicating samples. Reuse `src/screens/Archive.tsx`, `src/components/ItemArtwork.tsx`, and `src/state/archive.ts`. The original saved date includes the year and is displayed in the device’s local time zone. Real purchase ingestion, product photos, merchant URLs, and checkout integrations are not connected in this prototype.
 
 ## System contacts
 
@@ -126,7 +124,7 @@ Slider feedback: all GlowSlider controls temporarily give the user’s flame hap
 
 ## Minimal onboarding
 
-A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; optional spending categories; and a gentle-to-firm strength slider with a live popup preview. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. New installations see onboarding; existing version-2 accounts retain access and can revisit it. Completion and categories persist locally; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
+A flame-only welcome with a small forward arrow leads into three concise screens: demo Google / Apple / email sign-in; optional spending categories; and a gentle-to-firm strength slider with a live popup preview. Open `/onboarding` to preview from the beginning. Profile → your spending preferences opens `/onboarding?edit=1`. Every reload restarts onboarding from the flame welcome while retaining saved preferences, archive items, and check-ins. Completion is session-only; strength uses `burnRate`, adjusting popup wording and flame tempo. Categories are preferences, not diagnoses or connected merchant rules.
 
 Authentication is deliberately fake, as requested. Google and Apple advance locally; email validates syntax, then discards the address without sending or storing it. No account, session, or identity is established. Backend entry point: `src/screens/Onboarding.tsx` provider button callbacks and the email sheet. Replace these with the authentication provider and advance only on success; retain cancellation and guest entry. Google sign-in should not request Gmail inbox access. Preference completion dispatches `COMPLETE_ONBOARDING` in `src/state/model.ts`. Popup tone lives in `src/design/onboarding.ts`. No notification permission is requested during onboarding.
 
@@ -136,10 +134,10 @@ Interface cleanup: Social has no leaderboard heading. Archive removes its headin
 
 ## Integrated watch context
 
-Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home shows a compact, non-navigating orb with recent feelings and heart-rate context when available. The popup contains a small BPM / feelings disclosure that expands in place; purchase actions remain in the same popup. A single reading and any selected feelings are saved locally when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
+Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home replaces goal setup with a spacious interactive emotion orb, feeling choices, a heart-rate scale, and a private daily check-in. Dragging the orb adjusts intensity. Saving updates one check-in per local day without changing spending totals; purchase BPM averages exclude daily check-ins. The popup contains a small BPM / feelings disclosure that expands in place; purchase actions remain in the same popup. A single reading and any selected feelings are saved locally when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
 
-Profile settings → watch insights contains on/off, baseline, data clearing, and the sole display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
+Profile settings → apple watch contains connect/disconnect, insights on/off, refresh reading, baseline, data clearing, and the display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
 
 Flame motion is more expressive across all mascot instances: wider crown deformation, faster high/low/resting cycles, larger plume drift and ember travel, and stronger petting squish and sway. Slider excitement remains faster than idle; reduced-motion and background/focus guards are retained.
 
-Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 gentle/balanced/firm ranges, popup wording and flame tempo, and the separate purchase threshold/pause settings. Social provides an outlined edit-friends control, individual edit buttons, persistent local names, and confirmed removal; removing a trusted friend clears that selection without changing savings.
+Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 gentle/balanced/firm ranges, popup wording and flame tempo, without changing a spending budget. Social provides an outlined edit-friends control, individual edit buttons, persistent local names, and confirmed removal; removing a trusted friend clears that selection without changing savings.

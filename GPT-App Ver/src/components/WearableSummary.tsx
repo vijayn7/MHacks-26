@@ -1,50 +1,98 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useStore } from '../state/Store';
-import { recentReading } from '../state/wearable';
-import { FeelingOrb } from './WearableVisuals';
+import { dayKey } from '../state/model';
+import { recentReading, type Feeling } from '../state/wearable';
+import { FeelingChoices, FeelingOrb, HeartScale } from './WearableVisuals';
 import { colors } from '../design/tokens';
-import { T } from './ui';
+import { QuietButton, T } from './ui';
 export function WearableSummary() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const w = state.wearable;
-  const measured = w.moments.filter((m) => m.bpm);
+  const [selected, setSelected] = useState<Feeling[]>(w.moments[0]?.before || []);
+  const [intensity, setIntensity] = useState(w.moments[0]?.intensity ?? 50);
+  const [saved, setSaved] = useState(false);
   const bpm = recentReading(w);
+  const measured = w.moments.filter((m) => m.bpm && m.name !== 'daily check-in');
   const average = measured.length
     ? Math.round(measured.reduce((n, m) => n + m.bpm![1], 0) / measured.length)
     : null;
-  const last = w.moments[0];
-  if (!w.enabled && !last) return null;
   return (
     <View
       testID="home-rhythm"
       style={{
         marginHorizontal: 28,
-        paddingVertical: 18,
+        paddingTop: 26,
+        paddingBottom: 32,
         borderTopWidth: 1,
         borderColor: colors.border,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 14,
       }}
     >
-      <FeelingOrb selected={last?.before || []} size={54} />
-      <View style={{ flex: 1 }}>
-        <T variant="small">{last?.before.length ? last.before.join(' + ') : 'your rhythm'}</T>
-        <T variant="small" style={{ fontSize: 11 }}>
-          {average
-            ? `${average} bpm around purchases`
-            : bpm
-              ? `${bpm} bpm · baseline ${w.baseline}`
-              : 'no recent reading'}
-        </T>
+      <T variant="title" style={{ fontSize: 29 }}>
+        a moment for you.
+      </T>
+      <T variant="small" style={{ marginTop: 8 }}>
+        how are you feeling?
+      </T>
+      <View style={{ alignItems: 'center', marginVertical: 18 }}>
+        <FeelingOrb
+          selected={selected}
+          intensity={intensity}
+          size={224}
+          onIntensity={(value) => {
+            setIntensity(value);
+            setSaved(false);
+          }}
+        />
       </View>
-      {average && w.baseline ? (
-        <T variant="small">
-          {average - w.baseline >= 0 ? '+' : ''}
-          {average - w.baseline} bpm
+      <FeelingChoices
+        value={selected}
+        onChange={(value) => {
+          setSelected(value);
+          setSaved(false);
+        }}
+      />
+      <T variant="small" style={{ textAlign: 'center', fontSize: 10, marginTop: 14 }}>
+        drag to blend
+      </T>
+      {w.enabled ? (
+        <HeartScale bpm={bpm} baseline={w.baseline} />
+      ) : (
+        <T variant="small" style={{ fontSize: 11, textAlign: 'center', marginTop: 24 }}>
+          apple watch · connect in settings
         </T>
-      ) : null}
+      )}
+      {average && (
+        <T variant="small" style={{ textAlign: 'center' }}>
+          {average} bpm around purchases
+        </T>
+      )}
+      <QuietButton
+        disabled={!selected.length || saved}
+        onPress={() => {
+          dispatch({
+            type: 'SAVE_MOMENT',
+            moment: {
+              id: `checkin-${dayKey(Date.now())}`,
+              at: Date.now(),
+              name: 'daily check-in',
+              outcome: 'kept',
+              before: selected,
+              after: [],
+              intensity,
+              bpm: bpm ? [bpm, bpm, bpm] : null,
+              baseline: bpm ? w.baseline : null,
+              simulated: true,
+            },
+          });
+          setSaved(true);
+        }}
+      >
+        {saved ? 'saved' : 'save check-in'}
+      </QuietButton>
+      <T variant="small" style={{ fontSize: 10, textAlign: 'center', marginTop: 12 }}>
+        just for you
+      </T>
     </View>
   );
 }

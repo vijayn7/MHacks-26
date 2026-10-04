@@ -227,7 +227,7 @@ export default function Profile() {
             tint={p.core}
           />
           <T variant="small" style={{ fontSize: 10 }}>
-            higher = firmer reminders · budget set separately
+            higher = firmer reminders
           </T>
         </View>
 
@@ -303,28 +303,19 @@ export default function Profile() {
           higher means stronger popup wording and a livelier flame. it doesn’t change your budget or
           block purchases.
         </T>
-        <T variant="small" style={{ marginTop: 16 }}>
-          {state.plan
-            ? `your block starts at $${state.plan.minAmount}. ${state.plan.mode === 'pause' ? `pause: ${state.plan.cooldownMinutes} minutes.` : 'reminder only.'}`
-            : 'set a goal on home to choose purchase limits and pause rules.'}
-        </T>
-        <QuietButton
-          onPress={() => {
-            setSheet(null);
-            router.push('/');
-          }}
-        >
-          edit budget & blocks
-        </QuietButton>
+        <QuietButton onPress={() => setSheet(null)}>done</QuietButton>
       </Sheet>
-      <Sheet visible={sheet === 'watch'} title="watch insights" onClose={() => setSheet(null)}>
-        <T variant="small">a little context when you pause.</T>
+      <Sheet visible={sheet === 'watch'} title="apple watch" onClose={() => setSheet(null)}>
+        <T variant="small">
+          {state.wearable.status === 'connected' ? 'connected' : 'not connected'} ·{' '}
+          {state.wearable.enabled ? 'insights on' : 'insights off'}
+        </T>
         <QuietButton
           onPress={() =>
             dispatch({
               type: 'WEARABLE',
               settings: state.wearable.enabled
-                ? { enabled: false, reading: null }
+                ? { enabled: false, status: 'disconnected', reading: null }
                 : {
                     enabled: true,
                     status: 'connected',
@@ -334,8 +325,18 @@ export default function Profile() {
             })
           }
         >
-          {state.wearable.enabled ? 'turn off insights' : 'turn on insights'}
+          {state.wearable.enabled ? 'disconnect watch' : 'connect apple watch'}
         </QuietButton>
+        {state.wearable.enabled && (
+          <QuietButton
+            secondary
+            onPress={() =>
+              dispatch({ type: 'WEARABLE', settings: { reading: { bpm: 82, at: Date.now() } } })
+            }
+          >
+            refresh reading
+          </QuietButton>
+        )}
         {!!state.wearable.baseline && (
           <T variant="small" style={{ marginTop: 16 }}>
             baseline · {state.wearable.baseline} bpm
@@ -366,7 +367,7 @@ export default function Profile() {
             setSheet('watch');
           }}
         >
-          watch insights
+          apple watch
         </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}

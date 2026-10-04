@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
+import { archiveSamples } from './archive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Action, AppState, initialState, migrate, reducer } from './model';
 
@@ -35,7 +36,16 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
       const raw =
         (await AsyncStorage.getItem(STORAGE_KEY)) ||
         (await AsyncStorage.getItem('ember.mobile.v1'));
-      if (active && raw) dispatch({ type: 'HYDRATE', state: migrate(JSON.parse(raw)) });
+      if (active) {
+        const saved = raw ? migrate(JSON.parse(raw)) : initialState();
+        const samples = archiveSamples().filter(
+          (item) => !saved.archive.some((existing) => existing.id === item.id),
+        );
+        dispatch({
+          type: 'HYDRATE',
+          state: { ...saved, onboardingComplete: false, archive: [...saved.archive, ...samples] },
+        });
+      }
     })()
       .catch(() => {
         if (active) setStorageError('This device could not load your saved progress.');

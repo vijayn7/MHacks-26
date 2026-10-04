@@ -66,6 +66,14 @@ Configure an Expo account, signing, project association, and your own bundle ide
 
 Native configuration lives in app.json. No generated ios/ or android/ folders are maintained.
 
+## Run on a phone
+
+Point the app at the backend API with `EXPO_PUBLIC_API_URL` (see `.env.example`). A phone cannot reach the Mac’s `localhost`; use a LAN IP such as `http://192.168.1.20:8787`. Copy to `.env.local` for day-to-day use (gitignored). A Release / EAS build embeds the value at build time, so rebuild after changing it.
+
+iOS 27 requires UIScene lifecycle adoption. The local config plugin `plugins/withSceneLifecycle.js` applies that on every `npx expo prebuild` (AppDelegate + Info.plist). Do not hand-edit generated `ios/`.
+
+The folder name `GPT-App Ver` contains a space and breaks expo-constants’ `get-app-config-ios.sh` Xcode build phase. Workaround: build from a copy of the project at a path without spaces.
+
 Source routes are in src/app; the three screens are in src/screens. Shared components, design tokens, the typed reducer, persistence, and notification adapters live in their respective src folders. Storage uses snuff.mobile.v2.
 
 ## Profile design revision

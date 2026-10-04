@@ -46,11 +46,13 @@ function mount(domain: string, seconds: number, amountCents: number | null) {
   const root = document.createElement('div')
   root.innerHTML = `
     <style>
-      .panel { position: fixed; right: 24px; bottom: 24px; width: 320px; background: #f6f3ee; color: #1c140f; padding: 20px; font: 16px/1.4 Georgia, serif; box-shadow: 0 12px 40px rgba(0,0,0,.18); }
-      button { font: inherit; margin-right: 8px; margin-top: 8px; padding: 8px 10px; border: 1px solid #1c140f; background: #1c140f; color: #f6f3ee; }
-      button.ghost { background: transparent; color: #1c140f; }
-      .orb { width: 88px; height: 88px; border-radius: 50%; display: grid; place-items: center; color: #f6f3ee; margin: 12px 0; }
-      .ash { color: #8c857c; font-family: sans-serif; font-size: 13px; }
+      @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=neco@400,500&display=swap');
+      .panel { position: fixed; right: 24px; bottom: 24px; width: 320px; background: #050505; color: #f6efe6; padding: 20px; font: 16px/1.4 "Satoshi", Helvetica, Arial, sans-serif; letter-spacing: -0.01em; box-shadow: 0 0 0 1px rgba(255,243,214,0.14), 0 24px 48px rgba(0,0,0,.55); border-radius: 24px; }
+      h2 { font-family: "Neco", Georgia, serif; font-weight: 400; letter-spacing: -0.03em; margin: 8px 0 0; }
+      button { font: inherit; margin-right: 8px; margin-top: 8px; padding: 8px 12px; border: 0; border-radius: 999px; background: #fff3d6; color: #1c0a04; }
+      button.ghost { background: transparent; color: #f6efe6; box-shadow: inset 0 0 0 1px rgba(255,243,214,0.14); }
+      .orb { width: 88px; height: 88px; border-radius: 50%; display: grid; place-items: center; color: #fff3d6; margin: 12px 0; font-family: "Neco", Georgia, serif; }
+      .ash { color: #8c857c; font-family: "Satoshi", Helvetica, Arial, sans-serif; font-size: 13px; }
     </style>
     <div class="panel">
       <div class="ash">IMPULSE · ${domain}</div>

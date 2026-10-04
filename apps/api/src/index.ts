@@ -6,6 +6,14 @@ import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { DbConnection } from "../../extension/src/module_bindings/index.js";
+import {
+  attachFriendReply,
+  buildCheckInMessage,
+  inboundFriendText,
+  parseShare,
+  thankYouAck,
+  type CheckInRow,
+} from "./checkin.js";
 import { handleSnuff, setupSnuff, userId as snuffUserId } from "./snuff/index";
 import {
   clampPlanProposal,
@@ -55,9 +63,6 @@ if (!spacetimeOn) {
 const projectId = process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.SPECTRUM_PROJECT_SECRET;
 const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
-const askAgain = "Reply YES to approve the purchase or NO to reject it.";
-const approvedAck = "Approved. The checkout can go through.";
-const rejectedAck = "Rejected. The purchase will be dropped.";
 const origin = "*";
 const maxBody = 64 * 1024;
 const seedRule = {
@@ -79,12 +84,11 @@ const eventTypes = new Set([
 ]);
 
 type PauseEvent = { id: string; type: string; ruleId: string | null; at: string };
-type Decision = "approved" | "rejected";
-type CheckIn = { id: string; ruleId: string; status: "sent" | Decision; reply: string | null };
+type CheckIn = CheckInRow;
 const events: PauseEvent[] = [];
 const eventsById = new Map<string, PauseEvent>();
 const checkIns = new Map<string, CheckIn>();
-const outbound = new Set<string>([askAgain, approvedAck, rejectedAck]);
+const outbound = new Set<string>([thankYouAck]);
 let waitingId: string | null = null;
 let deliver: ((text: string) => Promise<void>) | null = null;
 let spacetimeConn: DbConnection | null = null;
@@ -132,30 +136,28 @@ async function allowFriend(handle: string) {
   }
 }
 
-function checkInMessage(product: string, amount: number) {
-  return [
-    "SecondThought pause.",
-    "",
-    "Your friend is at checkout and asked you to decide.",
-    `Item: ${product}`,
-    `Price: $${amount}`,
-    "",
-    "SecondThought holds the purchase until someone they trust weighs in.",
-    "Reply YES to approve it or NO to reject it.",
-    "This demo does not charge a card.",
-  ].join("\n");
-}
-
-function decisionOf(text: string): Decision | null {
-  const normalized = text.trim().toLowerCase().replace(/[.!]+$/g, "");
-  if (/^(yes|y|approve|approved)\b/.test(normalized)) return "approved";
-  if (/^(no|n|reject|rejected)\b/.test(normalized)) return "rejected";
-  return null;
-}
-
 const sql = process.env.DATABASE_URL
   ? postgres(process.env.DATABASE_URL, { onnotice: () => {} })
   : null;
+
+async function shopperDisplayName(): Promise<string | null> {
+  if (!sql) return null;
+  try {
+    const tables = await sql<{ exists: boolean }[]>`
+      select to_regclass('public.snuff_profiles') is not null as exists`;
+    if (!tables[0]?.exists) return null;
+    const rows = await sql<{ name: string | null }[]>`
+      select name from snuff_profiles where user_id = 'demo' limit 1`;
+    const name = rows[0]?.name?.trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
+function checkInPublic(row: CheckIn) {
+  return { id: row.id, status: row.status, reply: row.reply };
+}
 
 function remember(event: PauseEvent, persist = true) {
   const existing = eventsById.get(event.id);
@@ -237,10 +239,11 @@ async function ensureDb() {
   await sql`
     create table if not exists check_ins (
       id text primary key,
-      rule_id text not null,
+      rule_id text,
       status text not null,
       reply text
     )`;
+  await sql`alter table check_ins alter column rule_id drop not null`;
   await sql`alter table saved_items add column if not exists name text`;
   await sql`alter table saved_items add column if not exists amount numeric`;
   await sql`
@@ -266,7 +269,7 @@ async function ensureDb() {
       at: new Date(row.at).toISOString(),
     }, false);
   }
-  const openCheckIns = await sql<{ id: string; rule_id: string; reply: string | null }[]>`
+  const openCheckIns = await sql<{ id: string; rule_id: string | null; reply: string | null }[]>`
     select id, rule_id, reply from check_ins where status = 'sent'`;
   for (const row of openCheckIns) {
     checkIns.set(row.id, { id: row.id, ruleId: row.rule_id, status: "sent", reply: row.reply });
@@ -742,7 +745,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       send(res, 404, { error: "missing" });
       return;
     }
-    send(res, 200, row);
+    send(res, 200, checkInPublic(row));
     return;
   }
   if (req.method === "POST" && path === "/check-in") {
@@ -755,24 +758,16 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     }
     const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
     const id = record.id;
-    const ruleId = record.ruleId;
-    const product = record.product;
-    const amount = record.amount;
-    if (typeof id !== "string" || id.length === 0 || typeof ruleId !== "string" || ruleId.length === 0) {
-      send(res, 400, { error: "invalid" });
-      return;
-    }
-    if (typeof product !== "string" || product.trim().length === 0 || product.length > 80) {
-      send(res, 400, { error: "invalid" });
-      return;
-    }
-    if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+    const ruleId = typeof record.ruleId === "string" && record.ruleId.length > 0 ? record.ruleId : null;
+    // friendName is accepted from the client; the iMessage uses the shopper profile name.
+    const share = parseShare(record.share);
+    if (typeof id !== "string" || id.length === 0) {
       send(res, 400, { error: "invalid" });
       return;
     }
     const existing = checkIns.get(id);
     if (existing) {
-      send(res, 200, existing);
+      send(res, 200, checkInPublic(existing));
       return;
     }
     if (!deliver) {
@@ -780,11 +775,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       return;
     }
     logEvent("friend_ping_requested", ruleId);
+    const message = buildCheckInMessage(await shopperDisplayName(), share);
     try {
-      await deliver(checkInMessage(product.trim(), amount));
+      await deliver(message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (!/until they respond/i.test(message)) {
+      const err = error instanceof Error ? error.message : "";
+      if (!/until they respond/i.test(err)) {
         send(res, 502, { error: "send_failed" });
         return;
       }
@@ -792,7 +788,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       checkIns.set(id, row);
       waitingId = id;
       await persistCheckIn(row);
-      send(res, 200, { ...row, waiting: true });
+      send(res, 200, { ...checkInPublic(row), waiting: true });
       return;
     }
     const row: CheckIn = { id, ruleId, status: "sent", reply: null };
@@ -801,7 +797,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     await persistCheckIn(row);
     logEvent("friend_message_sent", ruleId);
     upsertPause(id, "sent");
-    send(res, 200, row);
+    send(res, 200, checkInPublic(row));
     return;
   }
   if (req.method === "GET" && path === "/saved") {
@@ -921,33 +917,22 @@ if (projectId && projectSecret && friendHandle) {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
   for await (const [, message] of spectrum.messages) {
-    if (message.platform !== "imessage" || message.direction === "outbound") continue;
-    if (message.content.type !== "text") continue;
-    const text = message.content.text?.trim() ?? "";
-    if (!text || outbound.has(text)) continue;
-    const row = waitingId ? checkIns.get(waitingId) : undefined;
-    if (!row || row.status !== "sent") continue;
-    const decision = decisionOf(text);
-    if (!decision) {
-      try {
-        outbound.add(askAgain);
-        await message.reply(askAgain);
-      } catch {
-        console.error("[imessage] clarify failed");
-      }
-      continue;
-    }
-    row.reply = text;
-    row.status = decision;
+    if (message.platform !== "imessage") continue;
+    const text = inboundFriendText(message, outbound);
+    if (!text) continue;
+    const open = waitingId ? checkIns.get(waitingId) : undefined;
+    if (!open) continue;
+    const updated = attachFriendReply(open, text);
+    if (!updated) continue;
+    checkIns.set(updated.id, updated);
     waitingId = null;
-    await persistCheckIn(row);
-    logEvent("friend_replied", row.ruleId);
-    upsertPause(row.id, decision, text);
-    console.log(`[imessage] friend ${decision} the pause`);
-    const ack = decision === "approved" ? approvedAck : rejectedAck;
+    await persistCheckIn(updated);
+    logEvent("friend_replied", updated.ruleId);
+    upsertPause(updated.id, "replied", text);
+    console.log("[imessage] friend replied to the pause");
     try {
-      outbound.add(ack);
-      await message.reply(ack);
+      outbound.add(thankYouAck);
+      await message.reply(thankYouAck);
     } catch {
       console.error("[imessage] ack failed");
     }

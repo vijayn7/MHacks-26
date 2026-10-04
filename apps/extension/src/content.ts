@@ -16,7 +16,6 @@ function pauseCopy() {
 let shown = false;
 let pauseId = "";
 let poll: ReturnType<typeof setInterval> | undefined;
-let decided = false;
 let live: { id: string; conn: DbConnection; sub?: SubscriptionHandle } | undefined;
 
 const host = document.createElement("div");
@@ -44,7 +43,7 @@ shadow.innerHTML = `
   }
   .card p { margin: 0 0 16px; }
   .note, .friend { color: #444; font-size: 14px; }
-  .friend { margin-top: -8px; }
+  .friend { margin-top: -8px; white-space: pre-wrap; }
   button {
     background: #111;
     color: #fff;
@@ -80,7 +79,7 @@ shadow.innerHTML = `
 <div class="overlay" hidden>
   <div class="card" role="dialog" aria-label="Checkout pause">
     <p class="copy">${pauseCopy()}</p>
-    <p class="note">Ask a friend. NO closes this tab. YES leaves it open.</p>
+    <p class="note">Ask a friend for support. You still choose what to do.</p>
     <p class="friend" hidden></p>
     <button type="button" data-action="drop">Drop</button>
     <button type="button" data-action="save">Save for later</button>
@@ -153,7 +152,8 @@ function stopLive() {
 function openCard() {
   if (!overlay.hidden) return;
   stopLive();
-  decided = false;
+  if (poll) clearInterval(poll);
+  poll = undefined;
   pauseId = crypto.randomUUID();
   friendEl.hidden = true;
   friendEl.textContent = "";
@@ -176,47 +176,27 @@ function closeCard(type: string, status?: string): Promise<void> {
   return Promise.all(writes).then(() => undefined);
 }
 
-function closeTab() {
-  const send = (globalThis as { chrome?: { runtime?: { sendMessage: (message: string) => void } } }).chrome
-    ?.runtime?.sendMessage;
-  send?.("close-tab");
-}
-
-let applying = false;
-
-function applyDecision(status: "approved" | "rejected") {
-  if (applying || overlay.hidden) return;
-  applying = true;
-  if (poll) clearInterval(poll);
-  if (status === "approved") {
-    void closeCard("continue_selected", "Friend approved");
-    return;
-  }
-  void closeCard("purchase_dropped", "Friend rejected").then(closeTab);
-}
-
-function showFriendDecision(status: "approved" | "rejected") {
-  if (decided || overlay.hidden) return;
-  decided = true;
+function showFriendReply(reply: string) {
+  if (overlay.hidden || !reply.trim()) return;
   friendEl.hidden = false;
-  friendEl.textContent = status === "approved" ? "Friend approved this purchase." : "Friend rejected this purchase.";
+  friendEl.textContent = `Friend: ${reply.trim()}`;
   if (poll) clearInterval(poll);
   poll = undefined;
-  setTimeout(() => applyDecision(status), 1500);
 }
 
 async function pullReply() {
   const res = await fetch(`http://localhost:8787/check-in?id=${encodeURIComponent(pauseId)}`);
   if (!res.ok) return;
   const row = (await res.json()) as { status?: string; reply?: string | null };
-  if (row.status !== "approved" && row.status !== "rejected") return;
-  showFriendDecision(row.status);
+  if (row.status === "replied" && typeof row.reply === "string" && row.reply.trim()) {
+    showFriendReply(row.reply);
+  }
 }
 
-function onPauseRow(id: string, row: { sessionId: string; state: string }) {
+function onPauseRow(id: string, row: { sessionId: string; state: string; friendReply?: string | null }) {
   if (live?.id !== id || row.sessionId !== id || overlay.hidden) return;
   if (row.state === "sent") return;
-  if (row.state === "approved" || row.state === "rejected") showFriendDecision(row.state);
+  if (row.state === "replied" && row.friendReply) showFriendReply(row.friendReply);
 }
 
 async function subscribeLive() {
@@ -261,20 +241,18 @@ async function askFriend() {
   askBtn.disabled = true;
   askBtn.textContent = "Asking…";
   try {
-    const product = document.querySelector("[data-name]")?.getAttribute("data-name") ?? "Purchase";
-    const amount = Number(document.querySelector("[data-total]")?.getAttribute("data-total"));
     const res = await fetch("http://localhost:8787/check-in", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: pauseId, ruleId: rule.id, product, amount }),
+      body: JSON.stringify({ id: pauseId, ruleId: rule.id }),
     });
     const row = (await res.json()) as { waiting?: boolean };
     if (!res.ok) throw new Error(String(res.status));
     askBtn.textContent = "Asked";
     friendEl.hidden = false;
     friendEl.textContent = row.waiting
-      ? "A text is already with your friend. Reply YES or NO on that thread."
-      : "Text sent. Waiting for YES or NO.";
+      ? "A text is already with your friend. Waiting for their reply."
+      : "Text sent. Waiting for a supportive reply.";
     if (poll) clearInterval(poll);
     poll = setInterval(() => {
       void pullReply();

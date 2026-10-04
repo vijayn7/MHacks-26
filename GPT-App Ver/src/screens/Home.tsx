@@ -18,8 +18,8 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { level } = useCompanion();
   const size = Math.min(286, width - 54, Math.max(112, (height - 435) * 0.83));
-  const textSize = width < 360 ? 25 : 31;
-  const textLineHeight = width < 360 ? 34 : 40;
+  const textSize = width < 360 ? 23 : 28;
+  const textLineHeight = width < 360 ? 31 : 36;
   const pill = (value: string) => (
     <LinearGradient
       colors={[p.body + '22', p.mid + '10']}
@@ -59,7 +59,8 @@ export default function Home() {
               {level === 'Out' ? 'a little space. that’s all.' : 'pet your flame'}
             </T>
           </View>
-          <View style={{ alignItems: 'center', gap: 4, marginTop: 16, marginBottom: 22 }}>
+          <ExtensionScore />
+          <View style={{ alignItems: 'center', gap: 4, marginTop: 8, marginBottom: 22 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
                 you’ve saved
@@ -82,7 +83,6 @@ export default function Home() {
           <View style={{ marginHorizontal: 8, marginBottom: 10 }}>
             <SavingsChart />
           </View>
-          <ExtensionScore />
         </View>
       </ScrollView>
     </Canvas>

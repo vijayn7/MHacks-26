@@ -1,4 +1,3 @@
-import { sampleWatchReading } from '../services/watch-feed';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -16,7 +15,7 @@ import { disableNudges, enableNudges } from '../services/notifications';
 export default function Profile() {
   const { state, dispatch, storageError } = useStore();
   const p = palettes[state.hue];
-  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | 'watch' | null>(null);
+  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [customize, setCustomize] = useState<'color' | 'face'>('color');
@@ -277,50 +276,6 @@ export default function Profile() {
         </T>
         <QuietButton onPress={() => setSheet(null)}>done</QuietButton>
       </Sheet>
-      <Sheet visible={sheet === 'watch'} title="apple watch" onClose={() => setSheet(null)}>
-        <T variant="small">
-          {state.wearable.status === 'connected' ? 'connected' : 'not connected'} ·{' '}
-          {state.wearable.enabled ? 'insights on' : 'insights off'}
-        </T>
-        <QuietButton
-          onPress={() =>
-            dispatch({
-              type: 'WEARABLE',
-              settings: state.wearable.enabled
-                ? { enabled: false, status: 'disconnected', reading: null }
-                : {
-                    enabled: true,
-                    status: 'connected',
-                    baseline: 68,
-                    reading: sampleWatchReading(),
-                  },
-            })
-          }
-        >
-          {state.wearable.enabled ? 'disconnect watch' : 'connect apple watch'}
-        </QuietButton>
-        {state.wearable.enabled && (
-          <QuietButton
-            secondary
-            onPress={() =>
-              dispatch({ type: 'WEARABLE', settings: { reading: sampleWatchReading() } })
-            }
-          >
-            refresh reading
-          </QuietButton>
-        )}
-        {!!state.wearable.baseline && (
-          <T variant="small" style={{ marginTop: 16 }}>
-            baseline · {state.wearable.baseline} bpm
-          </T>
-        )}
-        <T variant="small" style={{ fontSize: 10, marginTop: 18 }}>
-          display data is simulated. apple health is not connected.
-        </T>
-        <QuietButton secondary onPress={() => dispatch({ type: 'DELETE_WEARABLE_DATA' })}>
-          clear readings & feelings
-        </QuietButton>
-      </Sheet>
       <Sheet visible={sheet === 'settings'} title="settings" onClose={() => setSheet(null)}>
         <Input label="your name" value={name} onChangeText={setName} placeholder="your name" />
         <QuietButton
@@ -340,15 +295,6 @@ export default function Profile() {
           }}
         >
           purchase demo
-        </QuietButton>
-        <QuietButton
-          secondary
-          onPress={() => {
-            setSheet(null);
-            setSheet('watch');
-          }}
-        >
-          apple watch
         </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}

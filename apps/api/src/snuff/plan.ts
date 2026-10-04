@@ -127,7 +127,8 @@ export function clampPlanProposal(raw: unknown): PlanProposal | null {
     if (domains.length) proposal.domains = domains;
   }
 
-  if (typeof o.minAmount === "number" && Number.isFinite(o.minAmount)) {
+  // Gemini uses -1 as "not mentioned" for numeric optionals.
+  if (typeof o.minAmount === "number" && Number.isFinite(o.minAmount) && o.minAmount >= 0) {
     proposal.minAmount = Math.max(0, Math.min(1000000, Math.round(o.minAmount * 100) / 100));
   }
 
@@ -148,7 +149,7 @@ export function clampPlanProposal(raw: unknown): PlanProposal | null {
   if (typeof o.end === "string" && clock(o.end)) proposal.end = o.end;
   if (o.mode === "nudge" || o.mode === "pause") proposal.mode = o.mode;
 
-  if (typeof o.cooldownMinutes === "number" && Number.isFinite(o.cooldownMinutes)) {
+  if (typeof o.cooldownMinutes === "number" && Number.isFinite(o.cooldownMinutes) && o.cooldownMinutes >= 1) {
     proposal.cooldownMinutes = Math.max(1, Math.min(1440, Math.round(o.cooldownMinutes)));
   }
 

@@ -73,11 +73,13 @@ test("clampPlanProposal validates and clamps a fake Gemini response", () => {
     mode: "nudge",
     schedule: "sometimes",
     start: "25:00",
-    cooldownMinutes: 0.4,
+    minAmount: -1,
+    cooldownMinutes: -1,
   });
   assert.ok(partial);
   assert.equal(partial?.mode, "nudge");
   assert.equal(partial?.schedule, undefined);
   assert.equal(partial?.start, undefined);
-  assert.equal(partial?.cooldownMinutes, 1);
+  assert.equal(partial?.minAmount, undefined);
+  assert.equal(partial?.cooldownMinutes, undefined);
 });

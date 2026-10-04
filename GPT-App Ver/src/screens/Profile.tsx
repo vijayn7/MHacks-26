@@ -287,6 +287,15 @@ export default function Profile() {
         >
           refine preferences
         </QuietButton>
+        <QuietButton
+          secondary
+          onPress={() => {
+            setSheet(null);
+            router.push('/purchase-demo');
+          }}
+        >
+          purchase demo
+        </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}
         </QuietButton>

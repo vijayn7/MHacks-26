@@ -192,4 +192,4 @@ Replies use a 750 ms simulated typing state with three softly pulsing dots; inpu
 
 
 
-The standalone purchase demo has been removed. Settings and onboarding only offer preference refinement; normal spending-pause decisions remain available.
+Settings → purchase demo opens the sample storefront for presentations. Buy now evaluates the saved spending rules and opens the full-screen Snuff pause when they match. Continue returns to the store; save for later adds the item to the collection. No payment or subscription is involved. Onboarding stays focused on preference setup.

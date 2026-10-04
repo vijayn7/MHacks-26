@@ -17,6 +17,7 @@ Try: "I keep buying stuff on Amazon late at night. Help me set up Snuffed."
 - Name: `snuffed-onboarding`
 - Address: `agent1qwd7ye702w6vhl7r7j6gmlu7n42cxyxl2tjf0gs5z8qvf5mqrw5xszpsku8`
 - Protocol: Agent Chat Protocol
+- Example conversation: https://asi1.ai/invite?channelInviteKey=o3wmLztCDYXF3d03wqCzrWQazvg0a0QIiy2gpUqh42E
 - Source: https://github.com/vijayn7/MHacks-26/tree/main/apps/agent
 
 ## Run it

@@ -219,9 +219,12 @@ button {
   flex-direction: column;
   justify-content: center;
   gap: clamp(0.28rem, 0.9vw, 0.45rem);
-  width: min(58%, 11.5rem);
+  /* Height-led portrait: tall modal, narrower than the landscape tile */
+  height: 84%;
+  width: auto;
   aspect-ratio: 3 / 4;
-  max-height: 88%;
+  max-width: 46%;
+  min-width: 7.5rem;
   padding: clamp(0.45rem, 1.4vw, 0.7rem) clamp(0.4rem, 1.2vw, 0.55rem)
     clamp(0.4rem, 1.2vw, 0.55rem);
   border: 1px solid var(--border);
@@ -231,6 +234,7 @@ button {
     0 22px 48px rgb(0 0 0 / 0.58),
     0 0 0 1px rgb(255 255 255 / 0.03);
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .tile__block-headline {

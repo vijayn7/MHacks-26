@@ -290,6 +290,15 @@ export default function Profile() {
         >
           spending preferences
         </QuietButton>
+        <QuietButton
+          secondary
+          onPress={() => {
+            setSheet(null);
+            router.push('/wearable');
+          }}
+        >
+          watch & feelings
+        </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}
         </QuietButton>

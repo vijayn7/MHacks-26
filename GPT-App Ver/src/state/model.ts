@@ -1,3 +1,4 @@
+import { freshWearable, readWearable, type Wearable, type Moment } from './wearable';
 import { spendingCategories } from '../design/onboarding';
 import { addContacts, type ContactCandidate } from './contacts';
 import { readArchive, type SavedItem } from './archive';
@@ -23,6 +24,7 @@ export type Nudge = {
 };
 export type AppState = {
   version: 2;
+  wearable: Wearable;
   onboardingComplete: boolean;
   spendingCategories: string[];
   plan: BlockPlan | null;
@@ -42,6 +44,10 @@ export type AppState = {
   archive: SavedItem[];
 };
 export type Action =
+  | { type: 'DEMO_PURCHASE'; id: string }
+  | { type: 'WEARABLE'; settings: Partial<Omit<Wearable, 'moments'>> }
+  | { type: 'SAVE_MOMENT'; moment: Moment }
+  | { type: 'DELETE_WEARABLE_DATA' }
   | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number }
   | { type: 'SAVE_PLAN'; plan: BlockPlan }
   | { type: 'PLAN_ENABLED'; enabled: boolean }
@@ -68,6 +74,7 @@ export const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e
 export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
+    wearable: freshWearable(),
     onboardingComplete: false,
     spendingCategories: [],
     plan: null,
@@ -107,6 +114,7 @@ export function migrate(raw: unknown): AppState {
     return {
       ...base,
       ...old,
+      wearable: readWearable(old.wearable),
       onboardingComplete: old.onboardingComplete !== false,
       spendingCategories: Array.isArray(old.spendingCategories)
         ? old.spendingCategories.filter((v: any) => spendingCategories.includes(v))
@@ -191,6 +199,31 @@ export function migrate(raw: unknown): AppState {
 }
 export function reducer(s: AppState, a: Action): AppState {
   switch (a.type) {
+    case 'DEMO_PURCHASE':
+      return s.nudges.some((n) => n.id === a.id)
+        ? s
+        : {
+            ...s,
+            nudges: [
+              ...s.nudges,
+              { id: a.id, name: 'Studio headphones', amount: 149, status: 'waiting', dueAt: null },
+            ],
+          };
+    case 'WEARABLE':
+      return { ...s, wearable: readWearable({ ...s.wearable, ...a.settings }) };
+    case 'SAVE_MOMENT':
+      return {
+        ...s,
+        wearable: readWearable({
+          ...s.wearable,
+          moments: [a.moment, ...s.wearable.moments.filter((m) => m.id !== a.moment.id)].slice(
+            0,
+            50,
+          ),
+        }),
+      };
+    case 'DELETE_WEARABLE_DATA':
+      return { ...s, wearable: freshWearable() };
     case 'COMPLETE_ONBOARDING':
       return {
         ...s,

@@ -1,3 +1,4 @@
+import { freshWearable, readWearable, recentReading } from '../src/state/wearable';
 import {
   domainName,
   freshPlan,
@@ -338,4 +339,43 @@ test('contacts page through large address books and cancel without further reads
   offsets.length = 0;
   await readSystemContacts(reader, controller.signal);
   assert.deepEqual(offsets, []);
+});
+
+test('wearable readings expire, require consent in the demo, and data deletion leaves spending intact', () => {
+  const at = 1000000;
+  const w = {
+    ...freshWearable(),
+    status: 'connected' as const,
+    enabled: true,
+    baseline: 68,
+    reading: { bpm: 82, at },
+  };
+  assert.equal(recentReading(w, at + 299999), 82);
+  assert.equal(recentReading(w, at + 300000), null);
+  assert.equal(recentReading({ ...w, enabled: false }, at), null);
+  assert.equal(recentReading({ ...w, status: 'denied' }, at), null);
+  assert.equal(recentReading(w, at - 1), null);
+  const s = reducer(initialState(), { type: 'WEARABLE', settings: w });
+  const cleared = reducer(s, { type: 'DELETE_WEARABLE_DATA' });
+  assert.deepEqual(cleared.wearable, freshWearable());
+  assert.equal(cleared.savings, s.savings);
+  assert.deepEqual(cleared.friends, s.friends);
+  assert.deepEqual(
+    readWearable({
+      moments: [
+        {
+          id: 'bad',
+          at: 1,
+          name: 'bad',
+          before: [],
+          after: [],
+          outcome: 'saved',
+          intensity: 50,
+          bpm: { length: 3 },
+          simulated: true,
+        },
+      ],
+    }).moments,
+    [],
+  );
 });

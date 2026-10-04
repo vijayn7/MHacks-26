@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useStore } from '../state/Store';
+import { recentReading } from '../state/wearable';
 import { supportLevel } from '../design/onboarding';
 import { savedDate } from '../state/archive';
 import { money, type Nudge } from '../state/model';
@@ -259,6 +260,21 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                 )}
                 {!done && !kept && !saved ? (
                   <>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="check in with this purchase"
+                      onPress={() => {
+                        onClose();
+                        router.push({ pathname: '/moment', params: { nudge: n.id } });
+                      }}
+                      style={{ alignItems: 'center', paddingVertical: 12 }}
+                    >
+                      <T variant="small">
+                        {recentReading(state.wearable)
+                          ? `${recentReading(state.wearable)} bpm · demo · check in`
+                          : 'a quick check-in?'}
+                      </T>
+                    </Pressable>
                     <View style={s.choices}>
                       <Pressable
                         accessibilityRole="button"

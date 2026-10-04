@@ -1,0 +1,25 @@
+{
+  "name": "impulse",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-sqlite' vitest run",
+    "typecheck": "tsc -p packages/shared --noEmit && tsc -p packages/db --noEmit && tsc -p packages/api --noEmit && tsc -p apps/web --noEmit && tsc -p apps/mobile --noEmit && tsc -p apps/extension --noEmit",
+    "setup": "bash scripts/setup.sh",
+    "dev:web": "pnpm --filter @impulse/web dev",
+    "build:web": "pnpm --filter @impulse/web build",
+    "build:extension": "pnpm --filter @impulse/extension build",
+    "lint": "tsc -p packages/shared --noEmit && tsc -p packages/db --noEmit && tsc -p packages/api --noEmit"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.31",
+      "@types/react-dom": "18.3.7"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { optOutIds } from "./score.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -5,6 +6,26 @@ import { fileURLToPath } from "node:url";
 import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
+import { DbConnection } from "../../extension/src/module_bindings/index.js";
+import {
+  attachFriendReply,
+  buildCheckInMessage,
+  inboundFriendText,
+  parseShare,
+  thankYouAck,
+  type CheckInRow,
+} from "./checkin.js";
+import { pauseBodyFrom, statusForNudgeAction } from "./pause-bridge";
+import { handleSnuff, setupSnuff, userId as snuffUserId } from "./snuff/index";
+import { chromePrefix, clearChromePauses, createNudge, nudgeStatus } from "./snuff/pauses";
+import {
+  clampPlanProposal,
+  loadUserPlan,
+  mockPlan,
+  planSummary,
+  readPlan,
+  upsertPlan,
+} from "./snuff/plan";
 
 function loadEnv(file: string) {
   let text: string;
@@ -35,13 +56,17 @@ function loadEnv(file: string) {
 loadEnv(join(dirname(fileURLToPath(import.meta.url)), "../../../.env"));
 
 const port = Number(process.env.PORT) || 8787;
+const spacetimeUri = process.env.SPACETIMEDB_URI?.trim() ?? "";
+const spacetimeDatabase = process.env.SPACETIMEDB_DATABASE?.trim() ?? "";
+const spacetimeToken = process.env.SPACETIMEDB_TOKEN?.trim() ?? "";
+const spacetimeOn = spacetimeUri !== "" && spacetimeDatabase !== "" && spacetimeToken !== "";
+if (!spacetimeOn) {
+  console.log("[spacetime] SPACETIMEDB_URI, SPACETIMEDB_DATABASE, or SPACETIMEDB_TOKEN is unset; live pause updates are off");
+}
 const projectId = process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.SPECTRUM_PROJECT_SECRET;
 const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
-const askAgain = "Reply YES to approve the purchase or NO to reject it.";
-const approvedAck = "Approved. The checkout can go through.";
-const rejectedAck = "Rejected. The purchase will be dropped.";
-const origin = "http://localhost:5173";
+const origin = "*";
 const maxBody = 64 * 1024;
 const seedRule = {
   id: "seed-over-40",
@@ -53,6 +78,7 @@ const eventTypes = new Set([
   "checkout_detected",
   "pause_started",
   "purchase_dropped",
+  "impulse_opt_out",
   "saved_for_later",
   "continue_selected",
   "friend_ping_requested",
@@ -62,14 +88,33 @@ const eventTypes = new Set([
 ]);
 
 type PauseEvent = { id: string; type: string; ruleId: string | null; at: string };
-type Decision = "approved" | "rejected";
-type CheckIn = { id: string; ruleId: string; status: "sent" | Decision; reply: string | null };
+type CheckIn = CheckInRow;
 const events: PauseEvent[] = [];
 const eventsById = new Map<string, PauseEvent>();
 const checkIns = new Map<string, CheckIn>();
-const outbound = new Set<string>([askAgain, approvedAck, rejectedAck]);
+const outbound = new Set<string>([thankYouAck]);
 let waitingId: string | null = null;
 let deliver: ((text: string) => Promise<void>) | null = null;
+let spacetimeConn: DbConnection | null = null;
+
+function startSpacetime() {
+  if (!spacetimeOn) return;
+  spacetimeConn = DbConnection.builder()
+    .withUri(spacetimeUri)
+    .withDatabaseName(spacetimeDatabase)
+    .withToken(spacetimeToken)
+    .onConnectError((_ctx, error) => {
+      console.error("[spacetime] connect failed", error instanceof Error ? error.message : "unknown");
+    })
+    .build();
+}
+
+function upsertPause(sessionId: string, state: string, friendReply?: string) {
+  if (!spacetimeConn) return;
+  void spacetimeConn.reducers.upsertPauseStatus({ sessionId, state, friendReply }).catch((error: unknown) => {
+    console.error("[spacetime] upsert failed", error instanceof Error ? error.message : "unknown");
+  });
+}
 
 function e164(handle: string) {
   if (handle.startsWith("+")) return handle;
@@ -95,30 +140,28 @@ async function allowFriend(handle: string) {
   }
 }
 
-function checkInMessage(product: string, amount: number) {
-  return [
-    "SecondThought pause.",
-    "",
-    "Your friend is at checkout and asked you to decide.",
-    `Item: ${product}`,
-    `Price: $${amount}`,
-    "",
-    "SecondThought holds the purchase until someone they trust weighs in.",
-    "Reply YES to approve it or NO to reject it.",
-    "This demo does not charge a card.",
-  ].join("\n");
-}
-
-function decisionOf(text: string): Decision | null {
-  const normalized = text.trim().toLowerCase().replace(/[.!]+$/g, "");
-  if (/^(yes|y|approve|approved)\b/.test(normalized)) return "approved";
-  if (/^(no|n|reject|rejected)\b/.test(normalized)) return "rejected";
-  return null;
-}
-
 const sql = process.env.DATABASE_URL
   ? postgres(process.env.DATABASE_URL, { onnotice: () => {} })
   : null;
+
+async function shopperDisplayName(): Promise<string | null> {
+  if (!sql) return null;
+  try {
+    const tables = await sql<{ exists: boolean }[]>`
+      select to_regclass('public.snuff_profiles') is not null as exists`;
+    if (!tables[0]?.exists) return null;
+    const rows = await sql<{ name: string | null }[]>`
+      select name from snuff_profiles where user_id = 'demo' limit 1`;
+    const name = rows[0]?.name?.trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
+function checkInPublic(row: CheckIn) {
+  return { id: row.id, status: row.status, reply: row.reply };
+}
 
 function remember(event: PauseEvent, persist = true) {
   const existing = eventsById.get(event.id);
@@ -129,13 +172,18 @@ function remember(event: PauseEvent, persist = true) {
   return event;
 }
 
+// rule_id references the legacy rules table; Snuff plan ids live in snuff_plans, so unknown ids store null.
 async function persistEvent(event: PauseEvent) {
   if (!sql) return;
-  await sql`
-    insert into pause_events (id, type, rule_id, at)
-    values (${event.id}, ${event.type}, ${event.ruleId}, ${event.at})
-    on conflict (id) do nothing
-  `;
+  try {
+    await sql`
+      insert into pause_events (id, type, rule_id, at)
+      values (${event.id}, ${event.type}, (select id from rules where id = ${event.ruleId}), ${event.at})
+      on conflict (id) do nothing
+    `;
+  } catch (error) {
+    console.error("[events] persist failed", error instanceof Error ? error.message : "unknown");
+  }
 }
 
 async function persistCheckIn(row: CheckIn) {
@@ -143,7 +191,7 @@ async function persistCheckIn(row: CheckIn) {
   try {
     await sql`
       insert into check_ins (id, rule_id, status, reply)
-      values (${row.id}, ${row.ruleId}, ${row.status}, ${row.reply})
+      values (${row.id}, (select id from rules where id = ${row.ruleId}), ${row.status}, ${row.reply})
       on conflict (id) do update set
         status = excluded.status,
         reply = excluded.reply
@@ -200,10 +248,11 @@ async function ensureDb() {
   await sql`
     create table if not exists check_ins (
       id text primary key,
-      rule_id text not null,
+      rule_id text,
       status text not null,
       reply text
     )`;
+  await sql`alter table check_ins alter column rule_id drop not null`;
   await sql`alter table saved_items add column if not exists name text`;
   await sql`alter table saved_items add column if not exists amount numeric`;
   await sql`
@@ -229,7 +278,7 @@ async function ensureDb() {
       at: new Date(row.at).toISOString(),
     }, false);
   }
-  const openCheckIns = await sql<{ id: string; rule_id: string; reply: string | null }[]>`
+  const openCheckIns = await sql<{ id: string; rule_id: string | null; reply: string | null }[]>`
     select id, rule_id, reply from check_ins where status = 'sent'`;
   for (const row of openCheckIns) {
     checkIns.set(row.id, { id: row.id, ruleId: row.rule_id, status: "sent", reply: row.reply });
@@ -237,9 +286,9 @@ async function ensureDb() {
   }
 }
 
-function send(res: ServerResponse, status: number, body?: unknown) {
+function send(res: ServerResponse, status: number, body?: unknown, allowedOrigin = origin) {
   const headers: Record<string, string> = {
-    "access-control-allow-origin": origin,
+    "access-control-allow-origin": allowedOrigin,
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-headers": "Content-Type",
   };
@@ -295,17 +344,34 @@ function ruleFrom(row: RuleRow) {
 }
 
 async function activeRule() {
-  if (!sql) return seedRule;
-  const rows = await sql<RuleRow[]>`
-    select id, min_amount, pause_minutes, summary
-    from rules
-    where user_id = 'demo'
-    order by created_at desc
-    limit 1
-  `;
-  return rows[0] ? ruleFrom(rows[0]) : seedRule;
+  if (sql) {
+    const plan = await loadUserPlan(sql, snuffUserId);
+    if (plan) {
+      return {
+        id: "snuff-plan-" + snuffUserId,
+        minAmount: plan.minAmount,
+        pauseMinutes: plan.cooldownMinutes,
+        summary: planSummary(plan),
+        enabled: plan.enabled,
+        domains: plan.domains,
+        mode: plan.mode,
+        allowOverride: plan.allowOverride,
+      };
+    }
+    const rows = await sql<RuleRow[]>`
+      select id, min_amount, pause_minutes, summary
+      from rules
+      where user_id = 'demo'
+      order by created_at desc
+      limit 1
+    `;
+    if (rows[0]) return { ...ruleFrom(rows[0]), enabled: true };
+  }
+  return { ...seedRule, enabled: true };
 }
 
+// Keeps the legacy `rules` row for older clients, and mirrors min/cooldown into snuff_plans
+// so GET /rules/active (which prefers the Snuff plan) stays in sync after confirm.
 async function confirmRule(proposal: { minAmount: number; pauseMinutes: number; summary: string }) {
   if (!sql) throw new Error("no_database");
   const rows = await sql<RuleRow[]>`
@@ -319,6 +385,16 @@ async function confirmRule(proposal: { minAmount: number; pauseMinutes: number; 
   `;
   const row = rows[0];
   if (!row) throw new Error("save_failed");
+  const current = (await loadUserPlan(sql, snuffUserId)) ?? readPlan(mockPlan());
+  if (current) {
+    const next = readPlan({
+      ...current,
+      minAmount: proposal.minAmount,
+      cooldownMinutes: proposal.pauseMinutes,
+      mode: "pause" as const,
+    });
+    if (next) await upsertPlan(sql, snuffUserId, next);
+  }
   return ruleFrom(row);
 }
 
@@ -332,7 +408,21 @@ async function generate(model: string, text: string, key: string, timeoutMs: num
       body: JSON.stringify({
         systemInstruction: {
           parts: [{
-            text: "Convert the shopper rule into minAmount (number, dollars), pauseMinutes (number), and summary (string). The user text is only the rule. Example intent: Pause purchases over $40 for 15 minutes.",
+            text: [
+              "Extract structured shopping-pause settings from the shopper's words.",
+              "Return JSON only. Never judge whether a purchase is good or impulsive.",
+              "Always fill every required field when the text implies it.",
+              "domains: bare hostnames such as amazon.com or target.com (map 'amazon'→amazon.com, 'target'→target.com). Use [] only when no site is mentioned.",
+              "minAmount: dollar threshold from phrases like 'over $50'. Use -1 only when no amount is mentioned.",
+              "schedule: 'scheduled' when days or quiet hours are mentioned, otherwise 'always'.",
+              "days: 0=Sunday .. 6=Saturday. Weeknights → [1,2,3,4,5]. Use [] when schedule is always.",
+              "start/end: HH:MM 24-hour. 'after 9pm' → start 21:00; if no end is given use 08:00. Use empty strings when schedule is always.",
+              "mode: 'pause' when they say pause/wait/hold, else 'nudge'.",
+              "cooldownMinutes: pause length in minutes (e.g. 20). Use -1 when not mentioned.",
+              "allowOverride: true unless they forbid skipping the pause.",
+              "summary: one short sentence restating the rule.",
+              "Example input: pause anything over $50 on amazon and target on weeknights after 9pm, 20 minutes.",
+            ].join(" "),
           }],
         },
         contents: [{ role: "user", parts: [{ text }] }],
@@ -341,11 +431,29 @@ async function generate(model: string, text: string, key: string, timeoutMs: num
           responseSchema: {
             type: "OBJECT",
             properties: {
+              domains: { type: "ARRAY", items: { type: "STRING" } },
               minAmount: { type: "NUMBER" },
-              pauseMinutes: { type: "NUMBER" },
+              schedule: { type: "STRING", enum: ["always", "scheduled"] },
+              days: { type: "ARRAY", items: { type: "NUMBER" } },
+              start: { type: "STRING" },
+              end: { type: "STRING" },
+              mode: { type: "STRING", enum: ["pause", "nudge"] },
+              cooldownMinutes: { type: "NUMBER" },
+              allowOverride: { type: "BOOLEAN" },
               summary: { type: "STRING" },
             },
-            required: ["minAmount", "pauseMinutes", "summary"],
+            required: [
+              "summary",
+              "domains",
+              "minAmount",
+              "schedule",
+              "days",
+              "start",
+              "end",
+              "mode",
+              "cooldownMinutes",
+              "allowOverride",
+            ],
           },
         },
       }),
@@ -378,15 +486,177 @@ async function parseRule(text: string) {
       if (part.thought || !part.text) continue;
       raw = part.text;
     }
-    const proposal = proposalFrom(JSON.parse(raw));
+    const proposal = clampPlanProposal(JSON.parse(raw));
     if (!proposal) return failed;
-    return { status: 200, body: { proposal, confirmed: false } };
+    return { status: 200, body: { proposal } };
   } catch {
     return failed;
   }
 }
 
+const nessieBase = "https://api.nessieisreal.com";
+type NessieIds = { accountId: string; merchantId: string };
+let nessieIds: NessieIds | null = null;
+
+function nessieKey() {
+  return process.env.NESSIE_API_KEY?.trim() ?? "";
+}
+
+function nessieUrl(path: string) {
+  const url = new URL(path, nessieBase);
+  url.searchParams.set("key", nessieKey());
+  return url;
+}
+
+async function nessie(path: string, init?: { method?: string; body?: unknown }) {
+  const res = await fetch(nessieUrl(path), {
+    method: init?.method ?? "GET",
+    headers: init?.body === undefined ? undefined : { "content-type": "application/json" },
+    body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+  });
+  const text = await res.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+  }
+  return { ok: res.ok, status: res.status, data };
+}
+
+function createdId(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const id = (data as { objectCreated?: { _id?: unknown } }).objectCreated?._id;
+  return typeof id === "string" && id.length > 0 ? id : null;
+}
+
+function rows(data: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(data)) return [];
+  return data.filter((row): row is Record<string, unknown> => !!row && typeof row === "object");
+}
+
+function purchaseInput(body: unknown): { name: string; amount: number } | null {
+  if (!body || typeof body !== "object") return null;
+  const { name, amount } = body as Record<string, unknown>;
+  if (typeof name !== "string" || name.trim().length === 0 || name.length > 180) return null;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) return null;
+  return { name, amount };
+}
+
+async function ensureNessie(): Promise<NessieIds> {
+  if (nessieIds) return nessieIds;
+  const accountOverride = process.env.NESSIE_ACCOUNT_ID?.trim() ?? "";
+  const merchantOverride = process.env.NESSIE_MERCHANT_ID?.trim() ?? "";
+  let accountId = accountOverride;
+  if (!accountId) {
+    const customers = await nessie("/customers");
+    if (!customers.ok) throw new Error("customers");
+    let customerId = "";
+    for (const row of rows(customers.data)) {
+      if (row.first_name === "Demo" && row.last_name === "Shopper" && typeof row._id === "string") {
+        customerId = row._id;
+        break;
+      }
+    }
+    if (!customerId) {
+      const created = await nessie("/customers", {
+        method: "POST",
+        body: {
+          first_name: "Demo",
+          last_name: "Shopper",
+          address: {
+            street_number: "1600",
+            street_name: "Pennsylvania Ave NW",
+            city: "Washington",
+            state: "DC",
+            zip: "20500",
+          },
+        },
+      });
+      customerId = createdId(created.data) ?? "";
+      if (!customerId) throw new Error("customer");
+    }
+    const accounts = await nessie(`/customers/${customerId}/accounts`);
+    if (!accounts.ok) throw new Error("accounts");
+    for (const row of rows(accounts.data)) {
+      if (row.type === "Checking" && row.nickname === "SecondThought Demo" && typeof row._id === "string") {
+        accountId = row._id;
+        break;
+      }
+    }
+    if (!accountId) {
+      const created = await nessie(`/customers/${customerId}/accounts`, {
+        method: "POST",
+        body: { type: "Checking", nickname: "SecondThought Demo", rewards: 0, balance: 500 },
+      });
+      accountId = createdId(created.data) ?? "";
+      if (!accountId) throw new Error("account");
+    }
+  }
+  let merchantId = merchantOverride;
+  if (!merchantId) {
+    const merchants = await nessie("/merchants");
+    if (!merchants.ok) throw new Error("merchants");
+    for (const row of rows(merchants.data)) {
+      if (row.name === "Optimum Nutrition" && typeof row._id === "string") {
+        merchantId = row._id;
+        break;
+      }
+    }
+    if (!merchantId) {
+      // Nessie rejects category as an array and expects a string.
+      const created = await nessie("/merchants", {
+        method: "POST",
+        body: {
+          name: "Optimum Nutrition",
+          category: "Health",
+          address: {
+            street_number: "3500",
+            street_name: "Lacey Rd",
+            city: "Downers Grove",
+            state: "IL",
+            zip: "60515",
+          },
+          geocode: { lat: 41.808, lng: -88.011 },
+        },
+      });
+      merchantId = createdId(created.data) ?? "";
+      if (!merchantId) throw new Error("merchant");
+    }
+  }
+  nessieIds = { accountId, merchantId };
+  return nessieIds;
+}
+
+async function recordPurchase(name: string, amount: number) {
+  const { accountId, merchantId } = await ensureNessie();
+  const created = await nessie(`/accounts/${accountId}/purchases`, {
+    method: "POST",
+    body: {
+      merchant_id: merchantId,
+      medium: "balance",
+      purchase_date: new Date().toISOString().slice(0, 10),
+      amount,
+      status: "pending",
+      description: name,
+    },
+  });
+  const purchaseId = createdId(created.data);
+  if (!created.ok || !purchaseId) throw new Error("purchase_failed");
+  const account = await nessie(`/accounts/${accountId}`);
+  const balance =
+    account.data && typeof account.data === "object"
+      ? (account.data as { balance?: unknown }).balance
+      : undefined;
+  if (!account.ok || typeof balance !== "number" || !Number.isFinite(balance)) throw new Error("purchase_failed");
+  return { purchaseId, balance, amount, name };
+}
+
 await ensureDb();
+if (sql) await setupSnuff(sql);
+startSpacetime();
 
 createServer((req, res) => {
   void handle(req, res).catch(() => {
@@ -403,8 +673,79 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
+  if (path.startsWith("/app/")) {
+    await handleSnuff(req, res, path, url, sql, send, readJson, (action) => {
+      const pauseId = action.id;
+      if (typeof pauseId !== "string" || !pauseId || typeof action.type !== "string") return;
+      const state = statusForNudgeAction(action.type);
+      if (state) upsertPause(pauseId, state);
+    });
+    return;
+  }
   if (req.method === "GET" && path === "/health") {
     send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "GET" && path === "/pauses") {
+    const id = url.searchParams.get("id") ?? "";
+    if (!id) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    const status = await nudgeStatus(sql, snuffUserId, id);
+    if (!status) {
+      send(res, 404, { error: "missing" });
+      return;
+    }
+    send(res, 200, { id, status });
+    return;
+  }
+  if (req.method === "POST" && path === "/pauses/clear") {
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    await clearChromePauses(sql, snuffUserId);
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (!events[i].id.startsWith(chromePrefix)) continue;
+      eventsById.delete(events[i].id);
+      events.splice(i, 1);
+    }
+    for (const id of checkIns.keys()) if (id.startsWith(chromePrefix)) checkIns.delete(id);
+    await sql`delete from pause_events where id like ${chromePrefix + "%"}`;
+    await sql`delete from check_ins where id like ${chromePrefix + "%"}`;
+    send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "POST" && path === "/pauses") {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    const input = pauseBodyFrom(body);
+    if (!input) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!sql) {
+      send(res, 503, { error: "no_database" });
+      return;
+    }
+    await createNudge(sql, snuffUserId, input);
+    upsertPause(input.id, "waiting");
+    const status = (await nudgeStatus(sql, snuffUserId, input.id)) ?? "waiting";
+    send(res, 200, { id: input.id, status });
+    return;
+  }
+  if (req.method === "GET" && path === "/score") {
+    send(res, 200, { optOutIds: optOutIds(events) }, process.env.SNUFF_APP_ORIGIN || "http://localhost:8081");
     return;
   }
   if (req.method === "GET" && path === "/events") {
@@ -466,13 +807,21 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     send(res, result.status, result.body);
     return;
   }
+  if (req.method === "GET" && path === "/spacetime") {
+    if (!spacetimeOn) {
+      send(res, 503, { error: "unconfigured" });
+      return;
+    }
+    send(res, 200, { uri: spacetimeUri, database: spacetimeDatabase });
+    return;
+  }
   if (req.method === "GET" && path === "/check-in") {
     const row = checkIns.get(url.searchParams.get("id") ?? "");
     if (!row) {
       send(res, 404, { error: "missing" });
       return;
     }
-    send(res, 200, row);
+    send(res, 200, checkInPublic(row));
     return;
   }
   if (req.method === "POST" && path === "/check-in") {
@@ -485,24 +834,16 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     }
     const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
     const id = record.id;
-    const ruleId = record.ruleId;
-    const product = record.product;
-    const amount = record.amount;
-    if (typeof id !== "string" || id.length === 0 || typeof ruleId !== "string" || ruleId.length === 0) {
-      send(res, 400, { error: "invalid" });
-      return;
-    }
-    if (typeof product !== "string" || product.trim().length === 0 || product.length > 80) {
-      send(res, 400, { error: "invalid" });
-      return;
-    }
-    if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+    const ruleId = typeof record.ruleId === "string" && record.ruleId.length > 0 ? record.ruleId : null;
+    // friendName is accepted from the client; the iMessage uses the shopper profile name.
+    const share = parseShare(record.share);
+    if (typeof id !== "string" || id.length === 0) {
       send(res, 400, { error: "invalid" });
       return;
     }
     const existing = checkIns.get(id);
     if (existing) {
-      send(res, 200, existing);
+      send(res, 200, checkInPublic(existing));
       return;
     }
     if (!deliver) {
@@ -510,11 +851,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       return;
     }
     logEvent("friend_ping_requested", ruleId);
+    const message = buildCheckInMessage(await shopperDisplayName(), share);
     try {
-      await deliver(checkInMessage(product.trim(), amount));
+      await deliver(message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (!/until they respond/i.test(message)) {
+      const err = error instanceof Error ? error.message : "";
+      if (!/until they respond/i.test(err)) {
         send(res, 502, { error: "send_failed" });
         return;
       }
@@ -522,7 +864,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       checkIns.set(id, row);
       waitingId = id;
       await persistCheckIn(row);
-      send(res, 200, { ...row, waiting: true });
+      send(res, 200, { ...checkInPublic(row), waiting: true });
       return;
     }
     const row: CheckIn = { id, ruleId, status: "sent", reply: null };
@@ -530,7 +872,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     waitingId = id;
     await persistCheckIn(row);
     logEvent("friend_message_sent", ruleId);
-    send(res, 200, row);
+    upsertPause(id, "sent");
+    send(res, 200, checkInPublic(row));
     return;
   }
   if (req.method === "GET" && path === "/saved") {
@@ -586,6 +929,32 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     send(res, 200, { id, ruleId: typeof ruleId === "string" ? ruleId : null, name, amount });
     return;
   }
+  if (req.method === "POST" && path === "/purchase") {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    const input = purchaseInput(body);
+    if (!input) {
+      send(res, 400, { error: "invalid" });
+      return;
+    }
+    if (!nessieKey()) {
+      send(res, 503, { error: "missing_key" });
+      return;
+    }
+    try {
+      send(res, 200, await recordPurchase(input.name, input.amount));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "purchase_failed";
+      console.error("[nessie]", message.split(nessieKey()).join("[redacted]").slice(0, 300));
+      send(res, 502, { error: "purchase_failed" });
+    }
+    return;
+  }
   send(res, 404);
 }
 
@@ -624,32 +993,22 @@ if (projectId && projectSecret && friendHandle) {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
   for await (const [, message] of spectrum.messages) {
-    if (message.platform !== "imessage" || message.direction === "outbound") continue;
-    if (message.content.type !== "text") continue;
-    const text = message.content.text?.trim() ?? "";
-    if (!text || outbound.has(text)) continue;
-    const row = waitingId ? checkIns.get(waitingId) : undefined;
-    if (!row || row.status !== "sent") continue;
-    const decision = decisionOf(text);
-    if (!decision) {
-      try {
-        outbound.add(askAgain);
-        await message.reply(askAgain);
-      } catch {
-        console.error("[imessage] clarify failed");
-      }
-      continue;
-    }
-    row.reply = text;
-    row.status = decision;
+    if (message.platform !== "imessage") continue;
+    const text = inboundFriendText(message, outbound);
+    if (!text) continue;
+    const open = waitingId ? checkIns.get(waitingId) : undefined;
+    if (!open) continue;
+    const updated = attachFriendReply(open, text);
+    if (!updated) continue;
+    checkIns.set(updated.id, updated);
     waitingId = null;
-    await persistCheckIn(row);
-    logEvent("friend_replied", row.ruleId);
-    console.log(`[imessage] friend ${decision} the pause`);
-    const ack = decision === "approved" ? approvedAck : rejectedAck;
+    await persistCheckIn(updated);
+    logEvent("friend_replied", updated.ruleId);
+    upsertPause(updated.id, "replied", text);
+    console.log("[imessage] friend replied to the pause");
     try {
-      outbound.add(ack);
-      await message.reply(ack);
+      outbound.add(thankYouAck);
+      await message.reply(thankYouAck);
     } catch {
       console.error("[imessage] ack failed");
     }

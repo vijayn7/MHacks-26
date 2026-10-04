@@ -4,9 +4,9 @@ Knowledge dump for the hackathon checkout path. The iOS app lives in `pact-ios` 
 
 ## What the demo shows
 
-One product is already in the cart. Checkout matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend. A friend reply of YES places the order. NO drops it.
+The page is a product for Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry, priced at $64.99. Buy Now opens shipping and payment on the same page. Place order matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend for support, from the card or from the Snuff popup on the phone. After Continue, Place order records the purchase in Capital One Nessie. A friend's reply is shown but never decides.
 
-The store does not charge a card.
+The store does not charge a real card. Shipping and payment are hardcoded demo values.
 
 ## Run it
 
@@ -30,69 +30,69 @@ Load the extension in Chrome, not in the Cursor browser. Open `chrome://extensio
 
 Package: `@secondthought/store`. Vite and React. Entry is `apps/store/src/App.tsx`.
 
-The page is one seeded cart, not a catalog.
+The page is one product, not a catalog.
 
-- Product: Wool coat, $64.
-- Cart aside: `data-name="Wool coat"` and `data-total="64"`. The extension reads those attributes. Do not remove them.
-- Checkout button: `id="checkout"`. Its click sets local React state and replaces the cart with “Order placed.”
-- There is no payment, no other product, and no add-to-cart step.
+- Product: Optimum Nutrition Gold Standard 100% Whey Protein Powder, Delicious Strawberry, 5 lb. Price is hardcoded at $64.99.
+- Buy box: `data-name="Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry"` and `data-total="64.99"`. The extension reads those attributes. Do not remove them.
+- Buy Now reveals the checkout panel. It is not the pay control.
+- Shipping fields are prefilled and disabled: Demo Shopper, 1600 Pennsylvania Ave NW, Washington, DC 20500. Payment is a disabled field labeled Nessie checking account. There is no card number.
+- Place order is `button#checkout`. Its handler reads those data attributes and `POST`s `{ name, amount }` to `http://localhost:8787/purchase`. Amount is 64.99.
+- On success the page is replaced with “Order placed.”, the Nessie purchase id, and the checking-account balance. On an API error the message stays on the panel and the order stays unplaced.
+- The API reads `NESSIE_API_KEY` from the environment. Without it, `POST /purchase` returns `503` `{ "error": "missing_key" }`. With it, the API records the purchase at `https://api.nessieisreal.com` and returns `{ purchaseId, balance, amount, name }`. `purchaseId` is Nessie’s `objectCreated._id`.
 
 The price is over $40 on purpose so the seeded rule matches.
 
 ## Chrome extension
 
-Package: `@secondthought/extension`. Manifest V3. One content script, `apps/extension/src/content.ts`, compiled with `tsc` to `dist/content.js`. No React in the extension. The pause card is a shadow DOM overlay so store CSS cannot restyle it.
+Package: `@secondthought/extension`. Manifest V3. One content script, `apps/extension/src/content.ts`, bundled with esbuild to `dist/content.js`. No React in the extension. The pause card is a shadow DOM overlay so store CSS cannot restyle it.
 
-The script does not use `chrome.*`. It can be injected into the store page for a check, but the real demo is the unpacked extension.
+The script does not use `chrome.*` for the pause itself. It can be injected into a page for a check; the real demo is the unpacked extension.
 
 ### Rule match
 
-Hardcoded in the content script. Not loaded from the API and not decided by Gemini.
+Loads `GET /rules/active` on startup and falls back to the seeded rule when that fails:
 
 ```ts
 { id: "seed-over-40", minAmount: 40, pauseMinutes: 15 }
 ```
 
-On a click of `#checkout`, in the capture phase:
+The content script classifies the page with `checkout-analyzer` (checkout stage + total ≥ minAmount). When it matches, it opens the pause card. The card text says the pause is 15 minutes. Nothing in the extension starts a timer.
 
-- Read `[data-total]`. If it is missing or below 40, let the click through.
-- Otherwise `preventDefault` and `stopPropagation`, then open the pause card.
-- A one-shot `bypass` flag lets the next checkout click through. Continue, and a friend YES, set that flag and click `#checkout` again so the store shows “Order placed.”
+### Two-surface pause (Chrome ↔ phone)
 
-The card text says the pause is 15 minutes. Nothing in the extension starts a timer.
+Opening the card:
 
-### Pause card actions
+1. Posts `checkout_detected` and `pause_started` to `POST /events` (network failures ignored).
+2. `POST /pauses` with `{ id, name, amount }` so the demo user’s waiting nudge appears in `GET /app/state` for the phone app.
+3. Watches resolution: Spacetime `pause_status` for that session id when `/spacetime` is configured, plus `GET /pauses?id=` every 2 seconds as fallback.
 
 | Action | What the shopper sees | What happens |
 | --- | --- | --- |
-| Drop | “Purchase dropped” | Cart stays. Event `purchase_dropped`. |
-| Save for later | “Saved for later” | Cart stays. Event `saved_for_later`. Also `POST /saved` with the product name and amount. |
-| Continue | Store shows “Order placed.” | Event `continue_selected`. Checkout click is allowed through. |
-| Ask my friend | “Text sent. Waiting for YES or NO.” | `POST /check-in`. The card stays open and polls. |
+| Drop | “Purchase dropped” | `POST /app/actions` `SNUFF_NUDGE` with stable id `{pauseId}:SNUFF_NUDGE`. Event `purchase_dropped`. |
+| Save for later | “Saved for later” | `POST /app/actions` `SAVE_FOR_LATER` (archives via the pauses slice; no separate `POST /saved`). Event `saved_for_later`. |
+| Continue | Card closes; shopper can place the order. | `POST /app/actions` `KEEP_NUDGE`. Event `continue_selected`. |
+| Ask my friend | Friend check-in copy on the card. | `POST /check-in`. Card stays open and polls. |
 
-Opening the card posts `pause_started`. Event posts go to `POST http://localhost:8787/events` and ignore network failure, so the pause still works if the API is down. Save and the friend check-in do need the API.
+A decision made first on either surface wins. If the phone resolves the nudge (`snuffed` / `kept` / `saved`), the card applies that outcome once and does not post a second action. Applied `/app/actions` also mirror to Spacetime via the API so the other surface updates live when Spacetime is configured.
 
-### Friend decision
+### Friend support
 
-Ask my friend is an explicit click. The extension sends the product name and the cart total. The API writes the iMessage. The text names the item and price and asks for YES or NO.
+Ask my friend is an explicit click. The extension sends no item details. The API writes a generic iMessage that uses the shopper's profile name and asks for encouragement. The friend is not deciding.
 
-The card polls `GET /check-in?id=` every 2 seconds.
+The card polls `GET /check-in?id=` every 2 seconds and also watches the Spacetime row.
 
-- `approved`: the card says the friend approved, then after 1.5 seconds it continues checkout.
-- `rejected`: the card says the friend rejected, then it drops the purchase.
-- `waiting: true`: Photon refused another outbound text because one is already on the friend’s phone. The card says to reply YES or NO on that thread and keeps polling. This is not a failed pause.
+- `replied`: the card shows the friend's text. It does not continue or drop the purchase.
+- `waiting: true`: Photon refused another outbound text because one is already on the friend’s phone. The card says to reply on that thread and keeps polling.
 
-Any other friend text does not decide the purchase. The API asks them again to reply YES or NO.
-
-Drop, Save for later, and Continue stay available while the card waits. A friend decision that arrives first is what the extension applies.
+Drop, Save for later, and Continue stay available the whole time. Only the shopper decides.
 
 ## Store contract the extension depends on
 
 Keep these stable or the pause will miss checkout:
 
-- `button#checkout` is the only checkout control.
-- `[data-total]` is the cart total in dollars, a number the extension can parse.
-- `[data-name]` is the product name sent to the friend and stored on save.
+- `button#checkout` is the only pay control. Buy Now is a separate button.
+- `[data-total]` is `64.99`, a number the extension can parse.
+- `[data-name]` is `Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry`. That string is sent to the friend, stored on save, and sent as the Nessie purchase description.
 
 The extension does not scrape the page beyond those attributes and the checkout button.
 

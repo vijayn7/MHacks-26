@@ -359,7 +359,15 @@ export const wearable: Slice = {
     await sql`delete from snuff_wearables where user_id = ${userId}`;
   },
   async read(sql, userId) {
-    return { wearable: await loadWearable(sql, userId) };
+    const w = await loadWearable(sql, userId);
+    // The demo watch is simulated. The app treats readings older than 5 minutes as stale, so serve a
+    // fresh, gently drifting value near the baseline while the watch is connected.
+    if (w.status === "connected" && w.enabled) {
+      const now = Date.now();
+      const bpm = Math.round((w.baseline ?? 68) + 6 + 5 * Math.sin(now / 45000));
+      w.reading = { bpm, at: now };
+    }
+    return { wearable: w };
   },
   actions: {
     async WEARABLE(sql, userId, action) {

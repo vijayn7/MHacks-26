@@ -103,3 +103,22 @@ test('empty prototypes receive the Home sample once while retaining preferences'
   );
   assert.deepEqual(migrate(seeded), seeded);
 });
+
+test('profile preferences migrate safely and stay separate from progress', () => {
+  const { blend, blendHue, burnRate, trustedFriendId, ...legacy } = initialState();
+  const old = migrate(legacy);
+  assert.equal(old.blend, 0);
+  assert.equal(old.burnRate, 54);
+  let next = reducer(old, { type: 'BLEND_HUE', hue: 'Crimson' });
+  next = reducer(next, { type: 'BLEND', value: 62 });
+  next = reducer(next, { type: 'BURN_RATE', value: 82 });
+  next = reducer(next, { type: 'TRUSTED_FRIEND', id: 'ria' });
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(next))), next);
+  assert.equal(next.savings, old.savings);
+  assert.equal(next.pauses, old.pauses);
+  assert.equal(reducer(next, { type: 'TRUSTED_FRIEND', id: 'missing' }), next);
+  assert.equal(reducer(next, { type: 'BLEND', value: Infinity }).blend, 62);
+  assert.equal(reducer(next, { type: 'BURN_RATE', value: -12 }).burnRate, 0);
+  assert.equal(migrate({ ...next, blend: 190, burnRate: 'bad', friends: [] }).blend, 100);
+  assert.equal(migrate({ ...next, friends: [] }).trustedFriendId, null);
+});

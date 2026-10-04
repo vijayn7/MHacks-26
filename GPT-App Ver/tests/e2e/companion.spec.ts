@@ -28,7 +28,10 @@ test('strokes soothe the same companion across screens without recording a pause
   expect((await progress(page)).savings).toBe(284);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await expect(page.getByRole('button', { name: 'edit your name' })).toBeVisible();
-  await expect(page.getByTestId('flame-mascot').last()).toHaveAttribute('aria-label', /content/);
+  await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
+    'aria-label',
+    /content/,
+  );
   await page.getByRole('tab', { name: 'social', exact: true }).click();
   await expect(page.getByRole('button', { name: /^pet your flame/ })).toHaveAttribute(
     'aria-label',
@@ -60,7 +63,7 @@ test('taps and holds have distinct reactions on small mascots, including resting
   page,
 }) => {
   await page.goto('/profile');
-  const flame = page.getByTestId('flame-mascot');
+  const flame = page.getByRole('button', { name: /^pet your flame/ });
   await flame.click();
   await expect(flame).toHaveAttribute('aria-label', /tap/);
   const box = (await flame.boundingBox())!;
@@ -104,9 +107,16 @@ test('the user flame carries its resting and low status between screens', async 
   await expect(flame).toHaveAttribute('aria-label', /resting/);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await expect(page.getByRole('button', { name: 'edit your name' })).toBeVisible();
-  await expect(page.getByTestId('flame-mascot').last()).toHaveAttribute('aria-label', /resting/);
-  await expect(page.getByTestId('flame-mascot').last()).toHaveAttribute('aria-label', /low flame/, {
-    timeout: 5000,
-  });
+  await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
+    'aria-label',
+    /resting/,
+  );
+  await expect(page.getByRole('button', { name: /^pet your flame/ }).last()).toHaveAttribute(
+    'aria-label',
+    /low flame/,
+    {
+      timeout: 5000,
+    },
+  );
   expect((await progress(page)).pauses).toBe(12);
 });

@@ -37,3 +37,9 @@ Taps produce a small nuzzle. Gentle vertical or sideways strokes sway and squish
 Bright, low, and resting states scale light, movement, and feedback. A completed home pause rests the flame for 2.4 seconds, then keeps it low until 11 seconds. A still home hold of 2.8 seconds records one pause; moving more than 7 points cancels that action while retaining petting. Petting alone never changes totals.
 
 Native haptics are gently throttled; browser previews show visual feedback only. Reduced motion removes ambient movement and gesture tilting while retaining soft light. Enter/Space and screen-reader activation also pet the companion. Cancel active gestures and haptic timers on blur, backgrounding, or unmount.
+
+## Profile settings composition
+
+The latest profile reference is `previews/snuff-profile-redesign.png`. A rounded companion sits in the left half of a translucent two-color card; color swatches and a blend slider sit to its right. Below are restriction-level metadata, a dark burn-rate card with a diffused light handle, a trusted-friend row, and a quiet notification switch. Maintain the three existing navigation tabs. The content scrolls on shorter phones, and the flame scales down below 360px width to keep controls clear.
+
+Mix any two existing palette hues through `src/design/blend.ts`; the user's mascot shares that mix across screens. Native and web slider implementations are in `src/components/GlowSlider.tsx` and `.web.tsx`. Profile preferences persist locally. Burn rate and trusted-friend selection remain prototype preferences; backend restriction enforcement and messaging are not connected. The friend is supportive rather than an approval gate.

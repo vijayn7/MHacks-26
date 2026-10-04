@@ -12,6 +12,10 @@ export type AppState = {
   version: 2;
   name: string;
   hue: Hue;
+  blendHue: Hue;
+  blend: number;
+  burnRate: number;
+  trustedFriendId: string | null;
   savings: number;
   pauses: number;
   notificationsEnabled: boolean;
@@ -23,6 +27,10 @@ export type Action =
   | { type: 'PAUSE'; at?: number }
   | { type: 'NAME'; name: string }
   | { type: 'HUE'; hue: Hue }
+  | { type: 'BLEND_HUE'; hue: Hue }
+  | { type: 'BLEND'; value: number }
+  | { type: 'BURN_RATE'; value: number }
+  | { type: 'TRUSTED_FRIEND'; id: string | null }
   | { type: 'NOTIFICATIONS'; enabled: boolean }
   | { type: 'CONNECT'; email: string }
   | { type: 'SNUFF_NUDGE'; id: string; at?: number }
@@ -36,6 +44,10 @@ export function initialState(now = Date.now()): AppState {
     version: 2,
     name: 'Alex',
     hue: 'Ember',
+    blendHue: 'Violet',
+    blend: 38,
+    burnRate: 54,
+    trustedFriendId: 'sam',
     savings: 284,
     pauses: 11,
     notificationsEnabled: false,
@@ -52,6 +64,10 @@ export function initialState(now = Date.now()): AppState {
     ],
   };
 }
+const hues: Hue[] = ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'];
+const percent = (value: number, fallback: number) =>
+  Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : fallback;
+
 export function migrate(raw: unknown): AppState {
   const base = initialState();
   if (!raw || typeof raw !== 'object') return base;
@@ -64,6 +80,18 @@ export function migrate(raw: unknown): AppState {
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
         ? old.hue
         : base.hue,
+      blendHue: hues.includes(old.blendHue) ? old.blendHue : base.blendHue,
+      // Keep existing single-color companions unchanged until the user mixes them.
+      blend: percent(old.blend, 0),
+      burnRate: percent(old.burnRate, base.burnRate),
+      trustedFriendId: (Array.isArray(old.friends) ? old.friends : base.friends).some(
+        (f: Friend) =>
+          f.id === (old.trustedFriendId === undefined ? base.trustedFriendId : old.trustedFriendId),
+      )
+        ? old.trustedFriendId === undefined
+          ? base.trustedFriendId
+          : old.trustedFriendId
+        : null,
       savings: Number.isFinite(old.savings) && old.savings >= 0 ? old.savings : base.savings,
       pauses: Number.isFinite(old.pauses) && old.pauses >= 0 ? old.pauses : base.pauses,
       friends: Array.isArray(old.friends) ? old.friends : base.friends,
@@ -96,6 +124,8 @@ export function migrate(raw: unknown): AppState {
   return {
     ...base,
     name: old.user.name || base.name,
+    blend: 0,
+    trustedFriendId: null,
     hue: old.user.hue || base.hue,
     savings: saved || base.savings,
     pauses: (old.pauses || 0) + (saved === 0 ? base.pauses : 0),
@@ -129,6 +159,16 @@ export function reducer(s: AppState, a: Action): AppState {
       return a.name.trim() ? { ...s, name: a.name.trim().slice(0, 60) } : s;
     case 'HUE':
       return { ...s, hue: a.hue };
+    case 'BLEND_HUE':
+      return { ...s, blendHue: a.hue };
+    case 'BLEND':
+      return { ...s, blend: percent(a.value, s.blend) };
+    case 'BURN_RATE':
+      return { ...s, burnRate: percent(a.value, s.burnRate) };
+    case 'TRUSTED_FRIEND':
+      return a.id === null || s.friends.some((friend) => friend.id === a.id)
+        ? { ...s, trustedFriendId: a.id }
+        : s;
     case 'NOTIFICATIONS':
       return { ...s, notificationsEnabled: a.enabled };
     case 'CONNECT': {

@@ -17,7 +17,7 @@ For the phone-sized browser preview:
 
 - **Home:** pet the flame with a tap, vertical rub, or sideways stroke. A still 2.8-second hold records a pause; moving or releasing early cancels it. The savings sentence and weekly chart stay minimal.
 - **Social:** a three-flame podium, a small leaderboard control, and a connection button. Connections are local to this demo; no messages or invitations are sent.
-- **Profile:** your name, notification preference, and one of six flame colors. **Try a nudge** demonstrates a notification after five seconds.
+- **Profile:** a large pettable flame card, a mix of two colors from the six-hue palette, a luminous burn-rate slider, a trusted-friend picker, and gentle notifications. Your name stays editable; **try a nudge** demonstrates a notification after five seconds.
 
 A nudge has two choices: **Snuff this urge** records the sample purchase as estimated savings, or **Tomorrow, maybe** schedules another reminder. A completed nudge is counted once.
 
@@ -67,6 +67,12 @@ Configure an Expo account, signing, project association, and your own bundle ide
 Native configuration lives in app.json. No generated ios/ or android/ folders are maintained.
 
 Source routes are in src/app; the three screens are in src/screens. Shared components, design tokens, the typed reducer, persistence, and notification adapters live in their respective src folders. Storage uses snuff.mobile.v2.
+
+## Profile design revision
+
+The supplied settings reference guides the profile composition while retaining Snuff’s rounded companion, existing three-tab navigation, typography, and lowercase copy. Color mixing applies to the user’s mascot across screens; other companions retain their own colors. Blend, burn rate, and trusted friend are saved on-device. Existing single-color profiles migrate without changing their flame color.
+
+Burn rate currently saves a preference and displays gentle / balanced / mindful; it does not enforce purchase restrictions or change notification timing. Trusted-friend selection is local and does not send messages or require anyone’s approval. These controls are ready for a future backend integration. Web sliders support keyboard input and screen readers; native sliders use the Expo-compatible community module.
 
 ## Designer handoff
 

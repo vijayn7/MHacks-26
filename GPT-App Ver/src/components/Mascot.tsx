@@ -13,6 +13,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { Hue, palettes } from '../design/tokens';
+import { useStore } from '../state/Store';
+import { blendPalette } from '../design/blend';
 import { Flame } from './Flame';
 import { usePetting } from '../hooks/usePetting';
 import type { FlameLevel } from '../state/Companion';
@@ -56,7 +58,12 @@ export function Mascot({
     1,
   );
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const p = palettes[calm ? 'Ash' : hue];
+  const { state } = useStore();
+  const p = calm
+    ? palettes.Ash
+    : companionId === 'you'
+      ? blendPalette(hue, state.blendHue, state.blend)
+      : palettes[hue];
   const [breath] = useState(() => new Animated.Value(0));
   const [drift] = useState(() => new Animated.Value(0));
   useEffect(() => {

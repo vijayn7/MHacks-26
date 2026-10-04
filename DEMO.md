@@ -4,7 +4,7 @@ Knowledge dump for the hackathon checkout path. The iOS app lives in `pact-ios` 
 
 ## What the demo shows
 
-The page is a product for Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry, priced at $64.99. Buy Now opens shipping and payment on the same page. Place order matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend. A friend reply of YES, or Continue, runs Place order again. That second click records the purchase in Capital One Nessie. NO drops it.
+The page is a product for Optimum Nutrition Gold Standard 100% Whey, Delicious Strawberry, priced at $64.99. Buy Now opens shipping and payment on the same page. Place order matches a local rule, so the extension holds the click and shows a pause card. The shopper can drop the purchase, save it for later, continue, or ask a friend for support, from the card or from the Snuff popup on the phone. After Continue, Place order records the purchase in Capital One Nessie. A friend's reply is shown but never decides.
 
 The store does not charge a real card. Shipping and payment are hardcoded demo values.
 
@@ -75,17 +75,16 @@ Opening the card:
 
 A decision made first on either surface wins. If the phone resolves the nudge (`snuffed` / `kept` / `saved`), the card applies that outcome once and does not post a second action. Applied `/app/actions` also mirror to Spacetime via the API so the other surface updates live when Spacetime is configured.
 
-### Friend decision
+### Friend support
 
-Ask my friend is an explicit click. The extension sends the product name and the cart total. The API writes the iMessage.
+Ask my friend is an explicit click. The extension sends no item details. The API writes a generic iMessage that uses the shopper's profile name and asks for encouragement. The friend is not deciding.
 
-The card polls `GET /check-in?id=` every 2 seconds (and can also see friend states on the Spacetime row).
+The card polls `GET /check-in?id=` every 2 seconds and also watches the Spacetime row.
 
-- `approved`: the card says the friend approved, then after 1.5 seconds it continues.
-- `rejected`: the card says the friend rejected, then it drops and may close the tab.
+- `replied`: the card shows the friend's text. It does not continue or drop the purchase.
 - `waiting: true`: Photon refused another outbound text because one is already on the friend’s phone. The card says to reply on that thread and keeps polling.
 
-Drop, Save for later, and Continue stay available while the card waits. Whichever decision arrives first is what the extension applies.
+Drop, Save for later, and Continue stay available the whole time. Only the shopper decides.
 
 ## Store contract the extension depends on
 

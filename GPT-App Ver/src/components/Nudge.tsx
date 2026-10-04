@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useStore } from '../state/Store';
+import { savedDate } from '../state/archive';
 import { money, type Nudge } from '../state/model';
 import { colors, palettes } from '../design/tokens';
 import { blendPalette } from '../design/blend';
@@ -34,6 +35,8 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
   const insets = useSafeAreaInsets();
   const done = n.status === 'snuffed';
   const kept = n.status === 'kept';
+  const saved = n.status === 'saved';
+  const archived = state.archive.find((item) => item.id === n.id);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [friendId, setFriendId] = useState<string | null>(null);
   const friend = state.friends.find((f) => f.id === friendId);
@@ -226,13 +229,19 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                   <Mascot
                     hue={state.hue}
                     size={size}
-                    expression={done || kept ? undefined : 'wistful'}
+                    expression={done || kept || saved ? undefined : 'wistful'}
                     intensity={done ? (settled ? 'Out' : 'Low') : kept ? 'High' : undefined}
                   />
                 </Animated.View>
                 <View accessibilityLiveRegion="polite">
                   <T variant="title" style={s.heading}>
-                    {done ? 'a little quieter.' : kept ? 'your choice.' : 'snuff this urge?'}
+                    {done
+                      ? 'a little quieter.'
+                      : kept
+                        ? 'your choice.'
+                        : saved
+                          ? 'saved for later.'
+                          : 'snuff this urge?'}
                   </T>
                   <T variant="small" style={s.detail}>
                     {done
@@ -242,7 +251,12 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                         : `${n.name} · ${money(n.amount)}`}
                   </T>
                 </View>
-                {!done && !kept ? (
+                {saved && archived && (
+                  <T variant="small" style={s.centerText}>
+                    saved {savedDate(archived.savedAt)}
+                  </T>
+                )}
+                {!done && !kept && !saved ? (
                   <>
                     <View style={s.choices}>
                       <Pressable
@@ -270,12 +284,25 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     </View>
                     <Pressable
                       accessibilityRole="button"
+                      accessibilityLabel="save for later"
+                      onPress={() => {
+                        tap();
+                        dispatch({ type: 'SAVE_FOR_LATER', id: n.id });
+                        cancelNudge(n.id).catch(() => {});
+                      }}
+                      style={[s.ask, { marginTop: 12 }]}
+                    >
+                      <Icon name="bookmark" size={16} color={colors.text} />
+                      <T color={colors.text}>save for later</T>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
                       accessibilityLabel="ask a friend"
                       onPress={() => {
                         tap();
                         setFriendsOpen(true);
                       }}
-                      style={s.ask}
+                      style={[s.ask, { marginTop: 12, borderWidth: 0 }]}
                     >
                       <Icon name="users" size={16} color={colors.secondary} />
                       <T variant="small" color={colors.text}>
@@ -285,6 +312,24 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                   </>
                 ) : (
                   <>
+                    {saved && (
+                      <>
+                        <QuietButton
+                          onPress={() => {
+                            onClose();
+                            router.navigate('/archive');
+                          }}
+                        >
+                          view archive
+                        </QuietButton>
+                        <QuietButton
+                          secondary
+                          onPress={() => dispatch({ type: 'REVISIT_ITEM', id: n.id })}
+                        >
+                          revisit this item
+                        </QuietButton>
+                      </>
+                    )}
                     <QuietButton secondary onPress={finish}>
                       back to my day
                     </QuietButton>

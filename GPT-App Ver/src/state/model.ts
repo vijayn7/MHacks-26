@@ -1,3 +1,4 @@
+import { readArchive, type SavedItem } from './archive';
 import { readPlan, type BlockPlan } from './blocking';
 import { isFace, type Face } from '../design/faces';
 import type { Hue } from '../design/tokens';
@@ -7,7 +8,7 @@ export type Nudge = {
   id: string;
   name: string;
   amount: number;
-  status: 'waiting' | 'snuffed' | 'kept';
+  status: 'waiting' | 'snuffed' | 'kept' | 'saved';
   dueAt: number | null;
 };
 export type AppState = {
@@ -26,6 +27,7 @@ export type AppState = {
   dailySavings: Record<string, number>;
   friends: Friend[];
   nudges: Nudge[];
+  archive: SavedItem[];
 };
 export type Action =
   | { type: 'SAVE_PLAN'; plan: BlockPlan }
@@ -40,6 +42,8 @@ export type Action =
   | { type: 'TRUSTED_FRIEND'; id: string | null }
   | { type: 'NOTIFICATIONS'; enabled: boolean }
   | { type: 'CONNECT'; email: string }
+  | { type: 'SAVE_FOR_LATER'; id: string; at?: number }
+  | { type: 'REVISIT_ITEM'; id: string }
   | { type: 'KEEP_NUDGE'; id: string }
   | { type: 'SNUFF_NUDGE'; id: string; at?: number }
   | { type: 'SNOOZE_NUDGE'; id: string; until: number };
@@ -51,6 +55,7 @@ export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
     plan: null,
+    archive: [],
     name: 'Alex',
     hue: 'Ember',
     face: 'classic',
@@ -87,6 +92,7 @@ export function migrate(raw: unknown): AppState {
       ...base,
       ...old,
       plan: readPlan(old.plan),
+      archive: readArchive(old.archive),
       name: typeof old.name === 'string' ? old.name : base.name,
       hue: ['Ember', 'Azure', 'Verdigris', 'Violet', 'Crimson', 'Ash'].includes(old.hue)
         ? old.hue
@@ -209,6 +215,44 @@ export function reducer(s: AppState, a: Action): AppState {
         ],
       };
     }
+    case 'SAVE_FOR_LATER': {
+      const n = s.nudges.find((n) => n.id === a.id);
+      const at = a.at ?? Date.now();
+      if (
+        !n ||
+        n.status !== 'waiting' ||
+        !Number.isFinite(n.amount) ||
+        n.amount < 0 ||
+        !Number.isFinite(at) ||
+        at <= 0 ||
+        Number.isNaN(new Date(at).getTime())
+      )
+        return s;
+      return {
+        ...s,
+        archive: s.archive.some((item) => item.id === n.id)
+          ? s.archive
+          : [{ id: n.id, name: n.name, amount: n.amount, savedAt: at }, ...s.archive],
+        nudges: s.nudges.map((item) =>
+          item.id === n.id ? { ...item, status: 'saved', dueAt: null } : item,
+        ),
+      };
+    }
+    case 'REVISIT_ITEM': {
+      const item = s.archive.find((item) => item.id === a.id);
+      if (!item) return s;
+      const n = s.nudges.find((n) => n.id === a.id);
+      if (n && n.status !== 'saved') return s;
+      return {
+        ...s,
+        nudges: n
+          ? s.nudges.map((v) => (v.id === a.id ? { ...v, status: 'waiting', dueAt: null } : v))
+          : [
+              ...s.nudges,
+              { id: item.id, name: item.name, amount: item.amount, status: 'waiting', dueAt: null },
+            ],
+      };
+    }
     case 'KEEP_NUDGE':
       return {
         ...s,
@@ -234,7 +278,9 @@ export function reducer(s: AppState, a: Action): AppState {
       return {
         ...s,
         nudges: s.nudges.map((n) =>
-          n.id === a.id && n.status !== 'snuffed' ? { ...n, status: 'waiting', dueAt: a.until } : n,
+          n.id === a.id && (n.status === 'waiting' || n.status === 'kept')
+            ? { ...n, status: 'waiting', dueAt: a.until }
+            : n,
         ),
       };
   }

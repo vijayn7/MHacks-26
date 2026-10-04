@@ -1,13 +1,22 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useStore } from '../state/Store';
-import { disableNudges, scheduleNudge, subscribeToNudges } from '../services/notifications';
+import {
+  cancelNudge,
+  disableNudges,
+  scheduleNudge,
+  subscribeToNudges,
+} from '../services/notifications';
 
 export function NotificationBridge() {
   const { state, dispatch, openNudge } = useStore();
   useEffect(
     () =>
       subscribeToNudges((response) => {
+        if (response.action === 'save') {
+          dispatch({ type: 'SAVE_FOR_LATER', id: response.id });
+          cancelNudge(response.id).catch(() => {});
+        }
         if (response.action === 'snuff') dispatch({ type: 'SNUFF_NUDGE', id: response.id });
         if (response.action === 'later')
           dispatch({ type: 'SNOOZE_NUDGE', id: response.id, until: Date.now() + 86400000 });

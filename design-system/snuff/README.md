@@ -71,3 +71,11 @@ See `previews/snuff-notification.png` and `previews/snuff-notification-friend.pn
 Yes shrinks and dims the flame over 1.1 seconds, easing it through low into ash/resting, and records the sample savings once. No restores the saved face, keeps the flame colorful, and dismisses the nudge without adding savings or pauses. A reminder remains available after no. Reduced motion removes the settling movement. Reuse `../../GPT-App Ver/src/components/Nudge.tsx` and the expression override in `Mascot.tsx` / `FlameFace.tsx`.
 
 The friend path previews a generic supportive check-in without purchase details. Messaging is not connected and no request is sent; friends do not gate the shopper’s choice. Operating-system notification banners use their native layouts; this reference is the app popup opened by a notification.
+
+## Archive and save for later
+
+Archive is the fourth navigation destination (home / social / archive / profile). See `previews/snuff-archive.png` for the labeled sample collection and `previews/snuff-save-for-later.png` for the popup action.
+
+Reference: [Colton Tollett’s refracting scroll, via Bencho](https://bencho.dev/finds/colton-lens-scroll). The app reproduces the cream canvas, centered square-card column, focused side labels, and edge bending using perspective/scale interpolation rather than the original optical shader. The local product illustrations are new vector placeholders, not the reference’s machine photographs. Archive-specific colors: paper `#F2EEE6`, ink `#383A32`, muted `#96958A`; tile 104 points, row 128 points. Reduced motion keeps cards flat.
+
+Reusable files: `../../GPT-App Ver/src/screens/Archive.tsx`, `../../GPT-App Ver/src/components/ItemArtwork.tsx`, and `../../GPT-App Ver/src/state/archive.ts`. Save-for-later preserves name, amount, and original saved timestamp locally without incrementing savings or pauses. Duplicate saves retain the original date; archived items reopen their decision. Empty archives offer a labeled sample collection that never writes fictional saved history. No merchant URL or real product-image ingestion is connected. Native notification categories also expose the save action; native device delivery still requires device testing.

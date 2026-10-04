@@ -207,3 +207,34 @@ test('declining a nudge clears its delivery without awarding savings or overridi
     'snuffed',
   );
 });
+
+test('save for later is persistent and idempotent, keeps its date on revisits, and never invents savings', () => {
+  const before = initialState();
+  const saved = reducer(before, { type: 'SAVE_FOR_LATER', id: 'headphones', at: 1791079200000 });
+  assert.equal(saved.archive.length, 1);
+  assert.deepEqual(saved.archive[0], {
+    id: 'headphones',
+    name: 'Studio headphones',
+    amount: 149,
+    savedAt: 1791079200000,
+  });
+  assert.equal(saved.nudges[0].status, 'saved');
+  assert.equal(saved.nudges[0].dueAt, null);
+  assert.equal(saved.savings, before.savings);
+  assert.equal(saved.pauses, before.pauses);
+  assert.equal(reducer(saved, { type: 'SAVE_FOR_LATER', id: 'headphones' }), saved);
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(saved))).archive, saved.archive);
+  const revisited = reducer(saved, { type: 'REVISIT_ITEM', id: 'headphones' });
+  assert.equal(revisited.nudges[0].status, 'waiting');
+  assert.deepEqual(
+    reducer(revisited, { type: 'SAVE_FOR_LATER', id: 'headphones' }).archive,
+    saved.archive,
+  );
+  assert.equal(
+    reducer(saved, { type: 'SNOOZE_NUDGE', id: 'headphones', until: 123 }).nudges[0].status,
+    'saved',
+  );
+  assert.equal(reducer(revisited, { type: 'SNUFF_NUDGE', id: 'headphones' }).savings, 433);
+  assert.deepEqual(migrate({ ...before, archive: [{ id: 'broken' }] }).archive, []);
+  assert.deepEqual(migrate({ ...before, archive: undefined }).archive, []);
+});

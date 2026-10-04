@@ -102,6 +102,14 @@ The notification opens a centered, rounded popup with a large pettable flame, a 
 
 `src/components/Nudge.tsx` contains the popup, responsive layout, and subdued snuff animation; `FlameFace.tsx` supplies the temporary eyes without changing the saved profile expression. The usual companion petting, haptics, and reduced-motion behavior remain available. Mobile browser checks cover 320px / 390px widths, both decisions, idempotent savings, reminders, request previews, and empty-circle navigation.
 
+## Archive and save for later
+
+The fourth tab is Archive. “Save for later” in the notification popup (and the native notification category) stores the item’s name, amount, and original saved timestamp on-device, clears the reminder, and adds no savings or pauses. The popup links directly to Archive. Opening an archived item shows its details and lets the user revisit the decision or keep it for later. Repeated saves do not create duplicate records or change the original date. Resolved items retain their archive history.
+
+The Archive recreates the composition and scrolling behavior of [Colton Tollett’s refracting-scroll reference on Bencho](https://bencho.dev/finds/colton-lens-scroll): cream canvas, a centered column of small square objects, side labels on the focused item, and perspective bending / widening near the viewport edges. This is a React Native approximation of the reference’s optical distortion, not its original shader. Local vector product illustrations replace the reference’s machine photographs. Reduced motion keeps the cards flat; arrow controls and accessible labels support keyboard and screen-reader use. Long lists can be scrolled to either end.
+
+Empty archives offer an explicitly labeled sample collection for viewing the effect; sample items never populate saved history. Reuse `src/screens/Archive.tsx`, `src/components/ItemArtwork.tsx`, and `src/state/archive.ts`. The original saved date includes the year and is displayed in the device’s local time zone. Real purchase ingestion, product photos, merchant URLs, and checkout integrations are not connected in this prototype.
+
 ## Designer handoff
 
 See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.

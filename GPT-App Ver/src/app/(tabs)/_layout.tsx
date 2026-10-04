@@ -17,7 +17,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
       style={{
         position: 'absolute',
         bottom: Math.max(insets.bottom, 22),
-        width: 216,
+        width: 272,
         alignSelf: 'center',
       }}
     >
@@ -36,7 +36,15 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
       >
         {state.routes.map((r, i) => {
           const active = state.index === i;
-          const name = r.name === 'index' ? 'home' : r.name === 'social' ? 'social' : 'profile';
+          const name = r.name === 'index' ? 'home' : r.name;
+          const icon =
+            r.name === 'index'
+              ? 'wind'
+              : r.name === 'social'
+                ? 'users'
+                : r.name === 'archive'
+                  ? 'archive'
+                  : 'user';
           return (
             <Pressable
               key={r.key}
@@ -66,11 +74,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
                   borderColor: active ? p.body + '45' : '#FFFFFF12',
                 }}
               >
-                <Icon
-                  name={i === 0 ? 'wind' : i === 1 ? 'users' : 'user'}
-                  size={17}
-                  color={active ? p.body : colors.muted}
-                />
+                <Icon name={icon} size={17} color={active ? p.body : colors.muted} />
               </LinearGradient>
             </Pressable>
           );
@@ -91,6 +95,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="social" />
+      <Tabs.Screen name="archive" />
       <Tabs.Screen name="profile" />
     </Tabs>
   );

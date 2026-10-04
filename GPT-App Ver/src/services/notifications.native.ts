@@ -20,6 +20,7 @@ async function configure() {
       enableVibrate: false,
     });
   await Notifications.setNotificationCategoryAsync('snuff', [
+    { identifier: 'SAVE', buttonTitle: 'save for later', options: { opensAppToForeground: true } },
     { identifier: 'SNUFF', buttonTitle: 'snuff it', options: { opensAppToForeground: true } },
     {
       identifier: 'LATER',
@@ -74,11 +75,13 @@ export function subscribeToNudges(listener: (response: NudgeResponse) => void) {
     listener({
       id,
       action:
-        r.actionIdentifier === 'SNUFF'
-          ? 'snuff'
-          : r.actionIdentifier === 'LATER'
-            ? 'later'
-            : 'open',
+        r.actionIdentifier === 'SAVE'
+          ? 'save'
+          : r.actionIdentifier === 'SNUFF'
+            ? 'snuff'
+            : r.actionIdentifier === 'LATER'
+              ? 'later'
+              : 'open',
     });
     Notifications.clearLastNotificationResponse();
   };

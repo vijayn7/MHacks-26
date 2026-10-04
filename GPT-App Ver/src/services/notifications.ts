@@ -1,5 +1,5 @@
 import type { Nudge } from '../state/model';
-export type NudgeResponse = { id: string; action: 'open' | 'snuff' | 'later' };
+export type NudgeResponse = { id: string; action: 'open' | 'snuff' | 'later' | 'save' };
 // Browser preview uses the same in-app interaction, without asking for browser permissions.
 export async function enableNudges() {
   return true;

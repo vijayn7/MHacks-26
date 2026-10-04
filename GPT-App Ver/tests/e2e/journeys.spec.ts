@@ -13,7 +13,7 @@ async function hold(page: Page, ms: number) {
 test('Home follows the minimal wireframe and opens immediately', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('snuff-flame')).toBeVisible();
-  await expect(page.getByRole('tab')).toHaveCount(3);
+  await expect(page.getByRole('tab')).toHaveCount(4);
   await expect(page.getByText('you’ve saved', { exact: true })).toBeVisible();
   expect(await page.locator('body').innerText()).not.toMatch(/[A-Z]/);
   await expect(page.getByText('$284', { exact: true })).toBeVisible();

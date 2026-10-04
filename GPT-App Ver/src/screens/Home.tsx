@@ -84,7 +84,7 @@ export default function Home() {
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
               you saved
             </T>
-            {pill(money(Math.round(savings.display * 100) / 100), savings.opacity)}
+            {pill(money(Math.round(savings.display)), savings.opacity)}
             <T variant="title" style={{ fontSize: textSize, lineHeight: textLineHeight }}>
               by pausing
             </T>

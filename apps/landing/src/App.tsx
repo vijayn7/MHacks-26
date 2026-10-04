@@ -666,10 +666,10 @@ export function App() {
     let idleAccum = 0;
     const ribbon: RibbonPoint[] = [];
     const smoke: SmokePuff[] = [];
-    const MAX_POINTS = 100;
-    const MAX_SMOKE = 120;
-    const MAX_AGE = 28;
-    const STEP = 3.2;
+    const MAX_POINTS = 180;
+    const MAX_SMOKE = 160;
+    const MAX_AGE = 55;
+    const STEP = 2.8;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -701,13 +701,13 @@ export function App() {
       for (let k = 0; k < n; k++) {
         if (smoke.length >= MAX_SMOKE) smoke.shift();
         smoke.push({
-          x: x + (Math.random() - 0.5) * 18,
-          y: y + (Math.random() - 0.5) * 10,
-          vx: (Math.random() - 0.5) * 1.2,
-          vy: -0.8 - Math.random() * 1.4 * strength,
+          x: x + (Math.random() - 0.5) * 22,
+          y: y + (Math.random() - 0.5) * 12,
+          vx: (Math.random() - 0.5) * 1.4,
+          vy: -1.0 - Math.random() * 1.6 * strength,
           age: 0,
-          maxAge: 55 + Math.random() * 50,
-          size: 20 + Math.random() * 34,
+          maxAge: 70 + Math.random() * 55,
+          size: 28 + Math.random() * 40,
         });
       }
     };
@@ -749,24 +749,30 @@ export function App() {
       let g: number;
       let b: number;
       let a: number;
-      if (t < 0.18) {
-        const u = t / 0.18;
+      if (t < 0.15) {
+        const u = t / 0.15;
         r = 255;
-        g = 210 - u * 50;
-        b = 90 - u * 60;
-        a = 0.9 - u * 0.1;
-      } else if (t < 0.45) {
-        const u = (t - 0.18) / 0.27;
-        r = 255 - u * 30;
-        g = 140 - u * 80;
-        b = 30 + u * 10;
-        a = 0.8 - u * 0.2;
+        g = 190 - u * 40;
+        b = 60 - u * 30;
+        a = 0.88;
+      } else if (t < 0.4) {
+        const u = (t - 0.15) / 0.25;
+        r = 255 - u * 20;
+        g = 140 - u * 85;
+        b = 28;
+        a = 0.8 - u * 0.15;
+      } else if (t < 0.7) {
+        const u = (t - 0.4) / 0.3;
+        r = 230 - u * 50;
+        g = 55 - u * 25;
+        b = 18 + u * 15;
+        a = 0.6 - u * 0.25;
       } else {
-        const u = (t - 0.45) / 0.55;
-        r = 220 - u * 80;
-        g = 55 - u * 30;
-        b = 20 + u * 20;
-        a = 0.55 * (1 - u);
+        const u = (t - 0.7) / 0.3;
+        r = 180 - u * 60;
+        g = 30;
+        b = 15;
+        a = 0.3 * (1 - u);
       }
       return { r, g, b, a };
     };
@@ -802,13 +808,13 @@ export function App() {
       for (let i = ribbon.length - 1; i >= 0; i--) {
         const p = ribbon[i];
         p.age += 1;
-        p.y -= 0.55 + p.age * 0.02;
-        p.x += p.wobble * 0.22;
-        p.spread *= 1.018;
+        p.y -= 0.28 + p.age * 0.01;
+        p.x += p.wobble * 0.18;
+        p.spread *= 1.012;
         // As flame cools, billow smoke
-        if (p.age === 6 || p.age === 12 || p.age === 20) emitSmoke(p.x, p.y, 1.2);
+        if (p.age === 8 || p.age === 18 || p.age === 32) emitSmoke(p.x, p.y, 1.3);
         if (p.age > MAX_AGE) {
-          emitSmoke(p.x, p.y, 1.6);
+          emitSmoke(p.x, p.y, 1.8);
           ribbon.splice(i, 1);
         }
       }
@@ -818,9 +824,9 @@ export function App() {
         s.age += 1;
         s.x += s.vx;
         s.y += s.vy;
-        s.vx *= 0.99;
-        s.vy -= 0.02;
-        s.size *= 1.025;
+        s.vx *= 0.985;
+        s.vy -= 0.015;
+        s.size *= 1.02;
         if (s.age > s.maxAge) smoke.splice(i, 1);
       }
 
@@ -829,30 +835,31 @@ export function App() {
         ctx.globalCompositeOperation = "source-over";
         for (const s of smoke) {
           const t = s.age / s.maxAge;
-          const a = 0.42 * (1 - t);
-          const gray = 170 + t * 50;
-          const radius = s.size * (0.9 + t * 1.8);
+          const fade = 1 - t;
+          const a = 0.55 * fade;
+          const gray = 190 - t * 30;
+          const radius = s.size * (1 + t * 2);
           const puff = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
-          puff.addColorStop(0, `rgba(${gray}, ${gray - 6}, ${gray - 12}, ${a})`);
-          puff.addColorStop(0.4, `rgba(${gray - 30}, ${gray - 32}, ${gray - 36}, ${a * 0.5})`);
-          puff.addColorStop(1, `rgba(90, 88, 84, 0)`);
+          puff.addColorStop(0, `rgba(${gray}, ${gray - 8}, ${gray - 14}, ${a})`);
+          puff.addColorStop(0.35, `rgba(${gray - 40}, ${gray - 42}, ${gray - 48}, ${a * 0.55})`);
+          puff.addColorStop(1, `rgba(70, 68, 64, 0)`);
           ctx.fillStyle = puff;
           ctx.beginPath();
           ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        // Wide irregular fire body
+        // Wide irregular fire body — deeper orange/red, less white
         ctx.globalCompositeOperation = "lighter";
         for (const p of ribbon) {
           const t = p.age / MAX_AGE;
           const { r, g, b, a } = fireColor(t);
-          const radius = p.spread * (1.15 + t * 1.15);
+          const radius = p.spread * (1.2 + t * 1.3);
 
           const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
           glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
-          glow.addColorStop(0.3, `rgba(${r | 0}, ${(g * 0.65) | 0}, ${(b * 0.35) | 0}, ${a * 0.6})`);
-          glow.addColorStop(0.65, `rgba(200, 35, 8, ${a * 0.25})`);
+          glow.addColorStop(0.28, `rgba(${r | 0}, ${(g * 0.55) | 0}, ${(b * 0.25) | 0}, ${a * 0.65})`);
+          glow.addColorStop(0.6, `rgba(210, 40, 8, ${a * 0.3})`);
           glow.addColorStop(1, "rgba(40, 8, 0, 0)");
           ctx.fillStyle = glow;
           ctx.beginPath();
@@ -861,14 +868,14 @@ export function App() {
         }
 
         if (isLive) {
-          const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 28);
-          core.addColorStop(0, "rgba(255, 240, 180, 0.95)");
-          core.addColorStop(0.2, "rgba(255, 160, 40, 0.85)");
-          core.addColorStop(0.5, "rgba(230, 60, 15, 0.45)");
+          const core = ctx.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, 34);
+          core.addColorStop(0, "rgba(255, 220, 140, 0.9)");
+          core.addColorStop(0.22, "rgba(255, 140, 30, 0.85)");
+          core.addColorStop(0.55, "rgba(220, 45, 10, 0.4)");
           core.addColorStop(1, "rgba(40, 8, 0, 0)");
           ctx.fillStyle = core;
           ctx.beginPath();
-          ctx.arc(pointerX, pointerY, 28, 0, Math.PI * 2);
+          ctx.arc(pointerX, pointerY, 34, 0, Math.PI * 2);
           ctx.fill();
         }
 

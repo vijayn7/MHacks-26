@@ -13,7 +13,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mascot } from '../components/Mascot';
 import { OnboardingChat } from '../components/OnboardingChat';
-import { RestrictionSetup } from '../components/RestrictionSetup';
 import type { PurchaseRules } from '../state/purchase-rules';
 import { Icon, Input, T } from '../components/ui';
 import { colors, palettes } from '../design/tokens';
@@ -28,6 +27,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(edit === '1' && state.onboardingComplete ? 1 : -1);
   const [fade] = useState(() => new Animated.Value(1));
   const transitioning = useRef(false);
+  const chatScroll = useRef<ScrollView>(null);
   const reduced = useRef(true);
   useEffect(() => {
     let active = true;
@@ -71,10 +71,6 @@ export default function Onboarding() {
     });
   };
   const goTo = (next: number) => transition(() => setStep(next));
-  const [categories, setCategories] = useState(state.spendingCategories);
-  const [draftRules, setDraftRules] = useState(state.purchaseRules);
-  const [draftTone, setDraftTone] = useState(state.burnRate);
-  const [refined, setRefined] = useState(false);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState(
     state.onboardingComplete ? state.name.split(' ')[0] : '',
@@ -144,6 +140,7 @@ export default function Onboarding() {
       }}
     >
       <ScrollView
+        ref={chatScroll}
         key={step}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -176,13 +173,13 @@ export default function Onboarding() {
           >
             <Icon name="arrow-left" size={18} />
           </Pressable>
-          <T variant="small">{step + 1} / 3</T>
+          <T variant="small">{step + 1} / 2</T>
         </View>
         <View style={{ alignItems: 'center', marginVertical: 8 }}>
           <Mascot hue={state.hue} size={step === 2 || height < 700 ? 80 : 112} />
         </View>
         <T variant="title" style={{ textAlign: 'center', fontSize: 32, lineHeight: 38 }}>
-          {step === 0 ? 'make space.' : step === 1 ? 'let’s talk.' : 'your level of support.'}
+          {step === 0 ? 'make space.' : 'let’s talk.'}
         </T>
         <T variant="small" style={{ textAlign: 'center', marginTop: 12, marginBottom: 24 }}>
           {step === 0
@@ -284,27 +281,14 @@ export default function Onboarding() {
               </Pressable>
             ))}
           </View>
-        ) : step === 1 ? (
-          <OnboardingChat
-            categories={categories}
-            onCategories={setCategories}
-            current={edit === '1' ? { amount: draftRules.minAmount, tone: draftTone } : undefined}
-            onRefine={({ amount, tone }) => {
-              if (amount !== undefined) setDraftRules((r) => ({ ...r, minAmount: amount }));
-              if (tone !== undefined) setDraftTone(tone);
-              setRefined(true);
-            }}
-            onContinue={() => goTo(2)}
-            tint={p.body}
-          />
         ) : (
-          <RestrictionSetup
-            categories={categories}
-            existing={{ ...draftRules, categories, categoryEnabled: categories.length > 0 }}
-            strength={draftTone}
-            editing={edit === '1' || refined}
+          <OnboardingChat
+            existing={state.purchaseRules}
+            strength={state.burnRate}
+            editing={edit === '1'}
             tint={p.body}
             onComplete={finish}
+            onActivity={() => chatScroll.current?.scrollToEnd({ animated: !reduced.current })}
           />
         )}
       </ScrollView>

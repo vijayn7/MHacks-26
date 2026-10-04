@@ -1,99 +1,196 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, View } from 'react-native';
 import { SoftPressable as Pressable } from './SoftPressable';
 import { Input, Icon, QuietButton, T } from './ui';
+import { useQuietMotion } from './WearableVisuals';
 import { colors } from '../design/tokens';
-
-const replies = [
-  {
-    text: 'i have a shopping addiction.',
-    categories: ['clothes & beauty'],
-    reply: 'thanks for sharing. let’s add a little space before shopping purchases.',
-  },
-  {
-    text: 'i’m losing money from sports betting.',
-    categories: ['sports betting'],
-    reply:
-      'let’s put a pause before betting purchases. you can choose how much support feels right.',
-  },
-  {
-    text: 'i buy things without thinking.',
-    categories: ['other'],
-    reply: 'a moment before checkout can help you reconsider. let’s choose your pause rules.',
-  },
-  {
-    text: 'i just want to save more.',
-    categories: [],
-    reply: 'let’s start with a simple purchase limit. you can adjust every suggestion.',
-  },
-];
+import { spendingCategories, supportLevel } from '../design/onboarding';
+import type { PurchaseRules } from '../state/purchase-rules';
+type Stage = 'reason' | 'amount' | 'tone' | 'categories' | 'review';
+function Typing({ tint }: { tint: string }) {
+  const pulse = useQuietMotion(1000);
+  return (
+    <View
+      accessibilityLabel="snuffed is typing"
+      accessibilityRole="text"
+      style={{
+        flexDirection: 'row',
+        gap: 5,
+        padding: 18,
+        alignSelf: 'flex-start',
+        borderRadius: 20,
+        backgroundColor: colors.surface,
+      }}
+    >
+      {[0, 1, 2].map((i) => (
+        <Animated.View
+          key={i}
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: tint,
+            opacity: pulse.interpolate({
+              inputRange: [0, 0.5, 1],
+              outputRange: i === 1 ? [0.35, 1, 0.35] : [1, 0.35, 1],
+            }),
+          }}
+        />
+      ))}
+    </View>
+  );
+}
 export function OnboardingChat({
-  categories,
-  onCategories,
-  onContinue,
+  existing,
+  strength,
+  editing,
   tint,
-  current,
-  onRefine,
+  onComplete,
+  onActivity,
 }: {
-  categories: string[];
-  onCategories: (v: string[]) => void;
-  onContinue: () => void;
+  onActivity?: () => void;
+  existing: PurchaseRules;
+  strength: number;
+  editing: boolean;
   tint: string;
-  current?: { amount: number; tone: number };
-  onRefine?: (changes: { amount?: number; tone?: number }) => void;
+  onComplete: (rules: PurchaseRules, tone: number, demo?: boolean) => void;
 }) {
+  const [rules, setRules] = useState(existing);
+  const [tone, setTone] = useState(strength);
+  const [stage, setStage] = useState<Stage>('reason');
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<{ text: string; user: boolean }[]>([]);
-  const send = (text: string, selected?: (typeof replies)[number]) => {
-    if (!text.trim()) return;
-    // Local conversation adapter: no sensitive free text is uploaded or persisted.
-    const inferred =
-      selected?.categories ??
-      (/bet|gambl/i.test(text)
-        ? ['sports betting']
-        : /shop|cloth|beauty/i.test(text)
-          ? ['clothes & beauty']
-          : []);
-    onCategories([...new Set([...categories, ...inferred])]);
-    const amountMatch = text.match(
-      /(?:\$|over\s+|above\s+|limit\s+(?:to\s+)?)(\d+(?:\.\d{1,2})?)/i,
-    );
-    const amount =
-      amountMatch && Number(amountMatch[1]) <= 1000000 ? Number(amountMatch[1]) : undefined;
-    const tone = /less strict|gentler|lighter/i.test(text)
-      ? 20
-      : /more support|stricter|firmer/i.test(text)
-        ? 85
-        : undefined;
-    if (amount !== undefined || tone !== undefined) onRefine?.({ amount, tone });
+  const [messages, setMessages] = useState<
+    {
+      text: string;
+      user: boolean;
+    }[]
+  >([]);
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    if (!messages.length) return;
+    const frame = requestAnimationFrame(() => onActivity?.());
+    return () => cancelAnimationFrame(frame);
+  }, [messages.length, typing, onActivity]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const answer = (text: string, reply: string, next: Stage, update?: () => void) => {
+    if (typing) return;
     setMessages((m) => [
       ...m,
-      { text: text.trim().slice(0, 500), user: true },
       {
-        text:
-          amount !== undefined || tone !== undefined
-            ? `i’ve drafted ${amount !== undefined ? `a $${amount} purchase threshold` : 'a ' + (tone === 20 ? 'gentler' : 'firmer') + ' reminder'}. review it next before saving.`
-            : (selected?.reply ??
-              'thanks for telling me. let’s find a level of support that feels right. you can refine the categories and limits next.'),
-        user: false,
+        text,
+        user: true,
       },
     ]);
     setDraft('');
+    setTyping(true);
+    // Simulated response pacing only: no network request or hidden analysis.
+    timer.current = setTimeout(() => {
+      update?.();
+      setMessages((m) => [
+        ...m,
+        {
+          text: reply,
+          user: false,
+        },
+      ]);
+      setStage(next);
+      setTyping(false);
+    }, 750);
+  };
+  const send = (text: string) => {
+    if (!text.trim() || typing) return;
+    if (stage === 'amount') {
+      const match =
+        text.trim().match(/^(?:\$)?(\d+(?:\.\d{1,2})?)$/) ||
+        text.match(/(?:\$|over\s+|above\s+)(\d+(?:\.\d{1,2})?)(?![\d.])/i);
+      if (!match || Number(match[1]) > 1000000) {
+        answer(
+          text,
+          'choose an amount from $0 to $1,000,000, with up to two decimal places.',
+          'amount',
+        );
+        return;
+      }
+      const amount = Number(match[1]);
+      answer(
+        text,
+        `got it. i’ll pause purchases at $${amount} or more. how should the reminder sound?`,
+        'tone',
+        () =>
+          setRules((r) => ({
+            ...r,
+            amountEnabled: true,
+            minAmount: amount,
+          })),
+      );
+    } else if (stage === 'tone') {
+      const nextTone = /gentl|soft|light/i.test(text)
+        ? 20
+        : /firm|strong|strict/i.test(text)
+          ? 85
+          : /balanc/i.test(text)
+            ? 54
+            : null;
+      if (nextTone === null) {
+        answer(text, 'would you prefer gentle, balanced, or firm wording?', 'tone');
+        return;
+      }
+      answer(text, 'here’s what we’ve agreed on. does this feel right?', 'review', () =>
+        setTone(nextTone),
+      );
+    } else {
+      const categories = /bet|gambl/i.test(text)
+        ? ['sports betting']
+        : /shop|cloth|beauty/i.test(text)
+          ? ['clothes & beauty']
+          : [];
+      const amount = text.match(/(?:\$|over\s+|above\s+)(\d+(?:\.\d{1,2})?)(?![\d.])/i);
+      answer(
+        text,
+        'thanks for sharing. what purchase amount should make me step in? this is per item, not a monthly budget.',
+        'amount',
+        () =>
+          setRules((r) => ({
+            ...r,
+            ...(amount && Number(amount[1]) <= 1000000
+              ? {
+                  minAmount: Number(amount[1]),
+                }
+              : {}),
+            categories: [...new Set([...r.categories, ...categories])],
+            categoryEnabled: r.categoryEnabled || categories.length > 0,
+          })),
+      );
+    }
   };
   return (
-    <View style={{ gap: 14 }}>
+    <View
+      style={{
+        gap: 14,
+      }}
+    >
       <View
         style={{
           padding: 18,
           borderRadius: 22,
-          borderBottomLeftRadius: 5,
           backgroundColor: tint + '0D',
         }}
       >
-        <T>{current ? 'what would you like to change?' : 'what brought you to snuffed?'}</T>
-        <T variant="small" style={{ marginTop: 6 }}>
-          {current
-            ? `your current threshold is $${current.amount}. tell me what’s working, or what needs adjusting.`
+        <T>{editing ? 'what would you like to change?' : 'what brought you to snuffed?'}</T>
+        <T
+          variant="small"
+          style={{
+            marginTop: 6,
+          }}
+        >
+          {editing
+            ? `your current threshold is $${existing.minAmount}. we’ll refine it together before saving.`
             : 'tell me what you’d like a little help with.'}
         </T>
       </View>
@@ -103,80 +200,291 @@ export function OnboardingChat({
           style={{
             alignSelf: m.user ? 'flex-end' : 'flex-start',
             maxWidth: '94%',
-            borderRadius: 20,
             padding: 15,
+            borderRadius: 20,
             backgroundColor: m.user ? tint + '1A' : colors.surface,
           }}
         >
-          <T style={{ fontSize: 14 }}>{m.text}</T>
-        </View>
-      ))}
-      <View style={{ gap: 8 }}>
-        {(current
-          ? [
-              {
-                text: 'make my reminders gentler.',
-                categories: [],
-                reply: 'let’s ease the reminders.',
-              },
-              {
-                text: 'i need more support.',
-                categories: [],
-                reply: 'let’s try a firmer reminder.',
-              },
-              ...replies.slice(0, 2),
-            ]
-          : replies
-        ).map((reply) => (
-          <Pressable
-            key={reply.text}
-            accessibilityRole="button"
-            accessibilityLabel={reply.text}
-            onPress={() => send(reply.text, reply)}
+          <T
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderRadius: 20,
+              fontSize: 14,
             }}
           >
-            <T style={{ fontSize: 13 }}>{reply.text}</T>
-          </Pressable>
-        ))}
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <View style={{ flex: 1 }}>
-          <Input
-            label="your reply"
-            value={draft}
-            onChangeText={(v) => setDraft(v.slice(0, 500))}
-            placeholder="or tell me in your own words"
-          />
+            {m.text}
+          </T>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="send reply"
-          disabled={!draft.trim()}
-          onPress={() => send(draft)}
-          style={{
-            width: 44,
-            height: 44,
-            marginBottom: 14,
-            borderRadius: 22,
-            backgroundColor: tint,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: draft.trim() ? 1 : 0.3,
-          }}
-        >
-          <Icon name="arrow-up" color={colors.bg} size={18} />
-        </Pressable>
-      </View>
-      <QuietButton onPress={onContinue}>see suggested levels</QuietButton>
-      <QuietButton secondary onPress={onContinue}>
-        skip
-      </QuietButton>
+      ))}
+      {typing ? (
+        <Typing tint={tint} />
+      ) : (
+        <>
+          <View
+            style={{
+              gap: 8,
+            }}
+          >
+            {stage === 'reason' &&
+              [
+                'i have a shopping addiction.',
+                'i’m losing money from sports betting.',
+                'i buy things without thinking.',
+                'i just want to save more.',
+              ].map((text) => (
+                <ChatChoice key={text} text={text} onSelect={send} disabled={typing} />
+              ))}
+            {stage === 'amount' &&
+              [...new Set([rules.minAmount, 25, 75, 150])].map((amount) => (
+                <ChatChoice
+                  key={`$${amount}`}
+                  text={`$${amount}`}
+                  onPress={() => send(String(amount))}
+                  disabled={typing}
+                />
+              ))}
+            {stage === 'tone' &&
+              ['gentle', 'balanced', 'firm'].map((value) => (
+                <ChatChoice key={value} text={value} onSelect={send} disabled={typing} />
+              ))}
+            {stage === 'categories' &&
+              spendingCategories.map((c) => (
+                <Pressable
+                  key={c}
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={c}
+                  aria-checked={rules.categories.includes(c)}
+                  accessibilityState={{
+                    checked: rules.categories.includes(c),
+                  }}
+                  onPress={() =>
+                    setRules((r) => {
+                      const categories = r.categories.includes(c)
+                        ? r.categories.filter((v) => v !== c)
+                        : [...r.categories, c];
+                      return {
+                        ...r,
+                        categories,
+                        categoryEnabled: categories.length > 0,
+                      };
+                    })
+                  }
+                  style={{
+                    padding: 12,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: rules.categories.includes(c) ? tint : colors.border,
+                  }}
+                >
+                  <T
+                    style={{
+                      fontSize: 13,
+                    }}
+                  >
+                    {c}
+                  </T>
+                </Pressable>
+              ))}
+          </View>
+          {stage === 'categories' && (
+            <QuietButton
+              onPress={() =>
+                answer(
+                  'these categories look right.',
+                  'updated. shall we use these preferences?',
+                  'review',
+                )
+              }
+            >
+              review preferences
+            </QuietButton>
+          )}
+          {stage === 'review' ? (
+            <>
+              <View
+                testID="chat-confirmation"
+                style={{
+                  padding: 18,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: tint + '50',
+                  gap: 8,
+                }}
+              >
+                <T>your pause, your rules.</T>
+                <T variant="small">
+                  {rules.amountEnabled
+                    ? `$${rules.minAmount}+ per purchase`
+                    : 'category-based purchases'}{' '}
+                  · {supportLevel(tone).name} reminder
+                </T>
+                <T variant="small">
+                  {rules.categoryEnabled
+                    ? `${rules.categories.join(', ')} · ${rules.match === 'any' ? 'amount or category' : 'amount and category'}`
+                    : 'all categories · amount rule only'}
+                </T>
+                <T variant="small">
+                  when matched, snuff opens the flame overlay. reconsider, continue, or save for
+                  later.
+                </T>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}
+              >
+                {
+                  <ChatChoice
+                    key={'change amount'}
+                    text={'change amount'}
+                    onPress={() =>
+                      answer('change my amount.', 'what amount should trigger a pause?', 'amount')
+                    }
+                    disabled={typing}
+                  />
+                }
+                {
+                  <ChatChoice
+                    key={'change tone'}
+                    text={'change tone'}
+                    onPress={() => answer('change my tone.', 'gentle, balanced, or firm?', 'tone')}
+                    disabled={typing}
+                  />
+                }
+                {
+                  <ChatChoice
+                    key={'change categories'}
+                    text={'change categories'}
+                    onPress={() =>
+                      answer(
+                        'change my categories.',
+                        'choose the categories you’d like help with. leave all unselected for amount only.',
+                        'categories',
+                      )
+                    }
+                    disabled={typing}
+                  />
+                }
+                {rules.categoryEnabled && (
+                  <ChatChoice
+                    key={rules.match === 'any' ? 'require both rules' : 'use either rule'}
+                    text={rules.match === 'any' ? 'require both rules' : 'use either rule'}
+                    onPress={() =>
+                      setRules((r) => ({
+                        ...r,
+                        match: r.match === 'any' ? 'all' : 'any',
+                      }))
+                    }
+                    disabled={typing}
+                  />
+                )}
+              </View>
+              <QuietButton onPress={() => onComplete(rules, tone)}>confirm & continue</QuietButton>
+              <QuietButton secondary onPress={() => onComplete(rules, tone, true)}>
+                confirm & try purchase demo
+              </QuietButton>
+              <T
+                variant="small"
+                style={{
+                  fontSize: 10,
+                }}
+              >
+                you can change these anytime. checkout connections are not live yet.
+              </T>
+            </>
+          ) : (
+            stage !== 'categories' && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                  }}
+                >
+                  <Input
+                    label="your reply"
+                    value={draft}
+                    onChangeText={(v) => setDraft(v.slice(0, 500))}
+                    placeholder={stage === 'amount' ? 'enter a purchase amount' : 'your reply'}
+                  />
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="send reply"
+                  disabled={!draft.trim()}
+                  onPress={() => send(draft)}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    marginBottom: 14,
+                    borderRadius: 22,
+                    backgroundColor: tint,
+                    opacity: draft.trim() ? 1 : 0.3,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon name="arrow-up" size={18} color={colors.bg} />
+                </Pressable>
+              </View>
+            )
+          )}
+          {stage === 'reason' && (
+            <QuietButton
+              secondary
+              onPress={() =>
+                answer(
+                  'use a starting point.',
+                  'here’s a starting point. adjust anything before confirming.',
+                  'review',
+                )
+              }
+            >
+              skip
+            </QuietButton>
+          )}
+        </>
+      )}
     </View>
+  );
+}
+function ChatChoice({
+  text,
+  onPress,
+  onSelect,
+  disabled,
+}: {
+  text: string;
+  onPress?: () => void;
+  onSelect?: (value: string) => void;
+  disabled: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={text}
+      disabled={disabled}
+      onPress={() => (onSelect ? onSelect(text) : onPress?.())}
+      style={{
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 18,
+      }}
+    >
+      <T
+        style={{
+          fontSize: 13,
+        }}
+      >
+        {text}
+      </T>
+    </Pressable>
   );
 }

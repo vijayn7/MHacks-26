@@ -165,3 +165,10 @@ Settings → purchase demo and the “save & try purchase demo” action open `/
 
 
 Onboarding transitions fade out over 120 ms and ease the next screen in over 300 ms. `SoftPressable` adds a palette-colored glow on press, fading away over 320 ms; onboarding choices and shared QuietButtons use it. Reduced motion makes both immediate. Animations stop on unmount, and duplicate step actions are guarded during fade-out.
+
+
+## Chat-only preference confirmation
+
+The separate three-level restriction screen is removed from onboarding and preference editing. The conversation collects a reason, a per-purchase amount, and reminder tone, then shows a confirmation message with the exact amount, categories, either/both semantics, and what the overlay does. Inline reply controls let users revise amount/tone/categories and matching logic without leaving chat. Preferences save only on “confirm & continue” or “confirm & try purchase demo.” Skip leads to review, never silently saves.
+
+Replies use a 750 ms simulated typing state with three softly pulsing dots; inputs are unavailable while a reply is pending. Pending callbacks are cleared on unmount, chat follows new messages, and reduced motion leaves dots static. This is scripted local response pacing, not remote AI processing. Free-text chat remains ephemeral and is not uploaded.

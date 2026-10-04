@@ -217,10 +217,12 @@ button {
 .tile__popup {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: clamp(0.28rem, 0.9vw, 0.45rem);
-  width: min(88%, 16.5rem);
+  width: min(58%, 11.5rem);
+  aspect-ratio: 3 / 4;
   max-height: 88%;
-  padding: clamp(0.45rem, 1.4vw, 0.7rem) clamp(0.45rem, 1.4vw, 0.65rem)
+  padding: clamp(0.45rem, 1.4vw, 0.7rem) clamp(0.4rem, 1.2vw, 0.55rem)
     clamp(0.4rem, 1.2vw, 0.55rem);
   border: 1px solid var(--border);
   border-radius: clamp(0.55rem, 1.3vw, 0.8rem);

@@ -326,8 +326,8 @@ const tiles: Tile[] = [
   },
   {
     id: "i3",
-    src: "/sites/nike.jpg",
-    alt: "Nike store",
+    src: "/sites/princesspolly.jpg",
+    alt: "Princess Polly",
     layer: "near",
     interactive: true,
     drift: 1.0,

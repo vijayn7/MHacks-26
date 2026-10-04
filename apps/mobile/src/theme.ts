@@ -1,20 +1,27 @@
 import { StyleSheet } from 'react-native'
 
+/** Snuff Color tokens (Lit / Ember) — keep names close to Figma. */
 export const colors = {
-  paper: '#000000',
+  bg: '#000000',
+  surface: '#050505',
   ink: '#F6EFE6',
-  ash: '#8C857C',
+  muted: '#8C857C',
   line: 'rgba(255, 243, 214, 0.14)',
-  ember: '#ED7014',
-  card: '#050505',
-  cool: '#6E7C74',
   core: '#FFF3D6',
+  mid: '#F5A524',
+  edge: '#ED7014',
+  deep: '#8E1F02',
+  // legacy aliases used by older screens
+  paper: '#000000',
+  ash: '#8C857C',
+  card: '#050505',
+  ember: '#ED7014',
+  cool: '#6E7C74',
 }
 
 export const fonts = {
   display: 'Neco',
   sans: 'Satoshi',
-  sansMedium: 'Satoshi',
 }
 
 export const type = StyleSheet.create({
@@ -47,7 +54,7 @@ export const type = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '400',
-    color: colors.ash,
+    color: colors.muted,
     letterSpacing: 0.3,
   },
 })

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { colors, type } from './theme'
+import { colors, fonts, type } from './theme'
 
 export function Screen({ children }: { children: ReactNode }) {
   return <View style={styles.screen}>{children}</View>
@@ -60,23 +60,65 @@ export function Card({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper, padding: 24, paddingTop: 72, gap: 16 },
-  button: { backgroundColor: colors.ink, paddingVertical: 14, paddingHorizontal: 16 },
-  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.ink },
-  buttonText: { color: colors.paper, textAlign: 'center', fontSize: 16 },
-  ghostText: { color: colors.ink },
+  screen: { flex: 1, backgroundColor: colors.bg, padding: 24, paddingTop: 72, gap: 16 },
+  button: {
+    backgroundColor: colors.core,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+  },
+  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.line },
+  buttonText: {
+    color: '#1c0a04',
+    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: fonts.sans,
+    fontWeight: '500',
+  },
+  ghostText: { color: colors.ink, fontFamily: fonts.sans },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 8 },
   rowText: { flex: 1, gap: 2 },
-  track: { width: 44, height: 24, borderWidth: 1, borderColor: colors.ink, justifyContent: 'center', paddingHorizontal: 2 },
-  trackOn: { backgroundColor: colors.ink },
-  thumb: { width: 16, height: 16, backgroundColor: colors.ink },
-  thumbOn: { backgroundColor: colors.paper, alignSelf: 'flex-end' },
-  chip: { borderWidth: 1, borderColor: colors.line, paddingVertical: 6, paddingHorizontal: 10, backgroundColor: colors.card },
-  chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipTextOn: { color: colors.paper },
+  track: {
+    width: 44,
+    height: 24,
+    borderWidth: 1,
+    borderColor: colors.line,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+    borderRadius: 999,
+  },
+  trackOn: { backgroundColor: colors.mid, borderColor: colors.mid },
+  thumb: { width: 16, height: 16, backgroundColor: colors.muted, borderRadius: 999 },
+  thumbOn: { backgroundColor: colors.bg, alignSelf: 'flex-end' },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+  },
+  chipOn: { backgroundColor: colors.mid, borderColor: colors.mid },
+  chipTextOn: { color: '#1c0a04' },
   stepper: { flexDirection: 'row', gap: 8 },
-  step: { borderWidth: 1, borderColor: colors.line, width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
-  card: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, padding: 16, gap: 6 },
+  step: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 16,
+    gap: 6,
+    borderRadius: 18,
+  },
 })
 
 export function Eyebrow({ children }: { children: string }) {

@@ -18,8 +18,7 @@ test('three-step demo onboarding saves categories and strength, then stays compl
   const slider = page.getByRole('slider', { name: 'popup strength' });
   await slider.fill('85');
   await expect(page.getByText('take a breath first.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'continue', exact: true }).click();
-  await page.getByRole('button', { name: 'skip for now', exact: true }).click();
+  await page.getByRole('button', { name: 'start', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
@@ -45,8 +44,7 @@ test('email demo and optional categories work on a small phone', async ({ page }
   await page.getByRole('button', { name: 'continue', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button', { name: 'skip', exact: true }).click();
-  await page.getByRole('button', { name: 'continue', exact: true }).click();
-  await page.getByRole('button', { name: 'skip for now', exact: true }).click();
+  await page.getByRole('button', { name: 'start', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'home', exact: true })).toBeVisible();
   const state = await page.evaluate(() => JSON.parse(localStorage.getItem('snuff.mobile.v2')!));
   expect(state.spendingCategories).toEqual([]);

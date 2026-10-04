@@ -15,7 +15,7 @@ import { disableNudges, enableNudges, scheduleNudge } from '../services/notifica
 export default function Profile() {
   const { state, dispatch, openNudge, storageError } = useStore();
   const p = palettes[state.hue];
-  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | null>(null);
+  const [sheet, setSheet] = useState<'settings' | 'flame' | 'burn' | 'watch' | null>(null);
   const [name, setName] = useState(state.name);
   const [message, setMessage] = useState('');
   const [customize, setCustomize] = useState<'color' | 'face'>('color');
@@ -317,6 +317,37 @@ export default function Profile() {
           edit budget & blocks
         </QuietButton>
       </Sheet>
+      <Sheet visible={sheet === 'watch'} title="watch insights" onClose={() => setSheet(null)}>
+        <T variant="small">a little context when you pause.</T>
+        <QuietButton
+          onPress={() =>
+            dispatch({
+              type: 'WEARABLE',
+              settings: state.wearable.enabled
+                ? { enabled: false, reading: null }
+                : {
+                    enabled: true,
+                    status: 'connected',
+                    baseline: 68,
+                    reading: { bpm: 82, at: Date.now() },
+                  },
+            })
+          }
+        >
+          {state.wearable.enabled ? 'turn off insights' : 'turn on insights'}
+        </QuietButton>
+        {!!state.wearable.baseline && (
+          <T variant="small" style={{ marginTop: 16 }}>
+            baseline · {state.wearable.baseline} bpm
+          </T>
+        )}
+        <T variant="small" style={{ fontSize: 10, marginTop: 18 }}>
+          display data is simulated. apple health is not connected.
+        </T>
+        <QuietButton secondary onPress={() => dispatch({ type: 'DELETE_WEARABLE_DATA' })}>
+          clear readings & feelings
+        </QuietButton>
+      </Sheet>
       <Sheet visible={sheet === 'settings'} title="settings" onClose={() => setSheet(null)}>
         <Input label="your name" value={name} onChangeText={setName} placeholder="your name" />
         <QuietButton
@@ -332,10 +363,10 @@ export default function Profile() {
           secondary
           onPress={() => {
             setSheet(null);
-            router.push('/wearable');
+            setSheet('watch');
           }}
         >
-          watch & feelings
+          watch insights
         </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}

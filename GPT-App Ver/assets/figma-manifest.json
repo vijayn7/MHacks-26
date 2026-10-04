@@ -1,0 +1,395 @@
+{
+  "source": "https://www.figma.com/design/WHHOz06hrCV1a5g4nKBWt3",
+  "pages": [
+    "13:13",
+    "59:3"
+  ],
+  "assets": [
+    {
+      "name": "ember-high",
+      "path": "assets/flames/ember-high.svg",
+      "node": "67:2",
+      "sha256": "f054dad1c98ef55695f3228f0729e7600262ce3f0e599da7c52514aaae25dea0",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ember-low",
+      "path": "assets/flames/ember-low.svg",
+      "node": "67:8",
+      "sha256": "f054dad1c98ef55695f3228f0729e7600262ce3f0e599da7c52514aaae25dea0",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ember-out",
+      "path": "assets/flames/ember-out.svg",
+      "node": "67:14",
+      "sha256": "f054dad1c98ef55695f3228f0729e7600262ce3f0e599da7c52514aaae25dea0",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-high",
+      "path": "assets/flames/azure-high.svg",
+      "node": "67:20",
+      "sha256": "982eb051513d22f1ef988fc93207fe92f21a4626edd7b41b8517853cedc42435",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-low",
+      "path": "assets/flames/azure-low.svg",
+      "node": "67:26",
+      "sha256": "982eb051513d22f1ef988fc93207fe92f21a4626edd7b41b8517853cedc42435",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-out",
+      "path": "assets/flames/azure-out.svg",
+      "node": "67:32",
+      "sha256": "982eb051513d22f1ef988fc93207fe92f21a4626edd7b41b8517853cedc42435",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-high",
+      "path": "assets/flames/verdigris-high.svg",
+      "node": "67:38",
+      "sha256": "4bcd58e48502e9af55623d50376f0952fd1c8396a0e71aca90ed4ecbf1f8b39a",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-low",
+      "path": "assets/flames/verdigris-low.svg",
+      "node": "67:44",
+      "sha256": "4bcd58e48502e9af55623d50376f0952fd1c8396a0e71aca90ed4ecbf1f8b39a",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-out",
+      "path": "assets/flames/verdigris-out.svg",
+      "node": "67:50",
+      "sha256": "4bcd58e48502e9af55623d50376f0952fd1c8396a0e71aca90ed4ecbf1f8b39a",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-high",
+      "path": "assets/flames/violet-high.svg",
+      "node": "67:56",
+      "sha256": "d36c708b9635b0dbb2be8385ef4a6c003118ea3697374d1af15744e44666db1f",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-low",
+      "path": "assets/flames/violet-low.svg",
+      "node": "67:62",
+      "sha256": "d36c708b9635b0dbb2be8385ef4a6c003118ea3697374d1af15744e44666db1f",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-out",
+      "path": "assets/flames/violet-out.svg",
+      "node": "67:68",
+      "sha256": "d36c708b9635b0dbb2be8385ef4a6c003118ea3697374d1af15744e44666db1f",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-high",
+      "path": "assets/flames/crimson-high.svg",
+      "node": "67:74",
+      "sha256": "76ce8af743e3e60bc178832208d0cade43449cd3db929795f3422c4a276a72f8",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-low",
+      "path": "assets/flames/crimson-low.svg",
+      "node": "67:80",
+      "sha256": "76ce8af743e3e60bc178832208d0cade43449cd3db929795f3422c4a276a72f8",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-out",
+      "path": "assets/flames/crimson-out.svg",
+      "node": "67:86",
+      "sha256": "76ce8af743e3e60bc178832208d0cade43449cd3db929795f3422c4a276a72f8",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-high",
+      "path": "assets/flames/ash-high.svg",
+      "node": "67:92",
+      "sha256": "40c80c4a1e475bffb15a3eda029bb7999a2e8b7375cddba27c25398ec96a9784",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-low",
+      "path": "assets/flames/ash-low.svg",
+      "node": "67:98",
+      "sha256": "40c80c4a1e475bffb15a3eda029bb7999a2e8b7375cddba27c25398ec96a9784",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-out",
+      "path": "assets/flames/ash-out.svg",
+      "node": "67:104",
+      "sha256": "40c80c4a1e475bffb15a3eda029bb7999a2e8b7375cddba27c25398ec96a9784",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    }
+  ],
+  "nativeRenders": [
+    {
+      "name": "ember-high",
+      "node": "67:2",
+      "path": "assets/flames/native/ember-high.png",
+      "format": "png",
+      "sha256": "f2dcba79e90ab89d412d822afeaef29caaae9ffa9ac58373606f9da5e6baefca",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ember-low",
+      "node": "67:8",
+      "path": "assets/flames/native/ember-low.png",
+      "format": "png",
+      "sha256": "1ed0ef4418531fa7d06f1efccb638ce1125d1b94fcf40cda13b6db75355b9080",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ember-out",
+      "node": "67:14",
+      "path": "assets/flames/native/ember-out.png",
+      "format": "png",
+      "sha256": "472b5a4ce672380c18f2992f63c191ea8bbfde3434e8d60c8c8bbfca39f6cf46",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-high",
+      "node": "67:20",
+      "path": "assets/flames/native/azure-high.png",
+      "format": "png",
+      "sha256": "cee9ec7510000f3e56866acd46ee09b99cdc2d87e8340503c049f7ad7815b5a1",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-low",
+      "node": "67:26",
+      "path": "assets/flames/native/azure-low.png",
+      "format": "png",
+      "sha256": "0677b5586da670b63c8ff11f11b28bfbe2ed49356fbd3030f278b191c8c4c067",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "azure-out",
+      "node": "67:32",
+      "path": "assets/flames/native/azure-out.png",
+      "format": "png",
+      "sha256": "2276bcb3b35999f728cbd21ad827adaef3c7b0a62725153dd9a987c592419821",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-high",
+      "node": "67:38",
+      "path": "assets/flames/native/verdigris-high.png",
+      "format": "png",
+      "sha256": "946d71faefcc73a080178ca247f51c436196a0636229d40b32212e197ab62023",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-low",
+      "node": "67:44",
+      "path": "assets/flames/native/verdigris-low.png",
+      "format": "png",
+      "sha256": "8e09616b6f7ab4c1978a64890de73883fc432326f97d48475edadb2398b28ae4",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "verdigris-out",
+      "node": "67:50",
+      "path": "assets/flames/native/verdigris-out.png",
+      "format": "png",
+      "sha256": "7845fd38fad2cdcf0b371142cda461008af3001929dfc5815a61515987ff5f5a",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-high",
+      "node": "67:56",
+      "path": "assets/flames/native/violet-high.png",
+      "format": "png",
+      "sha256": "675d4ce203cae354c193e24174b4bc187fab2c5b79f0b0edee389c1d459b7c3b",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-low",
+      "node": "67:62",
+      "path": "assets/flames/native/violet-low.png",
+      "format": "png",
+      "sha256": "6ce426ea7c957df9c001647c83e15dfdbba5b939076a642eb242934488200aea",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "violet-out",
+      "node": "67:68",
+      "path": "assets/flames/native/violet-out.png",
+      "format": "png",
+      "sha256": "79fbedd23b23dadcbff89d8cd1f3be3a6b709eb139cd08e5ea6256effd530f35",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-high",
+      "node": "67:74",
+      "path": "assets/flames/native/crimson-high.png",
+      "format": "png",
+      "sha256": "b624cd195066b186081679c60859c0c196f59d32041866564f37b00b5d194258",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-low",
+      "node": "67:80",
+      "path": "assets/flames/native/crimson-low.png",
+      "format": "png",
+      "sha256": "e0dce0cd5faec54f85aba6845ad50c92be09edfac7e58f9de84fc4fb1e3f183e",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "crimson-out",
+      "node": "67:86",
+      "path": "assets/flames/native/crimson-out.png",
+      "format": "png",
+      "sha256": "fdbe283162ea1ab945585d96425def7591d787453624dc4caf9edeb9ce19bbda",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-high",
+      "node": "67:92",
+      "path": "assets/flames/native/ash-high.png",
+      "format": "png",
+      "sha256": "c5700bdaebd88bd1369148b7aae3bbb8452a8345efef892d2c2436c7415f2473",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-low",
+      "node": "67:98",
+      "path": "assets/flames/native/ash-low.png",
+      "format": "png",
+      "sha256": "77480c6f6209cead555c38bce0bc96bcef0a77d3f49603a8902a7fe9623b4ba5",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    {
+      "name": "ash-out",
+      "node": "67:104",
+      "path": "assets/flames/native/ash-out.png",
+      "format": "png",
+      "sha256": "9a4ff25f6e63987c36140e09fab98e718ef58ef1da8480b220298922a385781c",
+      "dimensions": {
+        "width": 320,
+        "height": 380
+      }
+    }
+  ],
+  "refreshedAt": "2026-10-04T01:56:22.939Z",
+  "typography": {
+    "display": "Neco",
+    "body": "Satoshi",
+    "mono": "Roboto Mono"
+  }
+}

@@ -457,39 +457,39 @@ function DownloadIcon() {
 function PausePopup({ site }: { site: string }) {
   return (
     <div className="tile__block" role="dialog" aria-label={`${site} checkout pause`}>
-      <p className="tile__block-headline">
-        You’re about to make an impulse purchase.
-      </p>
+      <div className="tile__popup">
+        <p className="tile__block-headline">You’re about to make an impulse purchase.</p>
 
-      <div className="tile__block-choices">
-        <button type="button" className="tile__choice tile__choice--lead">
-          <span className="tile__choice-score">+30</span>
-          <span className="tile__choice-title">
-            Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
-          </span>
-          <span className="tile__choice-sub">Or snuff your flame.</span>
-        </button>
+        <div className="tile__block-choices">
+          <div className="tile__choice tile__choice--lead">
+            <span className="tile__choice-score">+30</span>
+            <span className="tile__choice-title">
+              Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
+            </span>
+            <span className="tile__choice-sub">Or snuff your flame.</span>
+          </div>
 
-        <div className="tile__choice-pair">
-          <button type="button" className="tile__choice">
-            <span className="tile__choice-title">
-              Ask Maya <span className="tile__choice-hint">(Texts a trusted friend)</span>
-            </span>
-            <span className="tile__choice-sub">They’ll know best.</span>
-          </button>
-          <button type="button" className="tile__choice">
-            <span className="tile__choice-title">
-              Save for later <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
-            </span>
-            <span className="tile__choice-sub">Sit on it. Do you really need this?</span>
-          </button>
+          <div className="tile__choice-pair">
+            <div className="tile__choice">
+              <span className="tile__choice-title">
+                Ask Maya <span className="tile__choice-hint">(Texts a trusted friend)</span>
+              </span>
+              <span className="tile__choice-sub">They’ll know best.</span>
+            </div>
+            <div className="tile__choice">
+              <span className="tile__choice-title">
+                Save for later <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
+              </span>
+              <span className="tile__choice-sub">Sit on it. Do you really need this?</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="tile__block-continue">
+          <span className="tile__block-continue-label">Continue</span>
+          <span className="tile__choice-sub">Are you sure?</span>
         </div>
       </div>
-
-      <button type="button" className="tile__block-continue">
-        <span className="tile__block-continue-label">Continue</span>
-        <span className="tile__choice-sub">Are you sure?</span>
-      </button>
     </div>
   );
 }

@@ -309,19 +309,19 @@ export function OnboardingChat({
                   gap: 8,
                 }}
               >
-                <T>your pause, your rules.</T>
-                <T variant="small">
+                <T style={{ textAlign: 'center' }}>your pause, your rules.</T>
+                <T variant="small" style={{ textAlign: 'center' }}>
                   {rules.amountEnabled
                     ? `$${rules.minAmount}+ per purchase`
                     : 'category-based purchases'}{' '}
                   · {supportLevel(tone).name} reminder
                 </T>
-                <T variant="small">
+                <T variant="small" style={{ textAlign: 'center' }}>
                   {rules.categoryEnabled
                     ? `${rules.categories.join(', ')} · ${rules.match === 'any' ? 'amount or category' : 'amount and category'}`
                     : 'all categories · amount rule only'}
                 </T>
-                <T variant="small">
+                <T variant="small" style={{ textAlign: 'center' }}>
                   when matched, snuff opens the flame overlay. reconsider, continue, or save for
                   later.
                 </T>
@@ -330,6 +330,7 @@ export function OnboardingChat({
                 style={{
                   flexDirection: 'row',
                   flexWrap: 'wrap',
+                  justifyContent: 'center',
                   gap: 8,
                 }}
               >
@@ -384,6 +385,7 @@ export function OnboardingChat({
                 variant="small"
                 style={{
                   fontSize: 10,
+                  textAlign: 'center',
                 }}
               >
                 you can change these anytime. checkout connections are not live yet.

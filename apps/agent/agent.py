@@ -31,28 +31,26 @@ if env_file.exists():
 API = os.environ.get("SNUFFED_API", "http://localhost:8787").rstrip("/")
 ASI_KEY = os.environ.get("ASI_ONE_API_KEY", "")
 REPO = "https://github.com/vijayn7/MHacks-26"
+SITE = "https://snuffed.tech"
 
 INSTALL = {
     "chrome": {
         "title": "Snuffed Chrome extension",
-        "download": f"{REPO}/archive/refs/heads/main.zip",
+        "download": SITE,
         "steps": [
-            f"Download and unzip {REPO}/archive/refs/heads/main.zip (or git clone {REPO}).",
-            "In the unzipped folder run: npm install && npm run build:extension",
-            "Start the Snuffed API so the extension can load your saved rule: npm run dev:api",
-            "Open chrome://extensions, turn on Developer mode, click Load unpacked, and pick the apps/extension folder.",
+            f"On your computer, open {SITE} in Chrome and click \"download chrome extension\".",
+            "Unzip the downloaded snuffed-chrome.zip.",
+            "Open chrome://extensions, turn on Developer mode, click Load unpacked, and pick the unzipped folder.",
             "Visit a checkout over your limit. Snuffed holds the order and offers Drop, Save for later, Continue, or Ask my friend.",
         ],
     },
     "phone": {
-        "title": "Snuffed phone app (iOS and Android, via Expo Go)",
-        "download": "https://expo.dev/go",
+        "title": "Snuffed phone app (iOS and Android)",
+        "download": SITE,
         "steps": [
-            "Install Expo Go from the App Store or Google Play: https://expo.dev/go",
-            f"Clone {REPO}, then run: cd \"GPT-App Ver\" && npm ci && npm start",
-            "Scan the QR code in the terminal with your phone camera (iOS) or Expo Go (Android).",
-            "Set EXPO_PUBLIC_API_URL to your computer's LAN address (for example http://192.168.1.20:8787) so the app sees pauses from Chrome.",
-            "When Chrome pauses a checkout, the app shows the same nudge so you can decide from your phone.",
+            f"On your phone, open {SITE} and tap \"download mobile\".",
+            "Follow the install steps on that page for iOS or Android.",
+            "Open the app. When Chrome pauses a checkout, the app shows the same pause so you can decide from your phone.",
         ],
     },
 }
@@ -71,7 +69,7 @@ Work through these steps, one short message at a time:
    if it is missing, ask them (suggest 15). If minAmount is missing, ask them for one.
    If parse_rule fails, extract the amount and minutes yourself, confirm with the user, then call save_rule.
 4. Ask whether they shop on desktop Chrome, their phone, or both, then call get_install_steps for each and walk
-   them through it. Always include the download link.
+   them through it. Always send them to {SITE} to download; never tell shoppers to clone the repo or run npm.
 5. Call get_active_rule to verify the saved rule is live and tell them what will happen at their next checkout.
 
 Rules: never call save_rule without explicit confirmation. Never judge a purchase or make mental-health claims.

@@ -7,7 +7,7 @@ Sets you up with Snuffed, an opt-in shopping pause tool, entirely inside a chat.
 
 1. Turns your words into a spending rule (Gemini parses it into structured settings).
 2. Shows you the settings and saves them to your account only after you confirm. The Chrome extension starts enforcing the rule right away.
-3. Gives you the download link and install steps for the Chrome extension and the phone companion app.
+3. Sends you to [snuffed.tech](https://snuffed.tech) to download the Chrome extension and the phone companion app, with install steps.
 4. Reads back the live rule to confirm setup worked.
 
 A trusted friend can be pinged over iMessage during a pause for support. The friend never approves or blocks a purchase.
@@ -42,6 +42,6 @@ On first run, open the Agent inspector link from the log, click Connect, choose 
 | `parse_rule` | `POST /rules/parse`, Gemini turns rule text into settings |
 | `save_rule` | `POST /rules/confirm`, saves to Neon, extension picks it up |
 | `get_active_rule` | `GET /rules/active`, verifies the live rule |
-| `get_install_steps` | Download link and steps for `chrome` or `phone` |
+| `get_install_steps` | snuffed.tech download and install steps for `chrome` or `phone` |
 
 The ASI:One `asi1` model plans the conversation and picks the tools.

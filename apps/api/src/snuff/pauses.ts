@@ -475,5 +475,12 @@ export const pauses: Slice = {
       if (existing) return;
       await createNudge(sql, userId, { id, name: "Studio headphones", amount: 149 });
     },
+
+    // The app applies purchase rules before dispatching, so a received purchase always pauses.
+    async INCOMING_PURCHASE(sql, userId, action) {
+      const { id, name, amount } = action;
+      if (typeof id !== "string" || typeof name !== "string" || typeof amount !== "number") return;
+      await createNudge(sql, userId, { id, name, amount });
+    },
   },
 };

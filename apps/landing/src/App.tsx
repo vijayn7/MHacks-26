@@ -464,9 +464,8 @@ function PausePopup({ site }: { site: string }) {
         <div className="tile__block-choices">
           <div className="tile__choice tile__choice--lead" role="button">
             <span className="tile__choice-score">+30</span>
-            <span className="tile__choice-title">
-              Snuff the urge <span className="tile__choice-hint">(Close tab)</span>
-            </span>
+            <span className="tile__choice-title">Snuff the urge</span>
+            <span className="tile__choice-hint">(Close tab)</span>
             <span className="tile__choice-sub">Or snuff your flame.</span>
           </div>
 

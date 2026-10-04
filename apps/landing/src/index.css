@@ -250,7 +250,8 @@ button {
 
 .tile--interactive:hover .tile__block,
 .tile--interactive:focus-within .tile__block,
-.tile--blocking .tile__block {
+.tile--blocking .tile__block,
+.tile__block--visible {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
@@ -340,6 +341,17 @@ button {
   font-weight: 400;
   line-height: 1.35;
   color: #8f837c;
+  text-wrap: balance;
+}
+
+.urge__friend {
+  margin: 0.65em 0 0;
+  max-width: 18em;
+  font-family: var(--font-body);
+  font-size: 0.7em;
+  font-weight: 400;
+  line-height: 1.35;
+  color: #c4b4a8;
   text-wrap: balance;
 }
 
@@ -582,4 +594,91 @@ button {
   .snuff {
     cursor: auto;
   }
+}
+
+/* Standalone overlay preview page (/overlay.html) */
+.overlay-preview {
+  box-sizing: border-box;
+  min-height: 100svh;
+  padding: 2rem 1.25rem 3rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgb(60 35 22 / 0.45), transparent 70%),
+    #050403;
+  color: #f5ebe6;
+  font-family: var(--font-body);
+}
+
+.overlay-preview__header {
+  max-width: 36rem;
+  margin: 0 auto 1.75rem;
+  text-align: center;
+}
+
+.overlay-preview__kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8f837c;
+}
+
+.overlay-preview__title {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.overlay-preview__note {
+  margin: 0.65rem auto 0;
+  max-width: 28rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #b7aaa3;
+}
+
+.overlay-preview__note code {
+  font-size: 0.82em;
+  color: #f5d6b8;
+}
+
+.overlay-preview__stage {
+  display: flex;
+  justify-content: center;
+}
+
+.overlay-preview__window {
+  position: relative;
+  width: min(22rem, 92vw);
+  aspect-ratio: 3 / 4;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  container-type: size;
+  box-shadow:
+    0 1.5rem 3rem rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+.overlay-preview__window .tile__shot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.overlay-preview__back {
+  margin: 1.75rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.overlay-preview__back a {
+  color: #f5d6b8;
+  text-decoration: none;
+}
+
+.overlay-preview__back a:hover {
+  text-decoration: underline;
 }

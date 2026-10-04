@@ -5,6 +5,13 @@ Landing currently renders a static visual mock; wire the extension overlay to th
 
 Friend check-in is **support only** — never an approve / veto gate.
 
+## Preview
+
+- **Dedicated overlay preview:** [http://localhost:5174/overlay.html](http://localhost:5174/overlay.html)
+- **In-context on landing:** [http://localhost:5174/](http://localhost:5174/) — hover any bright front window
+
+Repo path for the preview entry: `apps/landing/overlay.html`
+
 ---
 
 ## 1. Overlay content (what the UI shows)

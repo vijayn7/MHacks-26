@@ -519,14 +519,15 @@ function FlameCursor() {
         </radialGradient>
       </defs>
       <ellipse cx="125" cy="181" rx="91" ry="75" fill="url(#cursor-bloom)" />
+      {/* Soft body glow — sits mid-flame, not a tip secretion */}
       <ellipse
-        cx="120"
-        cy="100"
-        rx="42"
-        ry="78"
+        cx="128"
+        cy="148"
+        rx="48"
+        ry="56"
         fill="url(#cursor-plume)"
-        transform="rotate(10 120 100)"
-        opacity="0.75"
+        transform="rotate(-8 128 148)"
+        opacity="0.55"
       />
       <g transform="translate(10 30) scale(0.92)">
         <path d={FLAME_SILHOUETTE} fill="url(#cursor-body)" filter="url(#cursor-edge)" opacity="0.55" />
@@ -578,7 +579,8 @@ export function App() {
       life: number;
       maxLife: number;
       size: number;
-      spin: number;
+      wobble: number;
+      stretch: number;
     };
 
     let raf = 0;
@@ -613,21 +615,36 @@ export function App() {
     };
     resize();
 
-    const spawn = (x: number, y: number, speed: number) => {
-      const count = Math.min(5, 1 + Math.floor(speed / 8));
+    // Trail behind motion — soft loft, not a tip-upward secretion.
+    const spawn = (x: number, y: number, dx: number, dy: number, speed: number) => {
+      const mag = Math.hypot(dx, dy) || 1;
+      const fx = dx / mag;
+      const fy = dy / mag;
+      // Unit vector opposite travel (where the trail goes)
+      const tx = -fx;
+      const ty = -fy;
+      const px = -ty;
+      const py = tx;
+      const count = Math.min(4, 1 + Math.floor(speed / 12));
+
       for (let i = 0; i < count; i++) {
-        if (embers.length > 90) embers.shift();
-        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
-        const burst = 0.4 + Math.random() * 1.6 + speed * 0.02;
+        if (embers.length > 100) embers.shift();
+        const along = 0.55 + Math.random() * (1.4 + speed * 0.045);
+        const side = (Math.random() - 0.5) * 1.35;
+        // Emit from the flame body / mid, slightly behind the tip
+        const back = 6 + Math.random() * 10;
+        const lateral = (Math.random() - 0.5) * 5;
         embers.push({
-          x: x + (Math.random() - 0.5) * 6,
-          y: y + (Math.random() - 0.5) * 6,
-          vx: Math.cos(angle) * burst * 0.55 + (Math.random() - 0.5) * 0.6,
-          vy: Math.sin(angle) * burst - 0.4 - Math.random() * 0.8,
+          x: x + tx * back + px * lateral,
+          y: y + ty * back + py * lateral + 8,
+          vx: tx * along + px * side * 0.55 + (Math.random() - 0.5) * 0.25,
+          // Gentle rise only — trail direction dominates
+          vy: ty * along + py * side * 0.55 - 0.08 - Math.random() * 0.12,
           life: 0,
-          maxLife: 28 + Math.random() * 36,
-          size: 2.2 + Math.random() * 3.4,
-          spin: (Math.random() - 0.5) * 0.18,
+          maxLife: 36 + Math.random() * 42,
+          size: 1.8 + Math.random() * 2.6,
+          wobble: (Math.random() - 0.5) * 0.08,
+          stretch: 1.6 + Math.min(speed / 18, 1.8),
         });
       }
     };
@@ -650,10 +667,13 @@ export function App() {
         e.life += 1;
         e.x += e.vx;
         e.y += e.vy;
-        e.vx += e.spin * 0.15;
-        e.vy -= 0.035;
-        e.vx *= 0.985;
-        e.size *= 1.012;
+        // Soft curl + fade of velocity into a lingering trail
+        e.vx += e.wobble;
+        e.vy -= 0.012;
+        e.vx *= 0.96;
+        e.vy *= 0.965;
+        e.size *= 1.008;
+        e.stretch *= 0.992;
 
         const t = e.life / e.maxLife;
         if (t >= 1) {
@@ -666,36 +686,45 @@ export function App() {
         let g: number;
         let b: number;
         let a: number;
-        if (t < 0.28) {
-          const u = t / 0.28;
+        if (t < 0.22) {
+          const u = t / 0.22;
           r = 255;
           g = 230 - u * 90;
           b = 140 - u * 100;
-          a = 0.95 - u * 0.15;
-        } else if (t < 0.55) {
-          const u = (t - 0.28) / 0.27;
-          r = 255 - u * 90;
-          g = 140 - u * 90;
-          b = 40 + u * 40;
-          a = 0.8 - u * 0.25;
+          a = 0.9 - u * 0.2;
+        } else if (t < 0.5) {
+          const u = (t - 0.22) / 0.28;
+          r = 255 - u * 100;
+          g = 140 - u * 70;
+          b = 40 + u * 50;
+          a = 0.7 - u * 0.28;
         } else {
-          const u = (t - 0.55) / 0.45;
-          r = 165 - u * 55;
-          g = 150 - u * 40;
-          b = 140 - u * 25;
-          a = 0.45 * (1 - u);
+          const u = (t - 0.5) / 0.5;
+          r = 155 - u * 45;
+          g = 145 - u * 35;
+          b = 140 - u * 20;
+          a = 0.38 * (1 - u) * (1 - u);
         }
 
-        const radius = e.size * (0.7 + t * 1.6);
-        const glow = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, radius);
+        const radius = e.size * (0.75 + t * 1.35);
+        const spd = Math.hypot(e.vx, e.vy);
+        const ang = spd > 0.05 ? Math.atan2(e.vy, e.vx) : 0;
+        const stretch = Math.max(1, e.stretch * (0.85 + Math.min(spd, 2) * 0.35));
+
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        ctx.rotate(ang);
+        ctx.scale(stretch, 1);
+        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
         glow.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`);
-        glow.addColorStop(0.45, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.45})`);
+        glow.addColorStop(0.5, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a * 0.4})`);
         glow.addColorStop(1, `rgba(${r | 0}, ${g | 0}, ${b | 0}, 0)`);
-        ctx.globalCompositeOperation = t < 0.5 ? "lighter" : "source-over";
+        ctx.globalCompositeOperation = t < 0.45 ? "lighter" : "source-over";
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
       ctx.globalCompositeOperation = "source-over";
 
@@ -721,8 +750,8 @@ export function App() {
       moving = true;
       placeCursor(pointerX, pointerY, true);
 
-      // Smoke rises from the flame tip (cursor hotspot)
-      if (!reduceMotion && speed > 0.4) spawn(pointerX, pointerY - 4, speed);
+      // Stream a trail behind the flame as it moves
+      if (!reduceMotion && speed > 0.5) spawn(pointerX, pointerY, dx, dy, speed);
     };
 
     const onLeave = () => {

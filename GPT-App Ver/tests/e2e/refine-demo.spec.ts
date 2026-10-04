@@ -23,25 +23,33 @@ test('settings refines drafts and simulates matching and nonmatching purchases',
   await page.getByRole('button', { name: '$200', exact: true }).click();
   await page.getByRole('button', { name: 'balanced', exact: true }).click();
   await page.getByRole('button', { name: 'confirm & try purchase demo' }).click();
-  await expect(page.getByText('a practice purchase.', { exact: true })).toBeVisible();
-  await expect(page.getByRole('textbox', { name: 'demo purchase amount' })).toHaveValue('200');
-  await page.getByRole('textbox', { name: 'demo purchase amount' }).fill('20');
-  await page.getByRole('button', { name: 'simulate purchase' }).click();
-  await expect(
-    page.getByText('purchase would continue. no payment was made.', { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'yes, snuff this urge' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'use a matching purchase' }).click();
-  await page.getByText('a practice purchase.', { exact: true }).scrollIntoViewIfNeeded();
-  await page.screenshot({ path: '../../outputs/snuffed-purchase-demo.png' });
-  await page.getByRole('button', { name: 'simulate purchase' }).click();
-  await expect(page.getByTestId('purchase-watch-context')).toBeVisible();
+  const store = page.frameLocator('iframe[title="sample shopping site"]');
+  await expect(store.getByRole('button', { name: 'buy now' })).toBeVisible();
+  await page.screenshot({ path: '../../outputs/snuffed-sample-store.png' });
+  await store.getByRole('button', { name: 'buy now' }).click();
+  await expect(page.getByTestId('purchase-takeover')).toBeVisible();
+  const box = await page.getByTestId('purchase-takeover').boundingBox();
+  expect(box?.width).toBe(390);
+  expect(box?.height).toBe(844);
+  await page.waitForTimeout(600); // Let the full-screen fade settle for the design preview.
+  await page.screenshot({ path: '../../outputs/snuffed-fullscreen-pause.png' });
+  await page.getByRole('button', { name: 'no, keep my flame', exact: true }).click();
+  await page.getByRole('button', { name: 'back to my day', exact: true }).click();
+  await expect(store.getByRole('status')).toContainText('purchase continued');
+  await store.getByText('customize this sample purchase').click();
+  await store.locator('#amount').fill('20');
+  await store.locator('#category').selectOption('other');
+  await store.getByRole('button', { name: 'buy now' }).click();
+  await expect(store.getByRole('status')).toContainText('outside your pause rules');
+  await expect(page.getByTestId('purchase-takeover')).toHaveCount(0);
+  await store.locator('#amount').fill('200');
+  await store.getByRole('button', { name: 'buy now' }).click();
   await page.getByRole('button', { name: 'save for later', exact: true }).click();
   await expect
     .poll(async () =>
       page.evaluate(() =>
         JSON.parse(localStorage.getItem('snuff.mobile.v2')!).archive.some(
-          (i: { source: string }) => i.source === 'purchase demo',
+          (i: { source: string }) => i.source === 'sample store',
         ),
       ),
     )

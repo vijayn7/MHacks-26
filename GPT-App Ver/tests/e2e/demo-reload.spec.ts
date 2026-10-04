@@ -5,7 +5,7 @@ async function onboard(page: import('@playwright/test').Page) {
   await page.getByRole('textbox', { name: 'last name', exact: true }).fill('Chen');
   await page.getByRole('button', { name: 'continue with google', exact: true }).click();
   await page.getByRole('button', { name: 'skip', exact: true }).click();
-  await page.getByRole('button', { name: 'start', exact: true }).click();
+  await page.getByRole('button', { name: 'confirm & continue', exact: true }).click();
 }
 test('reload restarts onboarding, archive stays populated, and Home replaces goals with feelings', async ({
   page,
@@ -26,7 +26,4 @@ test('reload restarts onboarding, archive stays populated, and Home replaces goa
   expect(after.purchaseRules).toEqual(before.purchaseRules);
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.getByRole('button', { name: 'open settings' }).click();
-  await page.getByRole('button', { name: 'apple watch', exact: true }).click();
-  await page.getByRole('button', { name: 'connect apple watch', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'disconnect watch', exact: true })).toBeVisible();
 });

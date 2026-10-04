@@ -9,7 +9,6 @@ import React, {
   useState,
 } from 'react';
 import { AppState as NativeAppState } from 'react-native';
-import { sampleWatchReading } from '../services/watch-feed';
 import { archiveSamples } from './archive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Action, AppState, initialState, migrate, reducer } from './model';
@@ -46,7 +45,7 @@ const Store = createContext<{
 });
 export function StoreProvider({ children }: React.PropsWithChildren) {
   // SYNC takes server state but keeps phone-only fields (purchase rules, opt-outs, onboarding
-  // progress, live watch reading) that the API does not store.
+  // progress) that the API does not store.
   const [state, apply] = useReducer(
     (
       s: AppState,
@@ -58,7 +57,6 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
       return {
         ...next,
         onboardingComplete: s.onboardingComplete,
-        wearable: { ...next.wearable, reading: s.wearable.reading ?? next.wearable.reading },
       };
     },
     undefined,
@@ -160,28 +158,6 @@ export function StoreProvider({ children }: React.PropsWithChildren) {
     };
   }, [ready, refresh]);
 
-  const streaming =
-    ready &&
-    state.wearable.enabled &&
-    state.wearable.status === 'connected' &&
-    !!activeNudge &&
-    state.nudges.some((n) => n.id === activeNudge && n.status === 'waiting');
-  useEffect(() => {
-    if (!streaming) return;
-    const update = () => {
-      if (NativeAppState.currentState === 'active' || NativeAppState.currentState == null)
-        apply({ type: 'WEARABLE', settings: { reading: sampleWatchReading() } });
-    };
-    update();
-    const timer = setInterval(update, 2000);
-    const subscription = NativeAppState.addEventListener('change', (status) => {
-      if (status === 'active') update();
-    });
-    return () => {
-      clearInterval(timer);
-      subscription.remove();
-    };
-  }, [streaming]);
   useEffect(() => {
     if (!ready) return;
     writes.current = writes.current

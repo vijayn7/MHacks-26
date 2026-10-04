@@ -294,7 +294,7 @@ export default function Profile() {
             router.push('/purchase-demo');
           }}
         >
-          purchase demo
+          sample purchase
         </QuietButton>
         <QuietButton secondary disabled={busy} onPress={() => toggle(!state.notificationsEnabled)}>
           {state.notificationsEnabled ? 'turn notifications off' : 'turn notifications on'}

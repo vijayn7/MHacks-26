@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { SoftPressable as Pressable } from './SoftPressable';
 import { Input, Icon, QuietButton, T } from './ui';
-import { useQuietMotion } from './WearableVisuals';
+import { useQuietMotion } from '../hooks/useQuietMotion';
 import { colors } from '../design/tokens';
 import { spendingCategories, supportLevel } from '../design/onboarding';
 import type { PurchaseRules } from '../state/purchase-rules';

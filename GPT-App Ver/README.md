@@ -1,4 +1,4 @@
-# GPT-App Ver · Snuff
+# Snuff
 
 A deliberately minimal React Native / Expo app built around a flame mascot and quiet notifications.
 
@@ -86,8 +86,6 @@ The burn-rate handle expands from a small dim light to a broad bright glow as it
 
 ## Home rhythm
 
-Home’s goal-setting interface has been removed. Scroll beneath the savings chart for the interactive emotion orb, feeling choices, heart-rate context, and a quiet emotion display. Legacy blocking state remains compatible with saved installations.
-
 Flame crowns continuously interpolate between organic SVG silhouettes, keeping the eyes and rounded base anchored. Motion slows with the flame’s status and continues while resting; it stops when the screen is inactive, the app is backgrounded, or reduced motion is enabled.
 
 ## Friend strip
@@ -124,10 +122,6 @@ Social → connect with a friend now offers “sync contacts” alongside email.
 
 The config plugin supplies the iOS usage description, and Android blocks WRITE_CONTACTS while retaining READ_CONTACTS. A new native development / release build is required for this dependency and permission configuration; refreshing an existing binary is insufficient. Typecheck, lint, permission / pagination / cancellation / duplicate unit tests, browser fallback tests, and cross-platform exports were verified. Actual OS permission dialogs and device address-book access still need iOS / Android device testing.
 
-## Designer handoff
-
-See the [portable Snuff design system](../design-system/snuff/README.md) for assets, tokens, previews, and reusable companion components.
-
 Slider feedback: all GlowSlider controls temporarily give the user’s flame happy eyes, faster crown flickering, and an extra rising spark. Releasing, canceling, leaving the screen, or backgrounding ends the reaction without changing the saved face or flame status. Keyboard/accessibility changes give a brief response. Reduced motion keeps the face and a static spark. Shared implementation: `src/hooks/useSliderCompanion.ts`.
 
 ## Minimal onboarding
@@ -140,22 +134,9 @@ Collection illustrations now include detailed metal, lens glass, stitching, hard
 
 Interface cleanup: Social has no leaderboard heading. Archive removes its heading and preview captions. Profile shows the user’s name on the left and a settings gear on the right; the settings sheet contains name editing, spending preferences, and notification controls. Onboarding requires first and last name before demo sign-in or guest entry, then saves the combined name at completion.
 
-## Integrated watch context
-
-Watch context now lives inside the existing Home and purchase popup, with no separate moments screen or watch onboarding. Home replaces goal setup with a spacious interactive emotion orb, feeling choices, a heart-rate scale, and a quiet emotion display. Dragging the orb adjusts intensity. The Home save-check-in action has been removed; purchase BPM averages exclude previously saved daily check-ins. The popup always shows a compact emotion-gradient orb beside current BPM and an estimated emotion label. It has no manual emotion input. The shared watch feed updates both together while the popup is waiting; purchase actions remain in place. The latest reading and estimated feelings are saved locally once when the purchase is resolved. The legacy three-value storage tuple repeats that snapshot; it is not a before/after measurement sequence.
-
-Profile settings → apple watch contains connect/disconnect, insights on/off, refresh reading, baseline, data clearing, and the display-data disclosure. All readings remain simulated and no Apple Health permission or connection exists. Simulator buttons, scenario selectors, trial purchase triggers, and demo captions are removed from the everyday UI. Old `/wearable` and `/moment` links redirect into Profile and Home. Backend handoff should replace the settings sample reading with consented, timestamped native data; the five-minute freshness gate and no-sharing behavior remain.
-
 Flame motion is more expressive across all mascot instances: wider crown deformation, faster high/low/resting cycles, larger plume drift and ember travel, and stronger petting squish and sway. Slider excitement remains faster than idle; reduced-motion and background/focus guards are retained.
 
 Burn rate has an info sheet explaining the manual 0–33 / 34–66 / 67–100 gentle/balanced/firm ranges, popup wording and flame tempo, without changing a spending budget. Social provides an outlined edit-friends control, individual edit buttons, persistent local names, and confirmed removal; removing a trusted friend clears that selection without changing savings.
-
-
-### Live popup watch feed
-
-`src/services/watch-feed.ts` supplies a scripted sample every two seconds while a connected watch’s purchase popup is open and the app is foregrounded. Closing, resolving, or disconnecting stops the stream. The display expires readings after five minutes and shows a neutral orb for missing emotion data. Daily self-reported feelings are never used as watch estimates.
-
-Backend handoff: replace the sample adapter with consented native sample events that dispatch `WEARABLE` with `reading: { bpm, at, emotions, intensity }`. BPM and emotion data share one timestamp. Emotions are optional estimates from an upstream model, not a capability to infer a known emotion directly from heart rate. No Apple Health or native watch transport is implemented. The simulated-data disclosure remains in settings. This live view is the in-app notification/block popup; OS notification banners retain their native behavior.
 
 
 ### Explicit purchase rules
@@ -168,8 +149,6 @@ The final screen sets a per-item USD threshold (inclusive, up to two decimal pla
 
 
 ## Minimal Home and extension score
-
-Home now contains the pettable flame, savings statement, line chart with soft radial-gradient orb markers, and Snuff score. Holding the Home flame no longer dispatches a pause; ordinary petting reactions remain. The entire “a moment for you” section and its scroll hint are removed. Watch context remains in the purchase popup and settings. Current visual: `previews/snuff-home-score.png` in the design kit.
 
 Score is 10 points per explicit Chrome extension Drop action. The extension posts `impulse_opt_out` with a stable checkout-derived ID; the API exposes only deduplicated IDs at `GET /score`. Legacy `purchase_dropped` events cannot distinguish a shopper choice from a friend-triggered outcome and are deliberately excluded. Save-for-later, continuing, in-app nudges, and flame petting do not award score. No sample score is seeded.
 
@@ -201,8 +180,6 @@ The fourth page offers light ($150, gentle), balanced ($75, balanced), and stron
 
 Settings → refine preferences opens the conversation with the current threshold. Local parsing recognizes a dollar threshold and gentler/firmer reminder requests, while the existing category suggestions carry forward. Changes remain drafts until reviewed in the restriction cards and saved. Cancel returns to Profile without saving; saving preferences returns there too. Personal free-text replies remain local and ephemeral; live AI is not connected.
 
-Settings → purchase demo and the “save & try purchase demo” action open `/purchase-demo`. Users change a sample item’s amount/category, then simulate checkout using the existing deterministic matcher and `receivePurchase`. A nonmatching purchase continues without an overlay; matching purchases open the actual Nudge overlay with watch context and all decision actions. Results show after dismissal, repeat simulations use distinct IDs, and changing the sample clears the previous result. No external purchase occurs. Choices update local sample savings/archive; Chrome score is unaffected. Saves carry “purchase demo” as their source.
-
 
 Onboarding transitions fade out over 120 ms and ease the next screen in over 300 ms. `SoftPressable` adds a palette-colored glow on press, fading away over 320 ms; onboarding choices and shared QuietButtons use it. Reduced motion makes both immediate. Animations stop on unmount, and duplicate step actions are guarded during fade-out.
 
@@ -213,5 +190,8 @@ The separate three-level restriction screen is removed from onboarding and prefe
 
 Replies use a 750 ms simulated typing state with three softly pulsing dots; inputs are unavailable while a reply is pending. Pending callbacks are cleared on unmount, chat follows new messages, and reduced motion leaves dots static. This is scripted local response pacing, not remote AI processing. Free-text chat remains ephemeral and is not uploaded.
 
+## Sample storefront and full-screen pause
 
-Home now places the 54-point Snuff score immediately below the flame, above the slightly smaller savings statement. The adjacent info icon opens the score explanation and sync status in a sheet; explanatory captions are removed from Home. Profile removes the Apple Watch settings entry and sheet. Existing watch data/overlay support is preserved; its feed remains simulated.
+Settings → sample purchase opens a distinct light storefront with studio headphones, a price, and a buy-now action. The web storefront is a separate local HTML document hosted in an iframe; native builds use a matching storefront screen. Amount and category are evaluated against confirmed purchase rules. Matching purchases show an edge-to-edge Snuff takeover, with the companion and skip, continue, save-for-later, and friend-preview actions. Nonmatching purchases continue in the sample store. No payment occurs and no operating-system control is claimed. Returning to the store displays the decision. Saves use “sample store” as their source; local sample decisions do not award Chrome score.
+
+The product centers on user-confirmed spending rules and checkout decisions. It collects no biometric or inferred-emotion data. Old locally stored sensor data is discarded during migration.

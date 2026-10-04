@@ -22,7 +22,6 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - Neon is the durable backend for user settings and event history.
 - Spacetime is in scope for the demo.
 - Cursor will be used for development. Gemini replaces Grok in the product stack.
-- Apple Watch biometrics are not part of the core demo. A Watch integration is a later stretch. Do not claim that heart rate diagnoses addiction or determines whether a purchase is impulsive.
 
 ## User flow
 
@@ -52,7 +51,6 @@ SecondThought is an opt-in shopping pause tool. It helps people slow down at onl
 - **Neon:** Durable users, confirmed rules, friend associations, saved-for-later items, and event log.
 - **Photon:** `spectrum-ts` connected through Spectrum Cloud with the iMessage provider. Send and receive the friend check-in in a real iMessage thread. Keep credentials server-side.
 - **Spacetime:** In scope for the demo. Neon is the durable record. Spacetime is the live pause row the pause card subscribes to.
-- **Apple Watch, optional later:** Manual pause/check-in affordance first. Do not make biometric interpretation a dependency.
 
 Capital One Nessie is on the demo path as the mock purchase record for this store. After the pause, Place order posts the whey product at $64.99. The API writes that purchase to the SecondThought Demo checking account, and the page shows the Nessie purchase id and the balance afterward. This does not charge a real card.
 
@@ -92,7 +90,6 @@ Use stable event IDs so retries do not create duplicate events. Do not log full 
 
 - **SpaceXAI:** No Grok Imagine or Voice integration in this version. Cursor use alone does not make Grok a product integration.
 - **Fetch.ai:** The primary workflow is a browser extension, not an ASI:One conversation.
-- **Presage / Apple Watch biometrics:** Not part of the core build.
 - **Relay, ElevenLabs, FREE-WILi, Solana, Tiger Data:** No load-bearing role in the current demo.
 
 ## Build order

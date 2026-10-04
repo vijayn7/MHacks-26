@@ -15,7 +15,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useStore } from '../state/Store';
-import { PurchaseInsights } from './PurchaseInsights';
 import { supportLevel } from '../design/onboarding';
 import { savedDate } from '../state/archive';
 import { money, type Nudge } from '../state/model';
@@ -137,22 +136,20 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
   };
   const finish = () => {
     onClose();
-    router.navigate('/');
+    if (n.source !== 'sample store') router.navigate('/');
   };
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <View
-        style={[s.backdrop, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="dismiss notification"
-          onPress={onClose}
-          style={StyleSheet.absoluteFill}
-        />
+    <Modal
+      visible
+      presentationStyle="fullScreen"
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View testID="purchase-takeover" style={s.backdrop}>
         <LinearGradient
           colors={done ? ['#171413', '#090808', '#050505'] : ['#1B100E', '#0D0808', '#050505']}
-          style={[s.popup, { maxHeight: height - insets.top - insets.bottom - 32 }]}
+          style={[s.popup, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
         >
           <View style={s.top}>
             <T variant="mono">snuff · a quiet nudge</T>
@@ -330,7 +327,6 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     saved {savedDate(archived.savedAt)}
                   </T>
                 )}
-                <PurchaseInsights nudge={n} />
                 {!!friendReply && (
                   <T variant="quote" style={[s.centerText, { marginBottom: 18 }]}>
                     {friendReply}
@@ -441,15 +437,11 @@ const s = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000B8',
-    paddingHorizontal: 20,
+    backgroundColor: colors.bg,
   },
   popup: {
     width: '100%',
-    maxWidth: 390,
-    borderRadius: 36,
-    borderWidth: 1,
-    borderColor: '#FFFFFF16',
+    flex: 1,
     overflow: 'hidden',
     flexShrink: 1,
   },
@@ -462,7 +454,7 @@ const s = StyleSheet.create({
     paddingTop: 10,
   },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingHorizontal: 26, paddingBottom: 28 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 26, paddingBottom: 28 },
   center: { alignItems: 'center' },
   centerText: { textAlign: 'center' },
   heading: { fontSize: 33, lineHeight: 40, textAlign: 'center', marginTop: 2 },

@@ -4,7 +4,6 @@ import {
   matchesPurchase,
   type PurchaseRules,
 } from './purchase-rules';
-import { freshWearable, readWearable, type Wearable, type Moment } from './wearable';
 import { spendingCategories } from '../design/onboarding';
 import { addContacts, type ContactCandidate } from './contacts';
 import { readArchive, savedSource, type SavedItem } from './archive';
@@ -32,7 +31,6 @@ export type Nudge = {
 export type AppState = {
   version: 2;
   extensionOptOutIds: string[];
-  wearable: Wearable;
   onboardingComplete: boolean;
   spendingCategories: string[];
   plan: BlockPlan | null;
@@ -57,9 +55,6 @@ export type Action =
   | { type: 'RENAME_FRIEND'; id: string; name: string }
   | { type: 'REMOVE_FRIEND'; id: string }
   | { type: 'DEMO_PURCHASE'; id: string }
-  | { type: 'WEARABLE'; settings: Partial<Omit<Wearable, 'moments'>> }
-  | { type: 'SAVE_MOMENT'; moment: Moment }
-  | { type: 'DELETE_WEARABLE_DATA' }
   | { type: 'COMPLETE_ONBOARDING'; categories: string[]; strength: number; rules?: PurchaseRules }
   | {
       type: 'INCOMING_PURCHASE';
@@ -95,7 +90,6 @@ export function initialState(now = Date.now()): AppState {
   return {
     version: 2,
     extensionOptOutIds: [],
-    wearable: freshWearable(),
     onboardingComplete: false,
     spendingCategories: [],
     plan: null,
@@ -131,12 +125,12 @@ const percent = (value: number, fallback: number) =>
 export function migrate(raw: unknown): AppState {
   const base = initialState();
   if (!raw || typeof raw !== 'object') return base;
-  const old = raw as Record<string, any>; // The previous local schema is deliberately accepted at this boundary.
+  const old = { ...raw } as Record<string, any>;
+  delete old.wearable; // The previous local schema is deliberately accepted at this boundary.
   if (old.version === 2)
     return {
       ...base,
       ...old,
-      wearable: readWearable(old.wearable),
       extensionOptOutIds: Array.isArray(old.extensionOptOutIds)
         ? [
             ...new Set<string>(
@@ -241,21 +235,6 @@ export function reducer(s: AppState, a: Action): AppState {
               { id: a.id, name: 'Studio headphones', amount: 149, status: 'waiting', dueAt: null },
             ],
           };
-    case 'WEARABLE':
-      return { ...s, wearable: readWearable({ ...s.wearable, ...a.settings }) };
-    case 'SAVE_MOMENT':
-      return {
-        ...s,
-        wearable: readWearable({
-          ...s.wearable,
-          moments: [a.moment, ...s.wearable.moments.filter((m) => m.id !== a.moment.id)].slice(
-            0,
-            50,
-          ),
-        }),
-      };
-    case 'DELETE_WEARABLE_DATA':
-      return { ...s, wearable: freshWearable() };
     case 'SYNC_EXTENSION_SCORE': {
       const ids = [
         ...new Set([

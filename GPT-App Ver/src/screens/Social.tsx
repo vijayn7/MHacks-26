@@ -53,26 +53,6 @@ export default function Social() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 34, paddingBottom: 28 }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={managing ? 'done editing friends' : 'edit friends'}
-            onPress={() => setManaging(!managing)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              paddingHorizontal: 14,
-              paddingVertical: 10,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Icon name={managing ? 'check' : 'edit-2'} size={14} />
-            <T variant="small">{managing ? 'done' : 'edit friends'}</T>
-          </Pressable>
-        </View>
         <View style={{ height: compact ? 260 : 330 }}>
           <View style={{ position: 'absolute', inset: 0, top: 38, justifyContent: 'flex-end' }}>
             <Svg
@@ -162,7 +142,72 @@ export default function Social() {
             </View>
           </View>
         </View>
-        <View testID="leaderboard-list" style={{ gap: 8, marginTop: 28 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 32,
+            marginBottom: 12,
+          }}
+        >
+          <T variant="title" style={{ fontSize: 26, lineHeight: 34 }}>
+            my friends
+          </T>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={managing ? 'done editing friends' : 'edit friends'}
+              accessibilityState={{ selected: managing }}
+              onPress={() => {
+                tap();
+                setManaging(!managing);
+              }}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: managing ? p.body + '70' : colors.border,
+                backgroundColor: managing ? p.body + '12' : 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <Icon
+                name={managing ? 'check' : 'edit-2'}
+                size={17}
+                color={managing ? p.body : colors.text}
+              />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="add friends"
+              onPress={() => {
+                tap();
+                setContactsMode(false);
+                setAdded(false);
+                setError('');
+                setEmail('');
+                setSheet('connect');
+              }}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <Icon name="user-plus" size={18} color={colors.text} />
+            </Pressable>
+          </View>
+        </View>
+        <View testID="leaderboard-list" style={{ gap: 8 }}>
           {ranked.map((f, i) => (
             <View key={f.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <T variant="small" style={{ width: 14 }}>
@@ -194,43 +239,6 @@ export default function Social() {
             </View>
           ))}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="connect with a friend"
-          onPress={() => {
-            tap();
-            setContactsMode(false);
-            setAdded(false);
-            setError('');
-            setEmail('');
-            setSheet('connect');
-          }}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 12,
-            marginTop: 28,
-          }}
-        >
-          <T variant="title" style={{ fontSize: 30 }}>
-            Connect with
-          </T>
-          <LinearGradient
-            colors={[p.body + '19', p.wash + '30']}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: p.body + '24',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name="user-plus" color={p.body} size={19} />
-          </LinearGradient>
-        </Pressable>
         <Sheet
           visible={!!friendEdit}
           title={removing ? 'remove this friend?' : 'edit friend'}

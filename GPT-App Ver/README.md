@@ -168,3 +168,6 @@ Score is 10 points per explicit Chrome extension Drop action. The extension post
 The app polls every 10 seconds while Home is active and the app is foregrounded. Confirmed IDs are cached locally and deduplicated across refresh/reload. On failure the last score remains with an offline caption. Set `EXPO_PUBLIC_EXTENSION_API_URL` to the API base URL (default `http://localhost:8787`; use a reachable host for phones). The API permits the app origin using `SNUFF_APP_ORIGIN` (default `http://localhost:8081`) on the score endpoint; the existing store origin is unchanged. Rebuild/reload the unpacked extension and restart the API for this integration.
 
 This uses the repository’s existing single-user demo event log. Production must authenticate and scope events by user before sharing a deployed API; no cross-account identity linkage is implemented here. The API stores events in Neon when configured, otherwise in memory.
+
+
+Social’s “my friends” heading sits directly above the ranked list. Adjacent 44-point edit and add icon buttons replace the old top edit pill and bottom connect row. Edit toggles to a highlighted checkmark; add opens the existing email/contact-sync sheet.

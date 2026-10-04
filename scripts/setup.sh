@@ -31,15 +31,37 @@ if (( major < 22 )); then
 fi
 
 if ! command -v pnpm >/dev/null 2>&1; then
-  if command -v corepack >/dev/null 2>&1; then
-    echo "Enabling pnpm through Corepack…"
-    corepack enable
-    corepack prepare pnpm@10.8.1 --activate
-  else
-    echo "pnpm is missing and Corepack is not available."
-    echo "  npm install -g pnpm"
-    exit 1
+  bindir="$HOME/.local/bin"
+  mkdir -p "$bindir"
+  case ":$PATH:" in
+    *":$bindir:"*) ;;
+    *) export PATH="$bindir:$PATH" ;;
+  esac
+  if ! grep -q '.local/bin' "$HOME/.zprofile" 2>/dev/null; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zprofile"
   fi
+  if command -v corepack >/dev/null 2>&1; then
+    echo "Enabling pnpm through Corepack in $bindir (not /usr/local/bin)…"
+    if ! corepack enable --install-directory "$bindir"; then
+      echo "Corepack could not write there. Installing pnpm with the official script…"
+      curl -fsSL https://get.pnpm.io/install.sh | sh -
+      # shellcheck disable=SC1090
+      [[ -f "$HOME/.zprofile" ]] && source "$HOME/.zprofile"
+    else
+      corepack prepare pnpm@10.8.1 --activate
+    fi
+  else
+    echo "Corepack is missing. Installing pnpm with the official script…"
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+    [[ -f "$HOME/.zprofile" ]] && source "$HOME/.zprofile"
+  fi
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pnpm is still not on PATH. Close this terminal, open a new one, cd back into this folder, and run:"
+  echo "  source ~/.zprofile"
+  echo "  bash scripts/setup.sh"
+  exit 1
 fi
 
 echo "Node $(node -v)  pnpm $(pnpm -v)"

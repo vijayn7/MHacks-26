@@ -14,7 +14,7 @@ type Plane = {
 /** Homepage screenshots captured from live ecommerce + sportsbook sites. */
 const planes: Plane[] = [
   { id: "p1", src: "/sites/amazon.jpg", alt: "Amazon", x: -36, y: -18, z: -300, w: 42, rotY: 7 },
-  { id: "p2", src: "/sites/draftkings.jpg", alt: "DraftKings", x: 32, y: 14, z: -460, w: 40, rotY: -8 },
+  { id: "p2", src: "/sites/edikted.jpg", alt: "Edikted", x: 32, y: 14, z: -460, w: 40, rotY: -8 },
   { id: "p3", src: "/sites/nike.jpg", alt: "Nike", x: 4, y: -24, z: -700, w: 38, rotY: 4 },
   { id: "p4", src: "/sites/fanduel.jpg", alt: "FanDuel", x: -32, y: 18, z: -940, w: 42, rotY: -6 },
   { id: "p5", src: "/sites/princesspolly.jpg", alt: "Princess Polly", x: 36, y: -12, z: -1160, w: 38, rotY: 9 },

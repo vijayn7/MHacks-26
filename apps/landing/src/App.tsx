@@ -356,8 +356,8 @@ const tiles: Tile[] = [
   },
   {
     id: "i5",
-    src: "/sites/bestbuy.jpg",
-    alt: "Best Buy deals",
+    src: "/sites/polymarket.jpg",
+    alt: "Polymarket",
     layer: "near",
     interactive: true,
     drift: 0.9,

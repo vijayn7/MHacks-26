@@ -152,7 +152,6 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
           style={[s.popup, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
         >
           <View style={s.top}>
-            <T variant="mono">snuff · a quiet nudge</T>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="close notification"
@@ -334,6 +333,12 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                 )}
                 {!done && !kept && !saved ? (
                   <>
+                    <T
+                      variant="small"
+                      style={{ textAlign: 'center', marginTop: -14, marginBottom: 24 }}
+                    >
+                      let this purchase go. keep the money for what matters.
+                    </T>
                     <View style={s.choices}>
                       <Pressable
                         accessibilityRole="button"
@@ -341,21 +346,25 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                         onPress={() => decide(true)}
                         style={({ pressed }) => [s.choice, s.yes, { opacity: pressed ? 0.7 : 1 }]}
                       >
-                        <T>yes</T>
-                      </Pressable>
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="no, keep my flame"
-                        onPress={() => decide(false)}
-                        style={({ pressed }) => [s.choice, { opacity: pressed ? 0.7 : 1 }]}
-                      >
                         <LinearGradient
                           colors={[p.core, p.body]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                           style={[StyleSheet.absoluteFill, { borderRadius: 99 }]}
                         />
-                        <T color={p.wash}>no</T>
+                        <T color={p.wash}>yes</T>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="ask a friend"
+                        onPress={() => {
+                          tap();
+                          setFriendsOpen(true);
+                        }}
+                        style={[s.choice, s.yes, { flexDirection: 'row', gap: 7 }]}
+                      >
+                        <Icon name="users" size={16} color={colors.secondary} />
+                        <T variant="small">ask a friend</T>
                       </Pressable>
                     </View>
                     <Pressable
@@ -373,16 +382,12 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     </Pressable>
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel="ask a friend"
-                      onPress={() => {
-                        tap();
-                        setFriendsOpen(true);
-                      }}
+                      accessibilityLabel="no, keep my flame"
+                      onPress={() => decide(false)}
                       style={[s.ask, { marginTop: 12, borderWidth: 0 }]}
                     >
-                      <Icon name="users" size={16} color={colors.secondary} />
-                      <T variant="small" color={colors.text}>
-                        ask a friend
+                      <T variant="small" color={colors.secondary}>
+                        no, continue purchase
                       </T>
                     </Pressable>
                   </>
@@ -421,9 +426,6 @@ function NudgePopup({ nudge: n, onClose }: { nudge: Nudge; onClose: () => void }
                     {error}
                   </T>
                 )}
-                <T variant="small" color={colors.muted} style={s.caption}>
-                  a sample purchase. savings are estimated.
-                </T>
               </>
             )}
           </ScrollView>
@@ -448,7 +450,7 @@ const s = StyleSheet.create({
   top: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingLeft: 26,
     paddingRight: 12,
     paddingTop: 10,

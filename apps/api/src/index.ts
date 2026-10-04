@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import postgres from "postgres";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
+import { DbConnection } from "../../extension/src/module_bindings/index.js";
 
 function loadEnv(file: string) {
   let text: string;
@@ -35,6 +36,13 @@ function loadEnv(file: string) {
 loadEnv(join(dirname(fileURLToPath(import.meta.url)), "../../../.env"));
 
 const port = Number(process.env.PORT) || 8787;
+const spacetimeUri = process.env.SPACETIMEDB_URI?.trim() ?? "";
+const spacetimeDatabase = process.env.SPACETIMEDB_DATABASE?.trim() ?? "";
+const spacetimeToken = process.env.SPACETIMEDB_TOKEN?.trim() ?? "";
+const spacetimeOn = spacetimeUri !== "" && spacetimeDatabase !== "" && spacetimeToken !== "";
+if (!spacetimeOn) {
+  console.log("[spacetime] SPACETIMEDB_URI, SPACETIMEDB_DATABASE, or SPACETIMEDB_TOKEN is unset; live pause updates are off");
+}
 const projectId = process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.SPECTRUM_PROJECT_SECRET;
 const friendHandle = process.env.FRIEND_HANDLE?.trim() ?? "";
@@ -70,6 +78,26 @@ const checkIns = new Map<string, CheckIn>();
 const outbound = new Set<string>([askAgain, approvedAck, rejectedAck]);
 let waitingId: string | null = null;
 let deliver: ((text: string) => Promise<void>) | null = null;
+let spacetimeConn: DbConnection | null = null;
+
+function startSpacetime() {
+  if (!spacetimeOn) return;
+  spacetimeConn = DbConnection.builder()
+    .withUri(spacetimeUri)
+    .withDatabaseName(spacetimeDatabase)
+    .withToken(spacetimeToken)
+    .onConnectError((_ctx, error) => {
+      console.error("[spacetime] connect failed", error instanceof Error ? error.message : "unknown");
+    })
+    .build();
+}
+
+function upsertPause(sessionId: string, state: string, friendReply?: string) {
+  if (!spacetimeConn) return;
+  void spacetimeConn.reducers.upsertPauseStatus({ sessionId, state, friendReply }).catch((error: unknown) => {
+    console.error("[spacetime] upsert failed", error instanceof Error ? error.message : "unknown");
+  });
+}
 
 function e164(handle: string) {
   if (handle.startsWith("+")) return handle;
@@ -387,6 +415,7 @@ async function parseRule(text: string) {
 }
 
 await ensureDb();
+startSpacetime();
 
 createServer((req, res) => {
   void handle(req, res).catch(() => {
@@ -466,6 +495,14 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     send(res, result.status, result.body);
     return;
   }
+  if (req.method === "GET" && path === "/spacetime") {
+    if (!spacetimeOn) {
+      send(res, 503, { error: "unconfigured" });
+      return;
+    }
+    send(res, 200, { uri: spacetimeUri, database: spacetimeDatabase });
+    return;
+  }
   if (req.method === "GET" && path === "/check-in") {
     const row = checkIns.get(url.searchParams.get("id") ?? "");
     if (!row) {
@@ -530,6 +567,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     waitingId = id;
     await persistCheckIn(row);
     logEvent("friend_message_sent", ruleId);
+    upsertPause(id, "sent");
     send(res, 200, row);
     return;
   }
@@ -645,6 +683,7 @@ if (projectId && projectSecret && friendHandle) {
     waitingId = null;
     await persistCheckIn(row);
     logEvent("friend_replied", row.ruleId);
+    upsertPause(row.id, decision, text);
     console.log(`[imessage] friend ${decision} the pause`);
     const ack = decision === "approved" ? approvedAck : rejectedAck;
     try {

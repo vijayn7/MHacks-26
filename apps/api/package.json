@@ -3,10 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=../../.env src/index.ts"
+    "dev": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --packages=external && node --env-file=../../.env dist/index.js",
+    "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
     "postgres": "^3.4.9",
+    "spacetimedb": "2.10.*",
     "spectrum-ts": "^12.10.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "esbuild": "^0.25.0"
   }
 }

@@ -41,7 +41,7 @@ The price is over $40 on purpose so the seeded rule matches.
 
 ## Chrome extension
 
-Package: `@secondthought/extension`. Manifest V3. One content script, `apps/extension/src/content.ts`, compiled with `tsc` to `dist/content.js`. No React in the extension. The pause card is a shadow DOM overlay so store CSS cannot restyle it.
+Package: `@secondthought/extension`. Manifest V3. One content script, `apps/extension/src/content.ts`, bundled with esbuild to `dist/content.js`. No React in the extension. The pause card is a shadow DOM overlay so store CSS cannot restyle it.
 
 The script does not use `chrome.*`. It can be injected into the store page for a check, but the real demo is the unpacked extension.
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '../design/tokens';
+import { colors, fonts } from '../design/tokens';
 import { useStore } from '../state/Store';
 import { Mascot } from './Mascot';
 import { Icon, QuietButton, Sheet, T } from './ui';
@@ -37,7 +37,7 @@ export function FriendStrip() {
             <View
               key={friend.id}
               testID="friend-avatar"
-              style={{ width: slot, height: 50, alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: slot, alignItems: 'center', justifyContent: 'center' }}
             >
               <Mascot
                 hue={friend.hue}
@@ -45,6 +45,21 @@ export function FriendStrip() {
                 companionId={friend.id}
                 companionName={friend.name}
               />
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={{
+                  width: slot,
+                  marginTop: 3,
+                  fontFamily: fonts.body,
+                  fontSize: 10,
+                  lineHeight: 14,
+                  color: colors.secondary,
+                  textAlign: 'center',
+                }}
+              >
+                {friend.name.trim().split(/\s+/)[0].toLowerCase()}
+              </Text>
             </View>
           ))}
         {width > 0 && overflows && (

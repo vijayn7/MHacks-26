@@ -139,12 +139,18 @@ test('face choices persist on the same companion across screens and preserve pet
   for (const tab of ['home', 'social']) {
     await page.getByRole('tab', { name: tab, exact: true }).click();
     await expect(
-      page.getByRole('button', { name: /^pet your flame/ }).getByTestId('flame-face-wink'),
+      page
+        .getByRole('button', { name: /^pet your flame/ })
+        .first()
+        .getByTestId('flame-face-wink'),
     ).toBeVisible();
   }
   await page.reload();
   await expect(
-    page.getByRole('button', { name: /^pet your flame/ }).getByTestId('flame-face-wink'),
+    page
+      .getByRole('button', { name: /^pet your flame/ })
+      .first()
+      .getByTestId('flame-face-wink'),
   ).toBeVisible();
   await page.getByRole('tab', { name: 'profile', exact: true }).click();
   await page.getByRole('button', { name: 'customize face', exact: true }).click();

@@ -472,15 +472,13 @@ function PausePopup({ site }: { site: string }) {
 
           <div className="tile__choice-pair">
             <div className="tile__choice" role="button">
-              <span className="tile__choice-title">
-                Ask Maya <span className="tile__choice-hint">(Texts a trusted friend)</span>
-              </span>
+              <span className="tile__choice-title">Ask Maya</span>
+              <span className="tile__choice-hint">(Texts a trusted friend)</span>
               <span className="tile__choice-sub">They’ll know best.</span>
             </div>
             <div className="tile__choice" role="button">
-              <span className="tile__choice-title">
-                Save for later <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
-              </span>
+              <span className="tile__choice-title">Save for later</span>
+              <span className="tile__choice-hint">(Save to mobile Wishlist)</span>
               <span className="tile__choice-sub">Sit on it. Do you really need this?</span>
             </div>
           </div>

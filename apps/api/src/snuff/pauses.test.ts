@@ -8,7 +8,7 @@ const url = process.env.DATABASE_URL;
 if (!url) {
   test("pauses slice requires DATABASE_URL", { skip: true }, () => {});
 } else {
-  const sql = postgres(url, { max: 1, idle_timeout: 5, connect_timeout: 10 });
+  const sql = postgres(url, { max: 1, idle_timeout: 5, connect_timeout: 10, onnotice: () => {} });
   const userId = `pauses-test-${randomUUID()}`;
 
   test("pauses slice mirrors reducer money-loop semantics", async (t) => {

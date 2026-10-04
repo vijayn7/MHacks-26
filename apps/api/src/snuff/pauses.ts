@@ -133,54 +133,55 @@ export async function nudgeStatus(
   return n?.status ?? null;
 }
 
-function mockLedger(now: number): { id: string; kind: "snuff" | "pause"; amount: number; at: Date }[] {
-  // ~14 days of history so the Home 7-day chart has varied non-zero bars.
-  // Lifetime snuffs sum to ~$334 with 12 snuffs + 1 bare pause = 13 pauses.
-  const snuffs: [number, number][] = [
-    [13, 25],
-    [12, 30],
-    [11, 18],
-    [10, 40],
-    [9, 22],
-    [8, 35],
-    [7, 28],
-    [6, 8],
-    [5, 24],
-    [4, 12],
-    [3, 19],
-    [2, 32],
-    [1, 51],
-    [0, 48],
-  ];
-  // Keep offsets 13,11,10,9,8,6,5,4,3,2,1,0 (skip 12 and 7) → 12 snuffs.
-  const keep = new Set([13, 11, 10, 9, 8, 6, 5, 4, 3, 2, 1, 0]);
-  const rows: { id: string; kind: "snuff" | "pause"; amount: number; at: Date }[] = snuffs
-    .filter(([daysAgo]) => keep.has(daysAgo))
-    .map(([daysAgo, amount], i) => ({
-      id: `seed-snuff-${i}`,
-      kind: "snuff" as const,
-      amount,
-      at: new Date(now - daysAgo * 86400000 - (i % 5) * 3600000),
-    }));
-  rows.push({
-    id: "seed-pause-0",
-    kind: "pause",
-    amount: 0,
-    at: new Date(now - 10 * 86400000 - 2 * 3600000),
-  });
-  return rows;
-}
-
 async function seedIfEmpty(sql: Sql, userId: string) {
   const now = Date.now();
   const ledger = await sql`select 1 from snuff_ledger where user_id = ${userId} limit 1`;
   if (!ledger.length) {
-    for (const row of mockLedger(now)) {
+    // Anchor each snuff at noon America/New_York so dailySavings keys cover the
+    // last 7 local chart days with no UTC/offset drift. 12 snuffs (~$334) + 1 pause.
+    const snuffs: [number, number][] = [
+      [13, 25],
+      [11, 18],
+      [10, 40],
+      [9, 22],
+      [8, 35],
+      [6, 8],
+      [5, 24],
+      [4, 12],
+      [3, 19],
+      [2, 32],
+      [1, 51],
+      [0, 48],
+    ];
+    for (let i = 0; i < snuffs.length; i++) {
+      const [daysAgo, amount] = snuffs[i]!;
       await sql`
         insert into snuff_ledger (user_id, id, kind, amount, at)
-        values (${userId}, ${row.id}, ${row.kind}, ${row.amount}, ${row.at})
+        values (
+          ${userId},
+          ${"seed-snuff-" + i},
+          'snuff',
+          ${amount},
+          (
+            ((now() at time zone 'America/New_York')::date - ${daysAgo}::int)
+            + time '12:00'
+          ) at time zone 'America/New_York'
+        )
         on conflict do nothing`;
     }
+    await sql`
+      insert into snuff_ledger (user_id, id, kind, amount, at)
+      values (
+        ${userId},
+        'seed-pause-0',
+        'pause',
+        0,
+        (
+          ((now() at time zone 'America/New_York')::date - 10)
+          + time '15:00'
+        ) at time zone 'America/New_York'
+      )
+      on conflict do nothing`;
   }
 
   const nudges = await sql`select 1 from snuff_nudges where user_id = ${userId} limit 1`;
@@ -222,21 +223,22 @@ async function seedIfEmpty(sql: Sql, userId: string) {
 
   const archive = await sql`select 1 from saved_items where user_id = ${userId} limit 1`;
   if (!archive.length) {
+    // saved_items.id is globally unique (shared with GET/POST /saved), so prefix by user.
     const items = [
       {
-        id: "archive-camera",
+        id: `${userId}:archive-camera`,
         name: "Film camera",
         amount: 240,
         at: new Date(now - 18 * 86400000),
       },
       {
-        id: "archive-tote",
+        id: `${userId}:archive-tote`,
         name: "Everyday tote",
         amount: 64,
         at: new Date(now - 11 * 86400000),
       },
       {
-        id: "archive-lamp",
+        id: `${userId}:archive-lamp`,
         name: "Ceramic table light",
         amount: 89,
         at: new Date(now - 4 * 86400000),
@@ -344,7 +346,7 @@ export const pauses: Slice = {
         id: row.id,
         name: row.name as string,
         amount: asAmount(row.amount),
-        savedAt: asAmount(row.saved_at),
+        savedAt: Math.round(asAmount(row.saved_at)),
       }));
 
     return {

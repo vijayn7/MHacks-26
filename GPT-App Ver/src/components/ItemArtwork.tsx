@@ -1,4 +1,5 @@
 import React, { useId } from 'react';
+import { colors, palettes } from '../design/tokens';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 /** Local, reusable product illustrations; no third-party image requests. */
@@ -17,21 +18,12 @@ export function ItemArtwork({ name, size = 112 }: { name: string; size?: number 
             : /speaker/i.test(name)
               ? 'speaker'
               : 'box';
-  const bg = {
-    headphones: '#CFBFAF',
-    camera: '#C2C8D4',
-    lamp: '#D2D1B4',
-    bag: '#D6BFA6',
-    watch: '#C2CBC8',
-    speaker: '#C7BFCF',
-    box: '#D0C8BA',
-  }[kind];
   return (
     <Svg width={size} height={size} viewBox="0 0 160 160">
       <Defs>
         <LinearGradient id={'bg' + id} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#FFFFFF" />
-          <Stop offset="1" stopColor={bg} />
+          <Stop offset="0" stopColor={palettes.Ember.wash} />
+          <Stop offset="1" stopColor={colors.bg} />
         </LinearGradient>
         <LinearGradient id={'metal' + id} x1="0" y1="0" x2="1" y2=".6">
           <Stop offset="0" stopColor="#F4EFE4" />
@@ -45,10 +37,10 @@ export function ItemArtwork({ name, size = 112 }: { name: string; size?: number 
           <Stop offset="1" stopColor="#101516" />
         </LinearGradient>
       </Defs>
-      <Rect width="160" height="160" rx="4" fill={bg} />
-      <Rect width="160" height="160" rx="4" fill={'url(#bg' + id + ')'} opacity=".28" />
-      <Ellipse cx="84" cy="130" rx="45" ry="8" fill="#38342C" opacity=".08" />
-      <Ellipse cx="84" cy="130" rx="31" ry="4" fill="#38342C" opacity=".1" />
+      <Rect width="160" height="160" rx="16" fill={colors.surface} />
+      <Rect width="160" height="160" rx="16" fill={'url(#bg' + id + ')'} opacity=".65" />
+      <Ellipse cx="84" cy="130" rx="45" ry="8" fill="#000000" opacity=".28" />
+      <Ellipse cx="84" cy="130" rx="31" ry="4" fill="#000000" opacity=".35" />
       <G transform="rotate(-12 80 80)">
         {kind === 'headphones' ? (
           <>

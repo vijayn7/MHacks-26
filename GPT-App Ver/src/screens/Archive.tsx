@@ -16,13 +16,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../state/Store';
 import { archiveSamples, savedDate, type SavedItem } from '../state/archive';
 import { money } from '../state/model';
+import { colors, palettes } from '../design/tokens';
 import { ItemArtwork } from '../components/ItemArtwork';
 import { Icon, Sheet, T, tap } from '../components/ui';
 
-const paper = '#F2EEE6',
-  ink = '#383A32',
-  muted = '#96958A',
-  step = 128,
+const step = 128,
   tile = 104;
 export default function Archive() {
   const { state, dispatch, openNudge } = useStore();
@@ -68,24 +66,24 @@ export default function Archive() {
   };
   return (
     <View style={[s.page, { paddingTop: insets.top + 24, paddingBottom: 100 + insets.bottom }]}>
-      {focused && <StatusBar style="dark" />}
+      {focused && <StatusBar style="light" />}
       <View style={s.header}>
-        <T color={ink} style={{ fontSize: 14 }}>
+        <T color={colors.text} style={{ fontSize: 14 }}>
           for another day.
         </T>
-        <T variant="mono" color={muted}>
+        <T variant="mono" color={colors.secondary}>
           {preview ? 'preview' : `${items.length} saved`}
         </T>
       </View>
       {!items.length ? (
         <View style={s.empty}>
-          <Icon name="archive" size={24} color={muted} />
-          <T variant="title" color={ink} style={{ marginTop: 24 }}>
+          <Icon name="archive" size={24} color={colors.secondary} />
+          <T variant="title" color={colors.text} style={{ marginTop: 24 }}>
             nothing here, yet.
           </T>
           <T
             variant="small"
-            color={muted}
+            color={colors.secondary}
             style={{ textAlign: 'center', marginTop: 12, maxWidth: 235 }}
           >
             choose “save for later” on a nudge. it’ll be waiting here.
@@ -99,7 +97,7 @@ export default function Archive() {
             }}
             style={s.preview}
           >
-            <T variant="small" color={ink}>
+            <T variant="small" color={colors.text}>
               preview the collection ↗
             </T>
           </Pressable>
@@ -165,7 +163,12 @@ export default function Archive() {
                           if (selected !== index) focus(index);
                           else setDetail(item);
                         }}
-                        style={s.card}
+                        style={[
+                          s.card,
+                          selected === index && {
+                            boxShadow: `0px 0px 24px ${palettes[state.hue].body}18`,
+                          },
+                        ]}
                       >
                         <ItemArtwork name={item.name} size={tile} />
                       </Pressable>
@@ -173,22 +176,34 @@ export default function Archive() {
                     {selected === index && (
                       <>
                         <View pointerEvents="none" style={s.date}>
-                          <T variant="mono" color={muted} style={{ fontSize: 8, lineHeight: 13 }}>
+                          <T
+                            variant="mono"
+                            color={colors.secondary}
+                            style={{ fontSize: 8, lineHeight: 13 }}
+                          >
                             saved
                           </T>
-                          <T variant="small" color={muted} style={{ fontSize: 10, lineHeight: 14 }}>
+                          <T
+                            variant="small"
+                            color={colors.secondary}
+                            style={{ fontSize: 10, lineHeight: 14 }}
+                          >
                             {savedDate(item.savedAt)}
                           </T>
                         </View>
                         <View pointerEvents="none" style={s.label}>
                           <T
                             variant="title"
-                            color={ink}
+                            color={colors.text}
                             style={{ fontSize: width < 360 ? 14 : 17, lineHeight: 21 }}
                           >
                             {item.name}
                           </T>
-                          <T variant="small" color={muted} style={{ marginTop: 6, fontSize: 11 }}>
+                          <T
+                            variant="small"
+                            color={palettes[state.hue].body}
+                            style={{ marginTop: 6, fontSize: 11 }}
+                          >
                             {money(item.amount)}
                           </T>
                         </View>
@@ -202,12 +217,12 @@ export default function Archive() {
               <>
                 <LinearGradient
                   pointerEvents="none"
-                  colors={[paper, '#F2EEE600']}
+                  colors={[colors.bg, colors.bg + '00']}
                   style={[s.fade, { top: 0 }]}
                 />
                 <LinearGradient
                   pointerEvents="none"
-                  colors={['#F2EEE600', paper]}
+                  colors={[colors.bg + '00', colors.bg]}
                   style={[s.fade, { bottom: 0 }]}
                 />
               </>
@@ -221,11 +236,11 @@ export default function Archive() {
               onPress={() => focus(selected - 1)}
               style={[s.arrow, { opacity: selected === 0 ? 0.25 : 1 }]}
             >
-              <Icon name="chevron-up" size={15} color={ink} />
+              <Icon name="chevron-up" size={15} color={colors.text} />
             </Pressable>
             <T
               variant="mono"
-              color={muted}
+              color={colors.secondary}
             >{`${String(selected + 1).padStart(2, '0')} / ${String(items.length).padStart(2, '0')}`}</T>
             <Pressable
               accessibilityRole="button"
@@ -234,7 +249,7 @@ export default function Archive() {
               onPress={() => focus(selected + 1)}
               style={[s.arrow, { opacity: selected === items.length - 1 ? 0.25 : 1 }]}
             >
-              <Icon name="chevron-down" size={15} color={ink} />
+              <Icon name="chevron-down" size={15} color={colors.text} />
             </Pressable>
           </View>
           <Pressable
@@ -245,7 +260,7 @@ export default function Archive() {
             }
             style={s.bottom}
           >
-            <T variant="small" color={muted} style={{ fontSize: 10 }}>
+            <T variant="small" color={colors.secondary} style={{ fontSize: 10 }}>
               {preview ? 'sample collection · close preview' : 'tap an item to revisit'}
             </T>
           </Pressable>
@@ -292,7 +307,7 @@ export default function Archive() {
   );
 }
 const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: paper },
+  page: { flex: 1, backgroundColor: colors.bg },
   header: {
     paddingHorizontal: 28,
     flexDirection: 'row',
@@ -307,9 +322,10 @@ const s = StyleSheet.create({
   card: {
     width: tile,
     height: tile,
-    borderRadius: 4,
+    borderRadius: 12,
     overflow: 'hidden',
-    boxShadow: '0px 6px 9px #55503A18',
+    backgroundColor: colors.surface,
+    boxShadow: '0px 8px 24px #00000066',
   },
   date: {
     position: 'absolute',

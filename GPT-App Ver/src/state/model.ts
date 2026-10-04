@@ -240,13 +240,15 @@ export function reducer(s: AppState, a: Action): AppState {
             ],
           };
     case 'SYNC_EXTENSION_SCORE': {
+      // The API is the source of truth, so a demo reset can lower the score.
       const ids = [
-        ...new Set([
-          ...s.extensionOptOutIds,
-          ...a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
-        ]),
+        ...new Set(
+          a.ids.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200),
+        ),
       ];
-      return ids.length === s.extensionOptOutIds.length ? s : { ...s, extensionOptOutIds: ids };
+      return ids.join('\n') === s.extensionOptOutIds.join('\n')
+        ? s
+        : { ...s, extensionOptOutIds: ids };
     }
     case 'INCOMING_PURCHASE':
       return !s.protectionPaused &&
